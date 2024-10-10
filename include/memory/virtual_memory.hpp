@@ -18,6 +18,16 @@ namespace memory {
      * Also, it is easier to clear the region if you know that any memory tied to the region
      * will not be used later in the program.
      *
+     * +--------------------------+ <--- bp (begin, high address)
+     * |                          |
+     * +--------------------------+
+     * |                          |
+     * |           ...            |
+     * |                          |
+     * +--------------------------+
+     * |                          |
+     * +--------------------------+ <--- region_limit (end, low address)
+     *
      * @tparam NumBytes             Number of total bytes to be allocated (will be aligned to alignment)
      * @tparam Alignment            Alignment of allocation/de-allocation (should be >= machine's alignment and
      *                              is a power of 2.)
@@ -25,7 +35,7 @@ namespace memory {
      */
   template<size_t NumBytes, size_t Alignment = sizeof(void *), template<typename, size_t = 0> class base_allocator_t = malloc_allocator_t>
   class virtual_stack_region_t {
-  private:
+  protected:
     using byte_t                          = uint8_t;
     using byte_allocator                  = base_allocator_t<byte_t, Alignment>;
 
@@ -52,23 +62,14 @@ namespace memory {
     }
 
     template<typename T>
-    void inplace(T &t, const size_t n = 1) noexcept {
-      new (&t) T[n]();
-    }
-
-    template<typename T>
-    void inplace_ptr(T *t, const size_t n = 1) noexcept {
-      new (t) T[n]();
-    }
-
-    template<typename T>
     [[nodiscard]] T *construct_ptr(const size_t n = 1) noexcept {
-      return new (allocate_ptr<T>(n)) T[n]();
+      const T *ptr = allocate_ptr<T>(n);
+      return is_nullptr(ptr) ? nullptr : new_allocator_t<T>::allocate_inplace(ptr, n);
     }
 
     template<typename T>
     [[nodiscard]] T *construct_ptr_unsafe(const size_t n = 1) noexcept {
-      return new (allocate_ptr_unsafe<T>(n)) T[n]();
+      return new_allocator_t<T>::allocate_inplace(allocate_ptr_unsafe<T>(n), n);
     }
 
     template<typename T>

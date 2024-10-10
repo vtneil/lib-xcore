@@ -14,11 +14,19 @@ namespace memory {
     using concrete_allocator_t = allocator_form_t<Tp>;
 
   public:
-    FORCE_INLINE static Tp *allocate(const size_t n = 1) noexcept {
+    FORCE_INLINE static constexpr Tp *allocate(const size_t n = 1) noexcept {
       return concrete_allocator_t::impl_allocate(n);
     }
 
-    FORCE_INLINE static void deallocate(Tp *object) noexcept {
+    FORCE_INLINE static constexpr Tp *allocate_inplace(Tp &dst, const size_t n = 1) noexcept {
+      return concrete_allocator_t::impl_allocate_inplace(dst, n);
+    }
+
+    FORCE_INLINE static constexpr Tp *allocate_inplace(Tp *dst, const size_t n = 1) noexcept {
+      return concrete_allocator_t::impl_allocate_inplace(dst, n);
+    }
+
+    FORCE_INLINE static constexpr void deallocate(Tp *object) noexcept {
       concrete_allocator_t::impl_deallocate(object);
     }
   };
@@ -29,11 +37,19 @@ namespace memory {
     friend class allocator_t<new_allocator_t, Tp>;
 
   protected:
-    FORCE_INLINE static Tp *impl_allocate(const size_t n = 1) noexcept {
+    FORCE_INLINE static constexpr Tp *impl_allocate(const size_t n = 1) noexcept {
       return new (std::nothrow) Tp[n];
     }
 
-    FORCE_INLINE static void impl_deallocate(Tp *object) noexcept {
+    FORCE_INLINE static constexpr Tp *impl_allocate_inplace(Tp &dst, const size_t n = 1) noexcept {
+      return new (&dst) Tp[n];
+    }
+
+    FORCE_INLINE static constexpr Tp *impl_allocate_inplace(Tp *dst, const size_t n = 1) noexcept {
+      return new (dst) Tp[n];
+    }
+
+    FORCE_INLINE static constexpr void impl_deallocate(Tp *object) noexcept {
       delete[] object;
     }
   };
@@ -44,11 +60,19 @@ namespace memory {
     friend class allocator_t<malloc_allocator_t, Tp>;
 
   public:
-    FORCE_INLINE static Tp *impl_allocate(const size_t n = 1) noexcept {
+    FORCE_INLINE static constexpr Tp *impl_allocate(const size_t n = 1) noexcept {
       return static_cast<Tp *>(malloc(n * sizeof(Tp)));
     }
 
-    FORCE_INLINE static void impl_deallocate(Tp *object) noexcept {
+    FORCE_INLINE static constexpr Tp *impl_allocate_inplace(Tp &dst, const size_t = 1) noexcept {
+      return *dst;
+    }
+
+    FORCE_INLINE static constexpr Tp *impl_allocate_inplace(Tp *dst, const size_t = 1) noexcept {
+      return dst;
+    }
+
+    FORCE_INLINE static constexpr void impl_deallocate(Tp *object) noexcept {
       free(object);
     }
   };
@@ -59,13 +83,21 @@ namespace memory {
     friend class allocator_t<malloc_allocator_t, Tp>;
 
   public:
-    FORCE_INLINE static Tp *impl_allocate(const size_t n = 1) noexcept {
+    FORCE_INLINE static constexpr Tp *impl_allocate(const size_t n = 1) noexcept {
       void *p_mem = malloc(n * sizeof(Tp));
       memset(p_mem, 0, n * sizeof(Tp));
       return static_cast<Tp *>(p_mem);
     }
 
-    FORCE_INLINE static void impl_deallocate(Tp *object) noexcept {
+    FORCE_INLINE static constexpr Tp *impl_allocate_inplace(Tp &dst, const size_t = 1) noexcept {
+      return *dst;
+    }
+
+    FORCE_INLINE static constexpr Tp *impl_allocate_inplace(Tp *dst, const size_t = 1) noexcept {
+      return dst;
+    }
+
+    FORCE_INLINE static constexpr void impl_deallocate(Tp *object) noexcept {
       free(object);
     }
   };
@@ -76,13 +108,13 @@ namespace memory {
     friend class allocator_t<aligned_allocator_t, Tp>;
 
   public:
-    FORCE_INLINE static Tp *impl_allocate(const size_t n = 1) noexcept {
+    FORCE_INLINE static constexpr Tp *impl_allocate(const size_t n = 1) noexcept {
       static_assert(false, "Not implemented");
       // todo: Implement aligned allocation
       return static_cast<Tp *>(malloc(n * sizeof(Tp)));
     }
 
-    FORCE_INLINE static void impl_deallocate(Tp *object) noexcept {
+    FORCE_INLINE static constexpr void impl_deallocate(Tp *object) noexcept {
       static_assert(false, "Not implemented");
       free(object);
     }
@@ -95,12 +127,12 @@ namespace memory {
 
   public:
     template<typename... Args>
-    static Tp *impl_allocate(Args...) noexcept {
+    FORCE_INLINE static constexpr Tp *impl_allocate(Args...) noexcept {
       static_assert(false, "This allocator should not be used in the program.");
     }
 
     template<typename... Args>
-    static void impl_deallocate(Args...) noexcept {
+    FORCE_INLINE static constexpr void impl_deallocate(Args...) noexcept {
       static_assert(false, "This allocator should not be used in the program.");
     }
   };

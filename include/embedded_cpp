@@ -3,10 +3,16 @@
 
 #include "require_cpp20.hpp"
 
-#include "lib/move.hpp"
-#include "lib/optional.hpp"
 #include "lib/macros_bootstrap.hpp"
 #include "lib/builtins_bootstrap.hpp"
-#include "memory.hpp"
+#include "lib/ported_std.hpp"
+#include "lib/types.hpp"
+#include "lib/optional.hpp"
+
+#include "memory/generic.hpp"
+#include "memory/allocator.hpp"
+#include "memory/virtual_memory.hpp"
+
+#include "container/array.hpp"
 
 #endif  //EMBEDDED_CPP_H

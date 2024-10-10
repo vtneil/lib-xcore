@@ -15,12 +15,12 @@ namespace memory {
   }
 
   template<typename Tp, size_t Alignment>
-  FORCE_INLINE constexpr size_t nearest_alignment(const size_t n) {
+  FORCE_INLINE constexpr size_t nearest_alignment(const size_t n = 1) {
     return (((n * sizeof(Tp)) + Alignment - 1) / Alignment) * Alignment;
   }
 
   template<typename Tp, typename AlignT>
-  FORCE_INLINE constexpr size_t nearest_alignment(const size_t n) {
+  FORCE_INLINE constexpr size_t nearest_alignment(const size_t n = 1) {
     return nearest_alignment<Tp, sizeof(AlignT)>(n);
   }
 }  // namespace memory
