@@ -1,0 +1,12 @@
+#ifndef EMBEDDED_CPP_H
+#define EMBEDDED_CPP_H
+
+#include "require_cpp20.hpp"
+
+#include "lib/move.hpp"
+#include "lib/optional.hpp"
+#include "lib/macros_bootstrap.hpp"
+#include "lib/builtins_bootstrap.hpp"
+#include "memory.hpp"
+
+#endif  //EMBEDDED_CPP_H
