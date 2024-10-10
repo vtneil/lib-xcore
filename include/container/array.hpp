@@ -132,17 +132,6 @@ namespace container {
     [[nodiscard]] FORCE_INLINE constexpr size_t length() const noexcept {
       return size();
     }
-
-    template<traits::has_ostream OStream>
-    OStream &operator<<(OStream &os, const array_container_t &arr) {
-      os << "{";
-      size_t i = 0;
-      for (; i < Size - 1; ++i) {
-        os << static_cast<Tp>(arr[i]) << ", ";
-      }
-      os << static_cast<Tp>(arr[i]) << "}";
-      return os;
-    }
   };
 }  // namespace container
 

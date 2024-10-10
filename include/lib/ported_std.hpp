@@ -2,7 +2,10 @@
 #define MOVE_HPP
 
 #include "macros_bootstrap.hpp"
+#include <cstddef>
 #include <cstdlib>
+#include <cstdint>
+#include <cstring>
 
 namespace ported {
   using real_t = double;

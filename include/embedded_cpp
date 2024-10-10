@@ -14,5 +14,6 @@
 #include "memory/virtual_memory.hpp"
 
 #include "container/array.hpp"
+#include "container/circular_buffer.hpp"
 
 #endif  //EMBEDDED_CPP_H

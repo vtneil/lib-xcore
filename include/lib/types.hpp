@@ -4,9 +4,9 @@
 #include <concepts>
 
 namespace traits {
-  template<typename S>
-  concept has_ostream = requires(S s, const char *str) {
-    { s << str } -> std::same_as<S &>;
+  template<typename S, typename T>
+  concept has_ostream = requires(S s, T t) {
+    { s << t } -> std::same_as<S &>;
   };
 }  // namespace traits
 

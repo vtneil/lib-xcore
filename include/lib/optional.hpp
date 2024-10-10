@@ -6,6 +6,12 @@
 #include "lib/ported_std.hpp"
 
 namespace ported {
+  struct nullopt_t {
+    explicit constexpr nullopt_t() = default;
+  };
+
+  constexpr nullopt_t nullopt{};
+
   template<typename T>
   class optional {
   private:
@@ -13,13 +19,15 @@ namespace ported {
     unsigned char storage[memory::nearest_alignment<T, void *>()] = {};
 
   public:
-             optional() : is_initialized(false) {}
+    optional() : is_initialized(false) {}
 
-    explicit optional(const T &value) : is_initialized(true) {
+    optional(nullopt_t) : is_initialized(false) {}
+
+    optional(const T &value) : is_initialized(true) {
       new (storage) T(value);
     }
 
-    explicit optional(T &&value) : is_initialized(true) {
+    optional(T &&value) : is_initialized(true) {
       new (storage) T(move(value));
     }
 
@@ -80,6 +88,11 @@ namespace ported {
         new (storage) T(move(value));
         is_initialized = true;
       }
+      return *this;
+    }
+
+    optional &operator=(nullopt_t) {
+      reset();
       return *this;
     }
 
