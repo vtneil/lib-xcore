@@ -109,14 +109,11 @@ namespace memory {
 
   public:
     FORCE_INLINE static constexpr Tp *impl_allocate(const size_t n = 1) noexcept {
-      static_assert(false, "Not implemented");
       // todo: Implement aligned allocation
-      return static_cast<Tp *>(malloc(n * sizeof(Tp)));
+      return nullptr;
     }
 
     FORCE_INLINE static constexpr void impl_deallocate(Tp *object) noexcept {
-      static_assert(false, "Not implemented");
-      free(object);
     }
   };
 
@@ -128,12 +125,11 @@ namespace memory {
   public:
     template<typename... Args>
     FORCE_INLINE static constexpr Tp *impl_allocate(Args...) noexcept {
-      static_assert(false, "This allocator should not be used in the program.");
+      return nullptr;
     }
 
     template<typename... Args>
     FORCE_INLINE static constexpr void impl_deallocate(Args...) noexcept {
-      static_assert(false, "This allocator should not be used in the program.");
     }
   };
 

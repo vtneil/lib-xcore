@@ -11,18 +11,43 @@
 
 #define VZ(fn)             [&]() -> int { fn; return 0; }
 
-#define EXPECT(a, b)       __builtin_expect(a, b)
+#if __has_builtin(__builtin_expect)
 
-#define LIKELY(x)          EXPECT(!!(x), 1)
+#define EXPECT(a, b) __builtin_expect(a, b)
+#define LIKELY(x)    EXPECT(!!(x), 1)
+#define UNLIKELY(x)  EXPECT(!!(x), 0)
 
-#define UNLIKELY(x)        EXPECT(!!(x), 0)
+#else
 
-#define ASSUME(x)          __builtin_assume(x)
+#define EXPECT(a, b)
+#define LIKELY(x)
+#define UNLIKELY(x)
 
-#define UNREACHABLE()      __builtin_unreachable()
+#endif
 
-#define RESTRICT           __restrict__
+#if __has_builtin(__builtin_assume)
 
-#define PURE               __attribute__((pure))
+#define ASSUME(x) __builtin_assume(x)
+
+#else
+
+#define ASSUME(x)
+
+#endif
+
+#if __has_builtin(__builtin_unreachable)
+
+#define UNREACHABLE() __builtin_unreachable()
+
+#else
+
+#define UNREACHABLE()
+
+#endif
+
+#define RESTRICT __restrict__
+
+#define PURE     __attribute__((pure))
+
 
 #endif  //MACROS_BOOTSTRAP_H
