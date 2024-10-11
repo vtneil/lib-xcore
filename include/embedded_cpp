@@ -15,5 +15,7 @@
 
 #include "container/array.hpp"
 #include "container/circular_buffer.hpp"
+#include "container/bitset.hpp"
+#include "container/lru_cache.hpp"
 
 #endif  //EMBEDDED_CPP_H
