@@ -264,7 +264,8 @@ namespace ported {
       static false_type test(...);
 
     public:
-      using type = decltype(test<T, Args...>(0));
+      using type                  = decltype(test<T, Args...>(0));
+      static constexpr bool value = type::value;
     };
   }  // namespace detail
 
@@ -274,11 +275,12 @@ namespace ported {
   namespace detail {
     template<typename T, typename... Args>
     class is_trivially_constructible_impl {
-      static constexpr bool value =
+      static constexpr bool trivially_constructible =
         is_constructible<T, Args...>::value && __is_trivially_constructible(T, Args...);
 
     public:
-      using type = integral_constant<bool, value>;
+      using type                  = integral_constant<bool, trivially_constructible>;
+      static constexpr bool value = type::value;
     };
   }  // namespace detail
 
@@ -288,11 +290,13 @@ namespace ported {
   namespace detail {
     template<typename T, typename... Args>
     class is_nothrow_constructible_impl {
-      static constexpr bool value = noexcept(T(declval<Args>()...));
+      static constexpr bool nothrow_constructible = noexcept(T(declval<Args>()...));
 
     public:
-      using type = integral_constant<bool, value>;
+      using type                  = integral_constant<bool, nothrow_constructible>;
+      static constexpr bool value = type::value;
     };
+
   }  // namespace detail
 
   template<typename T, typename... Args>

@@ -57,6 +57,8 @@ namespace container {
 
     template<typename... Args>
     bool emplace(Args &&...args) {
+      static_assert(ported::is_constructible<Tp, Args &&...>::value, "Arguments cannot construct the type");
+
       if (full())
         return false;
 

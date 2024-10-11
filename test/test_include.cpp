@@ -9,6 +9,7 @@ int main(int argc, char **argv) {
   queue.put(1);
   queue.put(2);
   queue.put(3);
+  queue.emplace(1, 3);
   std::cout << queue.size() << "\n===\n";
 
 
