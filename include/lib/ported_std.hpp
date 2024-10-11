@@ -252,6 +252,51 @@ namespace ported {
   constexpr real_t integral_coefficient() {
     return detail::integral_coefficient_helper<real_t, N>::value;
   }
+
+  namespace detail {
+    template<typename T, typename... Args>
+    class is_constructible_impl {
+      template<typename U, typename... UArgs,
+               typename = decltype(U(declval<UArgs>()...))>
+      static true_type test(int);
+
+      template<typename, typename...>
+      static false_type test(...);
+
+    public:
+      using type = decltype(test<T, Args...>(0));
+    };
+  }  // namespace detail
+
+  template<typename T, typename... Args>
+  using is_constructible = typename detail::is_constructible_impl<T, Args...>::type;
+
+  namespace detail {
+    template<typename T, typename... Args>
+    class is_trivially_constructible_impl {
+      static constexpr bool value =
+        is_constructible<T, Args...>::value && __is_trivially_constructible(T, Args...);
+
+    public:
+      using type = integral_constant<bool, value>;
+    };
+  }  // namespace detail
+
+  template<typename T, typename... Args>
+  using is_trivially_constructible = typename detail::is_trivially_constructible_impl<T, Args...>::type;
+
+  namespace detail {
+    template<typename T, typename... Args>
+    class is_nothrow_constructible_impl {
+      static constexpr bool value = noexcept(T(declval<Args>()...));
+
+    public:
+      using type = integral_constant<bool, value>;
+    };
+  }  // namespace detail
+
+  template<typename T, typename... Args>
+  using is_nothrow_constructible = typename detail::is_nothrow_constructible_impl<T, Args...>::type;
 }  // namespace ported
 
 #endif  //MOVE_HPP
