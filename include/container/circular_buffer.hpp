@@ -55,6 +55,16 @@ namespace container {
       return true;
     }
 
+    template<typename... Args>
+    bool emplace(Args &&...args) {
+      if (full())
+        return false;
+
+      new (arr_ + impl::cyclic<Capacity>(start_index_ + size_)) Tp(ported::forward<Args>(args)...);
+      static_cast<void>(++size_);
+      return true;
+    }
+
     ported::optional<Tp> get() {
       if (empty())
         return ported::nullopt;
