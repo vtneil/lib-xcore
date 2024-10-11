@@ -1,8 +1,7 @@
 #ifndef OPTIONAL_HPP
 #define OPTIONAL_HPP
 
-#include "memory/generic.hpp"
-#include "memory/allocator.hpp"
+#include "memory.hpp"
 #include "lib/ported_std.hpp"
 
 namespace ported {

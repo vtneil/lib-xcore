@@ -1,6 +1,8 @@
 #ifndef BITSET_HPP
 #define BITSET_HPP
 
+#include "memory.hpp"
+
 namespace container {
   template<size_t Nb, typename WordT = int>
   class bitset_t {
