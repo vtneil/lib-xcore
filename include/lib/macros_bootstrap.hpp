@@ -1,53 +1,94 @@
 #ifndef MACROS_BOOTSTRAP_H
 #define MACROS_BOOTSTRAP_H
 
-#define ALIGNED(alignment) __attribute__((aligned(alignment)))
+#ifndef PACKED
+#  define PACKED __attribute__((packed))
+#endif
 
-#define INLINE             __inline
+#ifndef ALIGNED
+#  define ALIGNED(alignment) __attribute__((aligned(alignment)))
+#endif
 
-#define FORCE_INLINE       INLINE __attribute__((always_inline))
+#ifndef INLINE
+#  define INLINE __inline
+#endif
 
-#define NO_INLINE          __attribute__((noinline))
+#ifndef FORCE_INLINE
+#  define FORCE_INLINE INLINE __attribute__((always_inline))
+#endif
 
-#define VZ(fn)             [&]() -> int { fn; return 0; }
+#ifndef NO_INLINE
+#  define NO_INLINE __attribute__((noinline))
+#endif
+
+#ifndef VZ
+#  define VZ(fn) [&]() -> int { fn; return 0; }
+#endif
 
 #if __has_builtin(__builtin_expect)
 
-#define EXPECT(a, b) __builtin_expect(a, b)
-#define LIKELY(x)    EXPECT(!!(x), 1)
-#define UNLIKELY(x)  EXPECT(!!(x), 0)
+#  ifndef EXPECT
+#    define EXPECT(a, b) __builtin_expect(a, b)
+#  endif
+
+#  ifndef LIKELY
+#    define LIKELY(x) EXPECT(!!(x), 1)
+#  endif
+
+#  ifndef UNLIKELY
+#    define UNLIKELY(x) EXPECT(!!(x), 0)
+#  endif
 
 #else
 
-#define EXPECT(a, b)
-#define LIKELY(x)
-#define UNLIKELY(x)
+#  ifndef EXPECT
+#    define EXPECT(a, b)
+#  endif
+
+#  ifndef LIKELY
+#    define LIKELY(x)
+#  endif
+
+#  ifndef UNLIKELY
+#    define UNLIKELY(x)
+#  endif
 
 #endif
 
 #if __has_builtin(__builtin_assume)
 
-#define ASSUME(x) __builtin_assume(x)
+#  ifndef ASSUME
+#    define ASSUME(x) __builtin_assume(x)
+#  endif
 
 #else
 
-#define ASSUME(x)
+#  ifndef ASSUME
+#    define ASSUME(x)
+#  endif
 
 #endif
 
 #if __has_builtin(__builtin_unreachable)
 
-#define UNREACHABLE() __builtin_unreachable()
+#  ifndef UNREACHABLE
+#    define UNREACHABLE() __builtin_unreachable()
+#  endif
 
 #else
 
-#define UNREACHABLE()
+#  ifndef UNREACHABLE
+#    define UNREACHABLE()
+#  endif
 
 #endif
 
-#define RESTRICT __restrict__
+#ifndef RESTRICT
+#  define RESTRICT __restrict__
+#endif
 
-#define PURE     __attribute__((pure))
-
+#ifndef PURE
+#  define PURE __attribute__((pure))
+#endif
 
 #endif  //MACROS_BOOTSTRAP_H
