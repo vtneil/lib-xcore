@@ -4,12 +4,12 @@ project(embedded_cpp)
 set(CMAKE_CXX_STANDARD 17)
 
 file(GLOB_RECURSE source_files
-        lib/**/*.cpp
+        src/**/*.cpp
 )
 
 add_library(${PROJECT_NAME} STATIC ${source_files})
 target_include_directories(
-        ${PROJECT_NAME} PUBLIC lib
+        ${PROJECT_NAME} PUBLIC src
 )
 
 # Functions
