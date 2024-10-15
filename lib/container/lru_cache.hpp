@@ -1,8 +1,8 @@
 #ifndef LRU_CACHE_HPP
 #define LRU_CACHE_HPP
 
-#include "lib/ported_std.hpp"
-#include "lib/optional.hpp"
+#include "core/ported_std.hpp"
+#include "core/optional.hpp"
 #include "container/bitset.hpp"
 
 namespace container {

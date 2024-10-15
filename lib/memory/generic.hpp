@@ -1,7 +1,7 @@
 #ifndef HPA_2110452_MIN_DOM_SET_MEMORY_UTILS_H
 #define HPA_2110452_MIN_DOM_SET_MEMORY_UTILS_H
 
-#include "lib/builtins_bootstrap.hpp"
+#include "core/builtins_bootstrap.hpp"
 
 namespace memory {
   template<typename R = void, typename Tp>

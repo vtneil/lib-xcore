@@ -1,8 +1,8 @@
 #ifndef CIRCULAR_BUFFER_HPP
 #define CIRCULAR_BUFFER_HPP
 
-#include "lib/ported_std.hpp"
-#include "lib/optional.hpp"
+#include "core/ported_std.hpp"
+#include "core/optional.hpp"
 
 namespace container {
   namespace impl {
@@ -57,7 +57,7 @@ namespace container {
 
     template<typename... Args>
     bool emplace(Args &&...args) {
-      static_assert(ported::is_constructible<Tp, Args &&...>::value, "Arguments cannot construct the type");
+      static_assert(ported::is_constructible_v<Tp, Args &&...>, "Arguments cannot construct the type");
 
       if (full())
         return false;

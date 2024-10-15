@@ -1,8 +1,7 @@
 #ifndef ARRAY_HPP
 #define ARRAY_HPP
 
-#include "lib/ported_std.hpp"
-#include "lib/types.hpp"
+#include "core/ported_std.hpp"
 #include <cstdlib>
 
 namespace container {

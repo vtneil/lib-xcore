@@ -1,0 +1,16 @@
+#ifndef ENABLE_DISPATCHER
+#define ENABLE_DISPATCHER
+
+#include "utils/task_dispatcher.hpp"
+
+#define USE_DISPATCHER(GLOB_DISPATCHER_SYMBOL)        \
+  void loop() {                                       \
+    static bool __glob_dispatcher_reset_flag = false; \
+    if (!__glob_dispatcher_reset_flag) {              \
+      GLOB_DISPATCHER_SYMBOL.reset();                 \
+      __glob_dispatcher_reset_flag = true;            \
+    }                                                 \
+    GLOB_DISPATCHER_SYMBOL();                         \
+  }
+
+#endif  //ENABLE_DISPATCHER

@@ -1,7 +1,7 @@
 #ifndef BUILTINS_BOOTSTRAP_H
 #define BUILTINS_BOOTSTRAP_H
 
-#include "lib/macros_bootstrap.hpp"
+#include "core/macros_bootstrap.hpp"
 
 namespace builtin {
   constexpr unsigned long long next_power_of_two(const unsigned long long x) {
