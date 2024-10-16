@@ -195,12 +195,22 @@ namespace impl {
     void clear() {
       m_size = 0;
     }
+
+    [[nodiscard]] size_t size() const { return m_size; }
+
+    [[nodiscard]] size_t capacity() const { return MaxTasks; }
   };
 }  // namespace impl
 
-using Task = impl::task_t<nonblocking_delay, unsigned long>;
+/**
+ * Default task type for most frameworks
+ */
+using Task = impl::task_t<impl::nonblocking_delay, unsigned long>;
 
+/**
+ * Default task dispatcher type for most frameworks
+ */
 template<size_t MaxTasks>
-using Dispatcher = impl::task_dispatcher<MaxTasks, nonblocking_delay, unsigned long>;
+using Dispatcher = impl::task_dispatcher<MaxTasks, impl::nonblocking_delay, unsigned long>;
 
 #endif  //TASK_DISPATCHER_HPP
