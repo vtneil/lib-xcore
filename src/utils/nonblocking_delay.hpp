@@ -216,14 +216,20 @@ namespace impl {
   };
 }  // namespace impl
 
+template<typename TimeT>
+using nonblocking_delay = impl::nonblocking_delay<TimeT>;
+
+template<typename TimeT>
+using on_off_timer = impl::on_off_timer<TimeT>;
+
 /**
  * Default non-blocking delay type for most frameworks
  */
-using NbDelay = impl::nonblocking_delay<unsigned long>;
+using NbDelay = nonblocking_delay<unsigned long>;
 
 /**
  * Default flip-flip timer type for most frameworks
  */
-using FfTimer = impl::on_off_timer<unsigned long>;
+using FfTimer = on_off_timer<unsigned long>;
 
 #endif  //NONBLOCKING_DELAY_HPP
