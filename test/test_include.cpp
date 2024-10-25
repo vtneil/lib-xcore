@@ -2,8 +2,9 @@
 #include "dispatcher"
 #include <iostream>
 
-container::circular_buffer_static_t<int, 32> queue;
-Dispatcher<64>                               dispatcher;
+container::queue_t<int, 10, container::array_t> queue;
+container::array_t<int, 1024>                   arr1;
+container::heap_array_t<int, 1024>              arr2;
 
 //
 
@@ -16,20 +17,23 @@ unsigned long millis() {
   return t++;
 }
 
-void loop();
-
-USE_DISPATCHER(dispatcher);
+void print_buf(const void *buf, const size_t n) {
+  for (size_t i = 0; i < n; ++i) {
+    std::cout << +*(static_cast<const char *>(buf) + i) << " ";
+  }
+}
 
 int main(int argc, char **argv) {
-  queue.put(1);
-  queue.put(2);
-  queue.put(3);
-  queue.emplace(1);
+  queue.push(1);
+  queue.push(2);
+  queue.push(3);
+  queue.emplace(4);
+  queue.emplace(5);
   std::cout << queue.size() << "\n===\n";
 
 
   for (size_t i = 0; i < 10; ++i) {
-    auto x = queue.get();
+    auto x = queue.pop();
     if (x) {
       std::cout << *x << "\n";
     } else {
@@ -37,11 +41,9 @@ int main(int argc, char **argv) {
     }
   }
 
-  dispatcher << Task(print, 20, millis, 0);
+  std::cout << std::endl;
 
-  for (size_t i = 0; i < 100; ++i) {
-    loop();
-  }
+  print_buf(queue.data(), queue.capacity() * sizeof(long));
 
   return 0;
 }

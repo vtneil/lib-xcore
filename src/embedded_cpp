@@ -11,7 +11,9 @@
 #include "memory.hpp"
 
 #include "container/array.hpp"
-#include "container/circular_buffer.hpp"
+#include "container/deque.hpp"
+#include "container/queue.hpp"
+#include "container/stack.hpp"
 #include "container/bitset.hpp"
 #include "container/lru_cache.hpp"
 
