@@ -4,17 +4,17 @@
 #include "container/array.hpp"
 
 namespace container {
-  template<typename Tp, size_t Capacity, template<typename, size_t> class Array = array_t>
+  template<typename Tp, size_t Capacity, template<typename, size_t> class Container = array_t>
   struct deque_t {
   protected:
-    using value_type               = Tp;
-    using reference                = value_type &;
-    using const_reference          = const value_type &;
+    using value_type                   = Tp;
+    using reference                    = value_type &;
+    using const_reference              = const value_type &;
 
-    Array<Tp, Capacity> arr_       = {};
-    size_t              pos_front_ = {};
-    size_t              pos_back_  = {};
-    size_t              size_      = 0;
+    Container<Tp, Capacity> arr_       = {};
+    size_t                  pos_front_ = {};
+    size_t                  pos_back_  = {};
+    size_t                  size_      = 0;
 
   public:
     // Deque Modification

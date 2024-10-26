@@ -26,6 +26,10 @@ namespace memory {
       return concrete_allocator_t::impl_allocate_inplace(dst, n);
     }
 
+    FORCE_INLINE static constexpr Tp *reallocate(Tp *object, const size_t n) noexcept {
+      return concrete_allocator_t::impl_reallocate(object, n);
+    }
+
     FORCE_INLINE static constexpr void deallocate(Tp *object) noexcept {
       concrete_allocator_t::impl_deallocate(object);
     }
@@ -37,16 +41,20 @@ namespace memory {
     friend class allocator_t<new_allocator_t, Tp>;
 
   protected:
-    FORCE_INLINE static constexpr Tp *impl_allocate(const size_t n = 1) noexcept {
+    FORCE_INLINE static constexpr Tp *impl_allocate(const size_t n) noexcept {
       return new (std::nothrow) Tp[n];
     }
 
-    FORCE_INLINE static constexpr Tp *impl_allocate_inplace(Tp &dst, const size_t n = 1) noexcept {
+    FORCE_INLINE static constexpr Tp *impl_allocate_inplace(Tp &dst, const size_t n) noexcept {
       return new (&dst) Tp[n];
     }
 
-    FORCE_INLINE static constexpr Tp *impl_allocate_inplace(Tp *dst, const size_t n = 1) noexcept {
+    FORCE_INLINE static constexpr Tp *impl_allocate_inplace(Tp *dst, const size_t n) noexcept {
       return new (dst) Tp[n];
+    }
+
+    FORCE_INLINE static constexpr Tp *impl_reallocate(Tp *object, const size_t) noexcept {
+      return object;  // Unsupported
     }
 
     FORCE_INLINE static constexpr void impl_deallocate(Tp *object) noexcept {
@@ -60,16 +68,20 @@ namespace memory {
     friend class allocator_t<malloc_allocator_t, Tp>;
 
   public:
-    FORCE_INLINE static constexpr Tp *impl_allocate(const size_t n = 1) noexcept {
+    FORCE_INLINE static constexpr Tp *impl_allocate(const size_t n) noexcept {
       return static_cast<Tp *>(malloc(n * sizeof(Tp)));
     }
 
-    FORCE_INLINE static constexpr Tp *impl_allocate_inplace(Tp &dst, const size_t = 1) noexcept {
+    FORCE_INLINE static constexpr Tp *impl_allocate_inplace(Tp &dst, const size_t) noexcept {
       return *dst;
     }
 
-    FORCE_INLINE static constexpr Tp *impl_allocate_inplace(Tp *dst, const size_t = 1) noexcept {
+    FORCE_INLINE static constexpr Tp *impl_allocate_inplace(Tp *dst, const size_t) noexcept {
       return dst;
+    }
+
+    FORCE_INLINE static constexpr Tp *impl_reallocate(Tp *object, const size_t n) noexcept {
+      return static_cast<Tp *>(realloc(object, n * sizeof(Tp)));
     }
 
     FORCE_INLINE static constexpr void impl_deallocate(Tp *object) noexcept {
@@ -78,27 +90,12 @@ namespace memory {
   };
 
   template<typename Tp>
-  class malloc_clear_allocator_t : public allocator_t<malloc_allocator_t, Tp> {  // CRTP
-  protected:
-    friend class allocator_t<malloc_allocator_t, Tp>;
-
+  class malloc_clear_allocator_t : public malloc_allocator_t<Tp> {
   public:
-    FORCE_INLINE static constexpr Tp *impl_allocate(const size_t n = 1) noexcept {
+    FORCE_INLINE static constexpr Tp *impl_allocate(const size_t n) noexcept {
       void *p_mem = malloc(n * sizeof(Tp));
       memset(p_mem, 0, n * sizeof(Tp));
       return static_cast<Tp *>(p_mem);
-    }
-
-    FORCE_INLINE static constexpr Tp *impl_allocate_inplace(Tp &dst, const size_t = 1) noexcept {
-      return *dst;
-    }
-
-    FORCE_INLINE static constexpr Tp *impl_allocate_inplace(Tp *dst, const size_t = 1) noexcept {
-      return dst;
-    }
-
-    FORCE_INLINE static constexpr void impl_deallocate(Tp *object) noexcept {
-      free(object);
     }
   };
 

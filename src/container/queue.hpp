@@ -4,9 +4,9 @@
 #include "container/deque.hpp"
 
 namespace container {
-  template<typename Tp, size_t Capacity, template<typename, size_t> class Array = array_t>
-  struct queue_t : protected deque_t<Tp, Capacity, Array> {
-    using Base = deque_t<Tp, Capacity, Array>;
+  template<typename Tp, size_t Capacity, template<typename, size_t> class Container = array_t>
+  struct queue_t : protected deque_t<Tp, Capacity, Container> {
+    using Base = deque_t<Tp, Capacity, Container>;
 
     using Base::available_for;
     using Base::Base;

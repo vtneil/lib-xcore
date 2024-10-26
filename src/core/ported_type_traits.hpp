@@ -217,23 +217,125 @@ namespace ported {
   template<typename T>
   struct is_integral : detail::is_integral_impl<remove_cv_t<T>>::type {};
 
-  template<typename>
-  struct is_floating_point : false_type {};
+  namespace detail {
+    template<typename>
+    struct is_floating_point_impl : false_type {};
 
-  template<>
-  struct is_floating_point<float> : true_type {};
+    template<>
+    struct is_floating_point_impl<float> : true_type {};
 
-  template<>
-  struct is_floating_point<double> : true_type {};
+    template<>
+    struct is_floating_point_impl<double> : true_type {};
 
-  template<>
-  struct is_floating_point<long double> : true_type {};
+    template<>
+    struct is_floating_point_impl<long double> : true_type {};
+  }  // namespace detail
 
-  template<typename>
-  struct is_null_pointer : false_type {};
+  template<typename T>
+  struct is_floating_point : detail::is_floating_point_impl<remove_cv_t<T>>::type {};
 
-  template<>
-  struct is_null_pointer<nullptr_t> : true_type {};
+  namespace detail {
+    template<typename>
+    struct is_signed_impl : false_type {};
+
+    template<>
+    struct is_signed_impl<char> : bool_constant<(static_cast<char>(-1) < static_cast<char>(0))> {};
+
+    template<>
+    struct is_signed_impl<signed char> : true_type {};
+
+    template<>
+    struct is_signed_impl<short> : true_type {};
+
+    template<>
+    struct is_signed_impl<int> : true_type {};
+
+    template<>
+    struct is_signed_impl<long> : true_type {};
+
+    template<>
+    struct is_signed_impl<long long> : true_type {};
+  }  // namespace detail
+
+  template<typename T>
+  struct is_signed : detail::is_signed_impl<remove_cv_t<T>>::type {};
+
+  namespace detail {
+    template<typename T>
+    struct make_unsigned_impl;
+
+    template<>
+    struct make_unsigned_impl<char> {
+      using type = unsigned char;
+    };
+
+    template<>
+    struct make_unsigned_impl<signed char> {
+      using type = unsigned char;
+    };
+
+    template<>
+    struct make_unsigned_impl<short> {
+      using type = unsigned short;
+    };
+
+    template<>
+    struct make_unsigned_impl<int> {
+      using type = unsigned int;
+    };
+
+    template<>
+    struct make_unsigned_impl<long> {
+      using type = unsigned long;
+    };
+
+    template<>
+    struct make_unsigned_impl<long long> {
+      using type = unsigned long long;
+    };
+
+    template<>
+    struct make_unsigned_impl<unsigned char> {
+      using type = unsigned char;
+    };
+
+    template<>
+    struct make_unsigned_impl<unsigned short> {
+      using type = unsigned short;
+    };
+
+    template<>
+    struct make_unsigned_impl<unsigned int> {
+      using type = unsigned int;
+    };
+
+    template<>
+    struct make_unsigned_impl<unsigned long> {
+      using type = unsigned long;
+    };
+
+    template<>
+    struct make_unsigned_impl<unsigned long long> {
+      using type = unsigned long long;
+    };
+  }  // namespace detail
+
+  template<typename T>
+  struct make_unsigned : detail::make_unsigned_impl<remove_cv_t<T>> {};
+
+  template<typename T>
+  using make_unsigned_t = typename make_unsigned<T>::type;
+
+  namespace detail {
+    template<typename>
+    struct is_null_pointer_impl : false_type {};
+
+    template<>
+    struct is_null_pointer_impl<nullptr_t> : true_type {};
+  }  // namespace detail
+
+  template<typename T>
+  struct is_null_pointer : detail::is_null_pointer_impl<remove_cv_t<T>>::type {};
 
   template<typename T>
   inline constexpr bool is_void_v = is_void<T>::value;
@@ -243,6 +345,9 @@ namespace ported {
 
   template<typename T>
   inline constexpr bool is_integral_v = is_integral<T>::value;
+
+  template<typename T>
+  inline constexpr bool is_signed_v = is_signed<T>::value;
 
   template<typename T>
   inline constexpr bool is_floating_point_v = is_floating_point<T>::value;

@@ -45,5 +45,13 @@ int main(int argc, char **argv) {
 
   print_buf(queue.data(), queue.capacity() * sizeof(long));
 
+  std::cout << std::endl;
+
+  char buf[512];
+
+  xtostr(12345678, buf, 2);
+
+  std::cout << buf;
+
   return 0;
 }

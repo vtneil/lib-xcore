@@ -2,6 +2,7 @@
 #define ARRAY_HPP
 
 #include "core/ported_std.hpp"
+#include "memory.hpp"
 #include <cstdlib>
 
 namespace container {
@@ -19,17 +20,17 @@ namespace container {
     private:
       using concrete_array_t = ArrayForm<Tp, Size, memory::unused_allocator_t>;
 
-      concrete_array_t &derived() {
-        return static_cast<concrete_array_t &>(*this);
+      concrete_array_t *derived() {
+        return static_cast<concrete_array_t *>(this);
       }
 
-      [[nodiscard]] const concrete_array_t &derived() const {
-        return static_cast<const concrete_array_t &>(*this);
+      [[nodiscard]] const concrete_array_t *derived() const {
+        return static_cast<const concrete_array_t *>(this);
       }
 
-      [[nodiscard]] constexpr Tp       *get_derived_data() noexcept { return static_cast<Tp *>(derived()); }
+      [[nodiscard]] constexpr Tp       *get_derived_data() noexcept { return static_cast<Tp *>(*derived()); }
 
-      [[nodiscard]] constexpr const Tp *get_derived_data() const noexcept { return static_cast<const Tp *>(derived()); }
+      [[nodiscard]] constexpr const Tp *get_derived_data() const noexcept { return static_cast<const Tp *>(*derived()); }
 
     public:
       using reference       = Tp &;
@@ -132,9 +133,6 @@ namespace container {
       }
 
       // Capacity
-      [[nodiscard]] FORCE_INLINE constexpr size_t capacity() const noexcept {
-        return Size;
-      }
 
       [[nodiscard]] FORCE_INLINE constexpr size_t size() const noexcept {
         return Size;
@@ -143,6 +141,15 @@ namespace container {
       [[nodiscard]] FORCE_INLINE constexpr size_t length() const noexcept {
         return size();
       }
+
+      // Dynamic array capability
+      void dynamic_resize(const size_t) {
+        // NOP
+      }
+
+      void dynamic_clear() {
+        // NOP
+      }
     };
   }  // namespace detail
 
@@ -150,7 +157,7 @@ namespace container {
    * Static region-allocated data container
    */
   template<typename Tp, size_t Size, template<typename> class = memory::unused_allocator_t>
-  struct array_t : public detail::array_container_t<array_t, Tp, Size> {
+  struct array_t : detail::array_container_t<array_t, Tp, Size> {
   protected:
     c_array<Tp, Size> arr_;
 
@@ -168,23 +175,80 @@ namespace container {
    * Static heap-allocated data container
    */
   template<typename Tp, size_t Size, template<typename> class BaseAllocator = memory::default_allocator_t>
-  struct heap_array_t : public detail::array_container_t<heap_array_t, Tp, Size> {
+  struct heap_array_t : detail::array_container_t<heap_array_t, Tp, Size> {
   private:
     using array_type      = array_t<Tp, Size>;
-    using array_allocator = BaseAllocator<array_t<Tp, Size>>;
+    using array_allocator = BaseAllocator<array_type>;
 
   protected:
-    array_type *arr_;  // Pointer to manage heap allocation
+    array_type *arr_;
 
   public:
     // Constructor
-    heap_array_t() : arr_(array_allocator::allocate()) {}
+    heap_array_t() : arr_(array_allocator::allocate(1)) {}
 
     // Destructor
     ~heap_array_t() {
       if (arr_) {
         array_allocator::deallocate(arr_);
         arr_ = nullptr;
+      }
+    }
+
+    [[nodiscard]] FORCE_INLINE constexpr operator Tp *() noexcept {  // Implicit
+      return *arr_;                                                  // Implicit
+    }
+
+    [[nodiscard]] FORCE_INLINE constexpr operator const Tp *() const noexcept {  // Implicit
+      return *arr_;                                                              // Implicit
+    }
+  };
+
+  /**
+  * Simple heap-allocated dynamic array.
+  * This is not a ported version of std::vector.
+  * NOT INTENDED FOR DIRECT USAGE.
+  */
+  template<typename Tp, size_t, template<typename> class BaseAllocator = memory::default_allocator_t>
+  struct dynamic_array_t : detail::array_container_t<dynamic_array_t, Tp, 0> {
+  private:
+    using array_allocator = BaseAllocator<Tp>;
+
+  protected:
+    Tp    *arr_;
+    size_t size_;
+
+  public:
+    // Constructor
+    dynamic_array_t()
+        : arr_(nullptr), size_(0) {}
+
+    explicit dynamic_array_t(size_t initial_size)
+        : arr_(array_allocator::allocate(initial_size)), size_(initial_size) {}
+
+    // Destructor
+    ~dynamic_array_t() {
+      this->dynamic_clear();
+    }
+
+    // Capacity
+
+    [[nodiscard]] FORCE_INLINE constexpr size_t size() const noexcept {
+      return size_;
+    }
+
+    void dynamic_resize(const size_t new_size) {
+      if (new_size == size_) return;
+
+      arr_  = array_allocator::reallocate(arr_, new_size);
+      size_ = new_size;
+    }
+
+    void dynamic_clear() {
+      if (arr_) {
+        array_allocator::deallocate(arr_);
+        arr_  = nullptr;
+        size_ = 0;
       }
     }
 

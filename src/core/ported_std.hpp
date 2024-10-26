@@ -17,7 +17,7 @@ namespace ported {
   using real_t = double;
 
   template<typename T>
-  FORCE_INLINE constexpr const T &min(const T &a, const T &b) { return (a < b) ? a : b; }
+  FORCE_INLINE constexpr const T &min(const T &a, const T &b) { return a < b ? a : b; }
 
   template<typename T, typename... Ts>
   FORCE_INLINE constexpr const T &min(const T &a, const T &b, const Ts &...args) {
@@ -25,7 +25,7 @@ namespace ported {
   }
 
   template<typename T>
-  FORCE_INLINE constexpr const T &max(const T &a, const T &b) { return (a > b) ? a : b; }
+  FORCE_INLINE constexpr const T &max(const T &a, const T &b) { return a > b ? a : b; }
 
   template<typename T, typename... Ts>
   FORCE_INLINE constexpr const T &max(const T &a, const T &b, const Ts &...args) {
