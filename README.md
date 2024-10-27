@@ -4,7 +4,7 @@ A comprehensive library for embedded system (minimum: C++17).
 This includes many ported functionality from standard library (`std` -> `ported`),
 hence somewhat independent of standard library.
 
-## Safety
+# Safety
 
 Safety is the main principle of this library's design.
 
@@ -14,22 +14,26 @@ Safety is the main principle of this library's design.
 * **User safety**: Many compile-time checks and warnings to enable strong type
   safety and prevent unintentional bugs from the language itself.
 
-## Containers
+# Installation
 
-### Array
+For installation, please read [How to install](INSTALL.md) for more information.
 
-### Bitset
+# Containers
 
-### Deque/Queue/Stack
+## Array
 
-### LRU Cache
+## Bitset
 
-### String
+## Deque/Queue/Stack
 
-## Utilities
+## LRU Cache
 
-### Nonblocking delay (Smart delay)
+## String
 
-### On-off timer
+# Utilities
 
-### Tasks and static dispatcher
+## Nonblocking delay (Smart delay)
+
+## On-off timer
+
+## Tasks and static dispatcher
