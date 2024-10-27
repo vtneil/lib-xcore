@@ -20,5 +20,4 @@ endfunction()
 
 # Test files
 new_target(test_include test/test_include.cpp)
-
-
+new_target(test_string test/test_string.cpp)

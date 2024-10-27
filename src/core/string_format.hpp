@@ -4,6 +4,9 @@
 #include "core/ported_std.hpp"
 #include <cstdio>
 
+/**
+* Overload: integral (signed/unsigned char, short, int, long, long long) to string
+*/
 template<typename Tp>
 ported::enable_if_t<ported::is_integral_v<Tp>, char *> xtostr(Tp value, char *buf, unsigned int radix = 10) {
   if (radix < 2 || radix > 36) {
@@ -41,13 +44,16 @@ ported::enable_if_t<ported::is_integral_v<Tp>, char *> xtostr(Tp value, char *bu
   return buf;
 }
 
-inline char *dtostr(const double value, const int width, const int precision, char *buffer) {
+/**
+* Overload: floating points (float, double) to string
+*/
+template<typename Tp>
+ported::enable_if_t<ported::is_floating_point_v<Tp>, char *> xtostr(Tp value, char *buf, const int width, const int precision) {
   char format[10];
-// todo merge with xtostr
   sprintf(format, "%%%d.%df", width, precision);
-  sprintf(buffer, format, value);
+  sprintf(buf, format, value);
 
-  return buffer;
+  return buf;
 }
 
 #endif  //STRING_FORMAT_HPP

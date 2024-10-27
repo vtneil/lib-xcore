@@ -76,6 +76,22 @@ namespace ported {
     return d_first;
   }
 
+  /**
+    * Mimic std::move
+    *
+    * @tparam InputIt
+    * @tparam OutputIt
+    * @param first
+    * @param last
+    * @param d_first
+    * @return
+    */
+  template<typename InputIt, typename OutputIt>
+  OutputIt move(InputIt first, InputIt last, OutputIt d_first) {
+    for (; first != last; static_cast<void>(++first), static_cast<void>(++d_first)) *d_first = ported::move(*first);
+    return d_first;
+  }
+
   template<size_t...>
   struct index_sequence {};
 

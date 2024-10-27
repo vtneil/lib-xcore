@@ -1,6 +1,7 @@
 #ifndef STRING_HPP
 #define STRING_HPP
 
+#include "core/string_format.hpp"
 #include "container/array.hpp"
 #include "core/custom_numeric.hpp"
 #include <cstring>
@@ -8,7 +9,11 @@
 namespace container {
   namespace impl {
     template<typename CharT, size_t Capacity, template<typename, size_t> class Container = array_t>
-    struct base_string_t {
+    struct lazy_add_string_t;
+    // todo: Implement lazy addition to prevent heap fragmentation
+
+    template<typename CharT, size_t Capacity, template<typename, size_t> class Container = array_t>
+    struct basic_string_t {
     protected:
       using ArrayT = Container<CharT, Capacity>;
 
@@ -18,124 +23,269 @@ namespace container {
     public:
       // Constructors
 
-      base_string_t(const char *c_str = "");
-      base_string_t(const char *c_str, size_t n);
-      base_string_t(const uint8_t *c_str, size_t n) : base_string_t(reinterpret_cast<const char *>(c_str), n) {}
-      base_string_t(const base_string_t &)     = default;
-      base_string_t(base_string_t &&) noexcept = default;
-      base_string_t(char);
-      base_string_t(unsigned char, unsigned char = 10);
-      base_string_t(int, unsigned char = 10);
-      base_string_t(unsigned int, unsigned char = 10);
-      base_string_t(long, unsigned char = 10);
-      base_string_t(unsigned long, unsigned char = 10);
-      base_string_t(float, unsigned int decimal_places = 2);
-      base_string_t(double, unsigned int decimal_places = 2);
-      base_string_t(long long, unsigned char = 10);
-      base_string_t(unsigned long long, unsigned char = 10);
+      basic_string_t(const char *c_str = "")  // Implicit
+          : basic_string_t(c_str, strlen(c_str)) {}
+
+      basic_string_t(const char *c_str, const size_t n) {
+        if (c_str)
+          this->_copy(c_str, n);
+      }
+
+      basic_string_t(const uint8_t *c_str, size_t n)
+          : basic_string_t(reinterpret_cast<const char *>(c_str), n) {}
+
+      basic_string_t(const char c) {  // Implicit
+        const char buf[] = {c, '\0'};
+        *this            = ported::move(basic_string_t(buf));
+      }
+
+      template<typename T, typename = ported::enable_if_t<ported::is_integral_v<T>>>
+      basic_string_t(T value, const unsigned char radix = 10) {  // Implicit
+        char buf[::utils::integral_buffer_size<T>()];
+        xtostr<T>(value, buf, radix);
+        *this = ported::move(basic_string_t(buf));
+      }
+
+      template<typename T, typename = ported::enable_if_t<ported::is_floating_point_v<T>>>
+      basic_string_t(T value, const unsigned int decimal_places = 2) {  // Implicit
+        basic_string_t tmp_str{};
+        size_t         n;
+
+        if constexpr (ported::is_same_v<ported::remove_cv_t<T>, float>) {
+          // Float
+          n = decimal_places + 42;
+        } else {
+          // Double
+          n = decimal_places + 312;
+        }
+
+        if (!tmp_str.reserve(n)) {
+          tmp_str._invalidate();
+          *this = ported::move(basic_string_t("nan"));
+          return;
+        }
+
+        xtostr<T>(value, tmp_str._buffer(), decimal_places + 2, decimal_places);
+        *this = ported::move(basic_string_t(tmp_str._buffer()));
+      }
+
+      template<size_t OCapacity, template<typename, size_t> class OContainer>
+      explicit basic_string_t(const basic_string_t<CharT, OCapacity, OContainer> &other)
+          : basic_string_t(other.c_str()) {}
+
+      basic_string_t(const basic_string_t &other)     = default;
+      basic_string_t(basic_string_t &&other) noexcept = default;
 
       // Destructor
-      ~base_string_t();
+      ~basic_string_t() {
+        this->_invalidate();
+      }
 
       // Assignment operators
 
-      base_string_t &operator=(const base_string_t &)     = default;
-      base_string_t &operator=(base_string_t &&) noexcept = default;
-      base_string_t &operator=(const char *);
+      template<size_t OCapacity, template<typename, size_t> class OContainer>
+      basic_string_t &operator=(const basic_string_t<CharT, OCapacity, OContainer> &other) {
+        *this = other.c_str();
+        return *this;
+      }
+
+      basic_string_t &operator=(const basic_string_t &other)     = default;
+      basic_string_t &operator=(basic_string_t &&other) noexcept = default;
+
+      basic_string_t &operator=(const char *c_str) {
+        *this = ported::move(basic_string_t(c_str));
+        return *this;
+      }
 
       // Size operations
 
-      bool reserve(size_t);
-      void clear();
+      bool reserve(const size_t n) {
+        if (this->_buffer() && this->capacity() > n)
+          return true;
+
+        this->_resize(n);
+
+        if (!this->_buffer())
+          return false;
+
+        return true;
+      }
+
+      void clear() {
+        this->_set_size(0);
+      }
 
       // String concatenations
 
-      bool concat(const base_string_t &);
-      bool concat(const char *);
-      bool concat(const char *, size_t);
-      bool concat(const uint8_t *c_str, const size_t n) { return concat(reinterpret_cast<const char *>(c_str), n); }
-      bool concat(char);
-      bool concat(unsigned char);
-      bool concat(int);
-      bool concat(unsigned int);
-      bool concat(long);
-      bool concat(unsigned long);
-      bool concat(float);
-      bool concat(double);
-      bool concat(long long);
-      bool concat(unsigned long long);
+      template<size_t OCapacity, template<typename, size_t> class OContainer>
+      bool concat(const basic_string_t<CharT, OCapacity, OContainer> &other) {
+        return this->concat(other.c_str());
+      }
 
+      bool concat(const basic_string_t &other) {
+        if (&other != this)
+          return this->concat(other.c_str());
+
+        const size_t new_size = 2 * this->size();
+
+        if (!other.c_str()) return false;
+        if (other.size() == 0) return true;
+        if (!this->reserve(new_size)) {
+          this->_invalidate();
+          return false;
+        }
+
+        memmove(this->_buffer() + this->size(), this->_buffer(), this->size());
+        this->_set_size(new_size);
+        return true;
+      }
+
+      bool concat(const char *c_str, const size_t n) {
+        const size_t new_size = size() + n;
+
+        if (!c_str) return false;
+        if (n == 0) return true;
+        if (!this->reserve(new_size)) {
+          this->_invalidate();
+          return false;
+        }
+
+        memmove(this->_buffer() + this->size(), c_str, n + 1);
+        this->_set_size(new_size);
+        return true;
+      }
+
+      bool concat(const char *c_str) {
+        return c_str ? concat(c_str, strlen(c_str)) : false;
+      }
+
+      bool concat(const uint8_t *c_str, const size_t n) {
+        return concat(reinterpret_cast<const char *>(c_str), n);
+      }
+
+      bool concat(const char c) {
+        const char buf[] = {c, '\0'};
+        return concat(buf, 1);
+      }
+
+      // Integral overload
+      template<typename T>
+      ported::enable_if_t<ported::is_integral_v<T>, bool> concat(T value) {
+        return this->concat(basic_string_t(value, 10));
+      }
+
+      // Floating point overload
+      template<typename T>
+      ported::enable_if_t<ported::is_floating_point_v<T>, bool> concat(T value) {
+        return this->concat(basic_string_t(value, 2));
+      }
+
+      // Shortcut inplace addition
       template<typename VarT>
-      base_string_t &operator+=(VarT &&v) {
+      basic_string_t &operator+=(VarT &&v) {
         this->concat(ported::forward<VarT>(v));
         return *this;
       }
 
-      // Comparison
+      // Addition
+      template<typename VarT>
+      basic_string_t operator+(VarT &&v) {
+        return this->copy() += v;
+      }
 
-      bool equals(const base_string_t &) const;
-      bool equals(const char *) const;
+      // Comparison
+      // todo: ==, !=, >, >=, <, <=
 
       // Capacity
 
-      [[nodiscard]] size_t size() const {
-        return size_;
+      [[nodiscard]] size_t size() const { return this->size_; }
+      [[nodiscard]] size_t length() const { return size(); }
+      [[nodiscard]] size_t capacity() const { return this->arr_.size(); }
+      [[nodiscard]] bool   is_empty() const { return size() == 0; }
+
+      // Accessors/Iterators
+
+      [[nodiscard]] FORCE_INLINE constexpr const CharT &operator[](const size_t index) const { return this->arr_[index]; }
+      [[nodiscard]] FORCE_INLINE constexpr CharT       &operator[](const size_t index) { return this->arr_[index]; }
+
+      [[nodiscard]] FORCE_INLINE constexpr const CharT *begin() const { return this->arr_.begin(); }
+      [[nodiscard]] FORCE_INLINE constexpr CharT       *begin() { return this->arr_.begin(); }
+      [[nodiscard]] FORCE_INLINE constexpr const CharT *cbegin() const { return this->arr_.cbegin(); }
+
+      [[nodiscard]] FORCE_INLINE constexpr const CharT *end() const { return this->arr_.end(); }
+      [[nodiscard]] FORCE_INLINE constexpr CharT       *end() { return this->arr_.end(); }
+      [[nodiscard]] FORCE_INLINE constexpr const CharT *cend() const { return this->arr_.cend(); }
+
+      [[nodiscard]] FORCE_INLINE constexpr const CharT *c_str() const { return this->_buffer(); }
+
+      // Implicit conversion to char array buffer
+      [[nodiscard]] FORCE_INLINE constexpr operator CharT *() noexcept {  // Implicit
+        return this->_buffer();
       }
 
-      [[nodiscard]] size_t length() const {
-        return size();
+      // Implicit conversion to char array buffer
+      [[nodiscard]] FORCE_INLINE constexpr operator const CharT *() const noexcept {  // Implicit
+        return this->_buffer();
       }
 
-      [[nodiscard]] size_t capacity() const {
-        return arr_.size();
-      }
-
-      [[nodiscard]] bool is_empty() const {
-        return size() == 0;
+      // Copy of this object
+      basic_string_t copy() const {
+        return basic_string_t(*this);
       }
 
     protected:
-      base_string_t &_copy(const char *, size_t);
-      void           _move(base_string_t &);
+      basic_string_t &_copy(const char *c_str, const size_t n) {
+        if (!this->reserve(n)) {
+          this->_invalidate();
+          return *this;
+        }
+
+        memmove(this->_buffer(), c_str, n + 1);
+        this->_set_size(n);
+        return *this;
+      }
 
       // Resize
       void _resize(const size_t n) {
-        arr_.dynamic_resize(n);
-        if (size_ > capacity())
-          size_ = capacity();
+        this->arr_.dynamic_resize(n);
+        if (this->size_ > capacity())
+          this->size_ = capacity();
       }
 
       // Invalidate
       void _invalidate() {
-        arr_.dynamic_clear();
-        size_ = 0;
+        this->arr_.dynamic_clear();
+        this->size_ = 0;
       }
 
       // Length
-      void _set_len(const size_t n) {
-        size_ = n;
-        if (_buffer())
-          _buffer()[n] = 0;
+      void _set_size(const size_t n) {
+        this->size_ = n;
+        if (this->_buffer())
+          this->_buffer()[n] = 0;
       }
 
-      CharT *_buffer() {
-        return static_cast<CharT *>(arr_);
+      [[nodiscard]] FORCE_INLINE constexpr CharT *_buffer() {
+        return this->begin();
       }
 
-      const CharT *_buffer() const {
-        return static_cast<const CharT *>(arr_);
+      [[nodiscard]] FORCE_INLINE constexpr const CharT *_buffer() const {
+        return this->begin();
       }
     };
 
+    template<typename CharT, size_t Capacity, template<typename, size_t> class Container>
+    struct lazy_add_string_t {
+    };
   }  // namespace impl
 
   template<size_t Capacity>
-  using string_t = impl::base_string_t<char, Capacity, array_t>;
+  using string_t = impl::basic_string_t<char, Capacity, array_t>;
 
   template<size_t Capacity>
-  using heap_string_t    = impl::base_string_t<char, Capacity, heap_array_t>;
+  using heap_string_t    = impl::basic_string_t<char, Capacity, heap_array_t>;
 
-  using dynamic_string_t = impl::base_string_t<char, 0, dynamic_array_t>;
+  using dynamic_string_t = impl::basic_string_t<char, 0, dynamic_array_t>;
 }  // namespace container
 
 #endif  //STRING_HPP
