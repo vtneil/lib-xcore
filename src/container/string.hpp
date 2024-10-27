@@ -100,7 +100,7 @@ namespace container {
       // Size operations
 
       bool reserve(const size_t n) {
-        if (this->_buffer() && this->capacity() > n)
+        if (this->_buffer() && this->capacity() > n)  // Includes terminating '\0'
           return true;
 
         this->_resize(n);
@@ -109,6 +109,10 @@ namespace container {
           return false;
 
         return true;
+      }
+
+      void shrink_to_fit() {
+        this->_resize(strlen(this->_buffer()) + 1);
       }
 
       void clear() {
@@ -245,11 +249,12 @@ namespace container {
         return *this;
       }
 
-      // Resize
+      // Resize Container
       void _resize(const size_t n) {
         this->arr_.dynamic_resize(n);
         if (this->size_ > capacity())
           this->size_ = capacity();
+        this->_set_size(this->size_);
       }
 
       // Invalidate
