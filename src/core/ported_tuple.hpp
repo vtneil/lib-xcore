@@ -8,6 +8,19 @@ namespace ported {
   template<>
   struct tuple<> {};
 
+  namespace detail {
+    template<size_t, typename>
+    struct tuple_element;
+
+    template<size_t I, typename T, typename... Ts>
+    struct tuple_element<I, tuple<T, Ts...>> : tuple_element<I - 1, tuple<Ts...>> {};
+
+    template<typename T, typename... Ts>
+    struct tuple_element<0, tuple<T, Ts...>> {
+      using type = T;
+    };
+  }  // namespace detail
+
   template<typename T, typename... Ts>
   struct tuple<T, Ts...> : private tuple<Ts...> {
   private:
@@ -32,23 +45,12 @@ namespace ported {
       return *this;
     }
 
-    template<size_t I, typename... Us>
-    friend auto get(tuple<Us...> &t);
+    template<size_t I, typename U, typename... Us>
+    friend auto get(tuple<U, Us...> &t) -> enable_if_t<I == 0, U &>;
+
+    template<size_t I, typename U, typename... Us>
+    friend auto get(tuple<U, Us...> &t) -> enable_if_t<I != 0, typename detail::tuple_element<I, tuple<U, Us...>>::type &>;
   };
-
-  namespace detail {
-    template<size_t, typename>
-    struct tuple_element;
-
-    template<size_t I, typename T, typename... Ts>
-    struct tuple_element<I, tuple<T, Ts...>> : tuple_element<I - 1, tuple<Ts...>> {
-    };
-
-    template<typename T, typename... Ts>
-    struct tuple_element<0, tuple<T, Ts...>> {
-      using type = T;
-    };
-  }  // namespace detail
 
   template<size_t I, typename T, typename... Ts>
   auto get(tuple<T, Ts...> &t) -> enable_if_t<I == 0, T &> {
