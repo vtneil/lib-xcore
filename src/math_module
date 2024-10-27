@@ -1,0 +1,6 @@
+#ifndef MATH_MODULE_H
+#define MATH_MODULE_H
+
+#include "linalg/numeric_vector.hpp"
+
+#endif  //MATH_MODULE_H

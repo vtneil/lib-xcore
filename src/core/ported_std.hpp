@@ -56,7 +56,7 @@ namespace ported {
     * @param value
     */
   template<typename ForwardIt, typename T>
-  void fill(ForwardIt first, ForwardIt last, const T &value) {
+  constexpr void fill(ForwardIt first, ForwardIt last, const T &value) {
     for (; first != last; static_cast<void>(++first)) *first = value;
   }
 
@@ -71,7 +71,7 @@ namespace ported {
     * @return
     */
   template<typename InputIt, typename OutputIt>
-  OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
+  constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
     for (; first != last; static_cast<void>(++first), static_cast<void>(++d_first)) *d_first = *first;
     return d_first;
   }
@@ -87,7 +87,7 @@ namespace ported {
     * @return
     */
   template<typename InputIt, typename OutputIt>
-  OutputIt move(InputIt first, InputIt last, OutputIt d_first) {
+  constexpr OutputIt move(InputIt first, InputIt last, OutputIt d_first) {
     for (; first != last; static_cast<void>(++first), static_cast<void>(++d_first)) *d_first = ported::move(*first);
     return d_first;
   }

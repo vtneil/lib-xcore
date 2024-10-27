@@ -4,6 +4,9 @@ A comprehensive library for embedded system (minimum: C++17).
 This includes many ported functionality from standard library (`std` -> `ported`),
 hence somewhat independent of standard library.
 
+This library is being merged and refactored with my old `vt-linalg` linear algebra library, so
+you get everything in one place!
+
 # Safety
 
 Safety is the main principle of this library's design.

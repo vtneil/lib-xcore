@@ -1,4 +1,5 @@
 #include "embedded_cpp"
+#include "math_module"
 #include <iostream>
 
 void print_string(const char *str) {

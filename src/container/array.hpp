@@ -20,11 +20,11 @@ namespace container {
     private:
       using concrete_array_t = ArrayForm<Tp, Size, memory::unused_allocator_t>;
 
-      concrete_array_t *derived() {
+      constexpr concrete_array_t *derived() {
         return static_cast<concrete_array_t *>(this);
       }
 
-      [[nodiscard]] const concrete_array_t *derived() const {
+      [[nodiscard]] constexpr const concrete_array_t *derived() const {
         return static_cast<const concrete_array_t *>(this);
       }
 
@@ -167,24 +167,33 @@ namespace container {
   template<typename Tp, size_t Size, template<typename> class = memory::unused_allocator_t>
   struct array_t : detail::array_container_t<array_t, Tp, Size> {
   protected:
-    c_array<Tp, Size> arr_;
+    c_array<Tp, Size> arr_ = {};
 
   public:
     // Default Constructor
-    array_t() = default;
+    constexpr array_t() = default;
 
     // Copy Constructor
-    array_t(const array_t &other) {
+    constexpr array_t(const array_t &other) {
       ported::copy(other.arr_, other.arr_ + Size, arr_);
     }
 
     // Move Constructor
-    array_t(array_t &&other) noexcept {
+    constexpr array_t(array_t &&other) noexcept {
       ported::move(other.arr_, other.arr_ + Size, arr_);
     }
 
+    // Fill constructor
+    explicit constexpr array_t(const Tp &fill) : array_t(fill, ported::make_index_sequence<Size>{}) {}
+
+  private:
+    template<size_t... I>
+    explicit constexpr array_t(const Tp &fill, ported::index_sequence<I...>)
+        : arr_{((void) I, fill)...} {}
+
+  public:
     // Copy Assignment Operator
-    array_t &operator=(const array_t &other) {
+    constexpr array_t &operator=(const array_t &other) {
       if (this != &other) {
         ported::copy(other.arr_, other.arr_ + Size, arr_);
       }
@@ -192,7 +201,7 @@ namespace container {
     }
 
     // Move Assignment Operator
-    array_t &operator=(array_t &&other) noexcept {
+    constexpr array_t &operator=(array_t &&other) noexcept {
       if (this != &other) {
         ported::move(other.arr_, other.arr_ + Size, arr_);
       }
@@ -200,13 +209,15 @@ namespace container {
     }
 
     // Destructor
-    ~                                    array_t() = default;
+    ~array_t() = default;
 
-    [[nodiscard]] FORCE_INLINE constexpr operator Tp *() noexcept {  // Implicit
+    // Implicit
+    [[nodiscard]] FORCE_INLINE constexpr operator Tp *() noexcept {
       return arr_;
     }
 
-    [[nodiscard]] FORCE_INLINE constexpr operator const Tp *() const noexcept {  // Implicit
+    // Implicit
+    [[nodiscard]] FORCE_INLINE constexpr operator const Tp *() const noexcept {
       return arr_;
     }
   };
@@ -225,16 +236,21 @@ namespace container {
 
   public:
     // Default Constructor
-    heap_array_t() : arr_(array_allocator::allocate(1)) {}
+    constexpr heap_array_t() : arr_(array_allocator::allocate(1)) {}
 
     // Copy Constructor
-    heap_array_t(const heap_array_t &other) : arr_(array_allocator::allocate(1)) {
+    constexpr heap_array_t(const heap_array_t &other) : arr_(array_allocator::allocate(1)) {
       ported::copy(other.arr_->begin(), other.arr_->end(), arr_->begin());
     }
 
     // Move Constructor
-    heap_array_t(heap_array_t &&other) noexcept : arr_(other.arr_) {
+    constexpr heap_array_t(heap_array_t &&other) noexcept : arr_(other.arr_) {
       other.arr_ = nullptr;
+    }
+
+    // Fill constructor
+    explicit constexpr heap_array_t(const Tp &fill) : heap_array_t() {
+      new (arr_) array_type(fill);
     }
 
     // Destructor
@@ -291,24 +307,29 @@ namespace container {
 
   public:
     // Default Constructor
-    dynamic_array_t()
+    constexpr dynamic_array_t()
         : arr_(nullptr), size_(0) {}
 
     // Constructor with initial size
-    explicit dynamic_array_t(size_t initial_size)
+    explicit constexpr dynamic_array_t(const size_t initial_size)
         : arr_(array_allocator::allocate(initial_size)), size_(initial_size) {}
 
     // Copy Constructor
-    dynamic_array_t(const dynamic_array_t &other)
+    constexpr dynamic_array_t(const dynamic_array_t &other)
         : arr_(array_allocator::allocate(other.size_)), size_(other.size_) {
       ported::copy(other.arr_, other.arr_ + size_, arr_);
     }
 
     // Move Constructor
-    dynamic_array_t(dynamic_array_t &&other) noexcept
+    constexpr dynamic_array_t(dynamic_array_t &&other) noexcept
         : arr_(other.arr_), size_(other.size_) {
       other.arr_  = nullptr;
       other.size_ = 0;
+    }
+
+    // Fill Constructor
+    constexpr dynamic_array_t(const size_t initial_size, const Tp &fill) : dynamic_array_t(initial_size) {
+      ported::fill(arr_, arr_ + initial_size, fill);
     }
 
     // Copy Assignment Operator
