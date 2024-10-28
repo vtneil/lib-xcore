@@ -42,6 +42,14 @@ namespace container {
         this->_remove_index(*idx_opt);
     }
 
+    void remove_expired(const TimeT &expiry_age) {
+      const TimeT time = TimeFunc();
+      for (size_t i = 0; i < Capacity; ++i) {
+        if (this->occupied_[i] && time - this->timestamps_[i] > expiry_age)
+          this->_remove_index(i);
+      }
+    }
+
     void touch(const KT &key) {
       if (const auto idx_opt = this->_find(key); idx_opt)
         this->_touch_index(*idx_opt);
