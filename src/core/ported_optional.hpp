@@ -1,5 +1,5 @@
-#ifndef OPTIONAL_HPP
-#define OPTIONAL_HPP
+#ifndef PORTED_OPTIONAL_HPP
+#define PORTED_OPTIONAL_HPP
 
 #include "memory.hpp"
 #include "core/ported_std.hpp"
@@ -12,20 +12,23 @@ namespace ported {
   constexpr nullopt_t nullopt{};
 
   template<typename T>
-  class optional {
+  struct optional {
   private:
     bool          is_initialized;
-    unsigned char storage[memory::nearest_alignment<T, void *>()] = {};
+    unsigned char storage[memory::nearest_alignment<T, void *>()];
 
   public:
     optional() : is_initialized(false) {}
 
+    // Implicit
     optional(nullopt_t) : is_initialized(false) {}
 
+    // Implicit
     optional(const T &value) : is_initialized(true) {
       new (storage) T(value);
     }
 
+    // Implicit
     optional(T &&value) : is_initialized(true) {
       new (storage) T(move(value));
     }
@@ -133,8 +136,32 @@ namespace ported {
     const T &value() const {
       return **this;
     }
+
+    template<typename U>
+    constexpr T &value_or(U &&default_value) const {
+      static_assert(ported::is_constructible_v<U &&, T>);
+
+      if (this->has_value())
+        return this->value();
+
+      return static_cast<T>(ported::forward<U>(default_value));
+    }
+
+    template<typename U>
+    constexpr T &&value_or(U &&default_value) {
+      static_assert(ported::is_constructible_v<U &&, T>);
+
+      if (this->has_value())
+        return this->value();
+
+      return static_cast<T>(ported::forward<U>(default_value));
+    }
   };
 
+  template<typename T, typename... Args>
+  constexpr optional<T> make_optional(Args &&...args) {
+    return optional<T>(ported::forward<Args>(args)...);
+  }
 }  // namespace ported
 
-#endif  //OPTIONAL_HPP
+#endif  //PORTED_OPTIONAL_HPP

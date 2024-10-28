@@ -2,7 +2,8 @@
 #define LRU_CACHE_HPP
 
 #include "core/ported_std.hpp"
-#include "core/optional.hpp"
+#include "core/ported_optional.hpp"
+#include "core/ported_tuple.hpp"
 #include "container/bitset.hpp"
 
 namespace container {
@@ -11,8 +12,9 @@ namespace container {
     static_assert(Capacity > 0);
 
   public:
-    using BitArray = bitset_t<Capacity>;
-    using TimeT    = decltype(TimeFunc());
+    using BitArray        = bitset_t<Capacity>;
+    using TimeT           = decltype(TimeFunc());
+    using ObjectReference = ported::tuple<TimeT, KT &>;
 
   protected:
     BitArray occupied_             = {};  // Lookup
@@ -25,104 +27,141 @@ namespace container {
 
     // Methods
 
-    void insert(const KT &key, const TimeT timestamp) {
-      size_t idx = this->find(key);
-
-      if (idx != Capacity) {
-        // Table already has key, update the timestamp
-        this->timestamps_[idx] = timestamp;
-        return;
+    void insert(const KT &key) {
+      if (const auto idx_opt = this->_find(key); idx_opt) {
+        this->_touch_index(*idx_opt);
+      } else {
+        const size_t idx = this->_find_free_entry();
+        this->_insert_index(idx, key);
+        this->_touch_index(idx);
       }
-
-      idx                    = this->_find_free_entry();
-      this->keys_[idx]       = key;
-      this->timestamps_[idx] = timestamp;
     }
 
-    void remove_index(const size_t index) {
-      this->occupied_.set(index, false);
-      --this->size_;
+    void insert(KT &&key) {
+      if (const auto idx_opt = this->_find(key); idx_opt) {
+        this->_touch_index(*idx_opt);
+      } else {
+        const size_t idx = this->_find_free_entry();
+        this->_insert_index(idx, ported::forward<KT>(key));
+        this->_touch_index(idx);
+      }
     }
 
     void remove(const KT &key) {
-      const size_t i = this->find(key);
-      if (i == Capacity)
-        return;
-      this->remove_index(i);
+      if (auto idx_opt = this->_find(key); idx_opt)
+        this->_remove_index(*idx_opt);
     }
 
-    void touch_index(const size_t index, const TimeT timestamp) {
-      this->timestamps_[index] = timestamp;
+    void touch(const KT &key) {
+      if (const auto idx_opt = this->_find(key); idx_opt)
+        this->_touch_index(*idx_opt);
     }
 
-    void touch(const KT &key, const TimeT timestamp) {
-      const size_t i = this->find(key);
-      if (i == Capacity)
-        return;
-      this->touch_index(i, timestamp);
+
+    ported::optional<ObjectReference> at(const size_t index, const bool touch = false) {
+      if (index >= Capacity || !occupied_[index])
+        return ported::nullopt;
+      auto ret = ObjectReference(timestamps_[index], keys_[index]);
+      if (touch)
+        this->_touch_index(index);
+      return ret;
     }
 
-    size_t find(const KT &key) const {
-      for (size_t i = 0; i < Capacity; ++i) {
-        if (!(this->keys_[i] == key))
-          continue;
-        if (this->occupied_[i])
-          return i;
-        return Capacity;
-      }
+    ported::optional<ObjectReference> get(const KT &key, const bool touch = false) {
+      if (const auto idx_opt = this->_find(key); idx_opt)
+        return at(*idx_opt, touch);
+      return ported::nullopt;
+    }
+
+    ported::optional<ObjectReference> newest(const bool touch = false) {
+      if (const auto idx_opt = this->_newest_index(); idx_opt)
+        return at(*idx_opt, touch);
+      return ported::nullopt;
+    }
+
+    ported::optional<ObjectReference> oldest(const bool touch = false) {
+      if (const auto idx_opt = this->_oldest_index(); idx_opt)
+        return at(*idx_opt, touch);
+      return ported::nullopt;
+    }
+
+    void clear() {
+      this->occupied_.clear_all();
+    }
+
+    bool contains(const KT &key) {
+      return this->_find(key);
+    }
+
+    [[nodiscard]] constexpr size_t size() const {
+      return this->size_;
+    }
+
+    [[nodiscard]] constexpr size_t capacity() const {
       return Capacity;
     }
 
-    const KT &key_at_index(const size_t index) const {
+  protected:
+    ported::optional<size_t> _find(const KT &key) const {
+      if (size_ == 0) return ported::nullopt;
+
+      for (size_t i = 0; i < Capacity; ++i) {
+        if (this->keys_[i] == key && this->occupied_[i])
+          return i;
+      }
+      return ported::nullopt;
+    }
+
+    void _insert_index(const size_t index, const KT &key) {
+      this->occupied_[index] = true;
+      this->keys_[index]     = key;
+      ++this->size_;
+    }
+
+    void _insert_index(const size_t index, KT &&key) {
+      this->occupied_[index] = true;
+      this->keys_[index]     = ported::move(key);
+      ++this->size_;
+    }
+
+    void _remove_index(const size_t index) {
+      this->occupied_[index] = false;
+      --this->size_;
+    }
+
+    void _touch_index(const size_t index) {
+      this->timestamps_[index] = TimeFunc();
+    }
+
+    const KT &_key_at_index(const size_t index) const {
       return this->keys_[index];
     }
 
-    const KT &key_at_index(const size_t index, const TimeT timestamp) {
-      this->touch_index(index, timestamp);
-      return this->key_at_index(index);
-    }
-
-    [[nodiscard]] size_t newest_index() const {
-      if (size_ == 0)
-        return Capacity;
+    [[nodiscard]] ported::optional<size_t> _newest_index() const {
+      if (size_ == 0) return ported::nullopt;
 
       size_t idx   = 0;
       TimeT  max_t = this->timestamps_[0];
+
       for (size_t i = 1; i < Capacity; ++i) {
-        if (this->occupied_.get(i) && this->timestamps_[i] > max_t) {
+        if (this->occupied_[i] && this->timestamps_[i] > max_t) {
           max_t = this->timestamps_[i];
           idx   = i;
         }
       }
 
-      if (!this->occupied_.get(0) && idx == 0)
-        return Capacity;
-
+      if (!this->occupied_[0] && idx == 0) return ported::nullopt;
       return idx;
     }
 
-    [[nodiscard]] size_t newest_index(const TimeT timestamp) const {
-      size_t idx = this->newest_index();
-      touch_index(idx, timestamp);
-      return idx;
-    }
-
-    const KT &newest_key() const {
-      return this->key_at_index(newest_index());
-    }
-
-    const KT &newest_key(const TimeT timestamp) const {
-      return this->key_at_index(newest_index(timestamp));
-    }
-
-    [[nodiscard]] size_t oldest_index() const {
-      if (size_ == 0)
-        return Capacity;
+    [[nodiscard]] ported::optional<size_t> _oldest_index() const {
+      if (size_ == 0) return ported::nullopt;
 
       size_t idx   = 0;
       TimeT  min_t = this->timestamps_[0];
+
       for (size_t i = 1; i < Capacity; ++i) {
-        if (this->occupied_.get(i) && this->timestamps_[i] < min_t) {
+        if (this->occupied_[i] && this->timestamps_[i] < min_t) {
           min_t = this->timestamps_[i];
           idx   = i;
         }
@@ -131,50 +170,11 @@ namespace container {
       return idx;
     }
 
-    [[nodiscard]] size_t oldest_index(const TimeT timestamp) const {
-      size_t idx = this->oldest_index();
-      touch_index(idx, timestamp);
-      return idx;
-    }
-
-    const KT &oldest_key() const {
-      return this->key_at_index(oldest_index());
-    }
-
-    const KT &oldest_key(const TimeT timestamp) const {
-      return this->key_at_index(oldest_index(timestamp));
-    }
-
-    void clear() {
-      this->occupied_.clear_all();
-    }
-
-    bool contains(const KT &key) {
-      return find(key) != Capacity;
-    }
-
-    [[nodiscard]] constexpr size_t size() const {
-      return this->size_;
-    }
-
-    [[nodiscard]] static constexpr size_t capacity() {
-      return Capacity;
-    }
-
-    const BitArray            &occupied() const { return this->occupied_; }
-
-    [[nodiscard]] const TimeT *timestamps() const { return this->timestamps_; }
-
-    const KT                  *keys() const { return this->keys_; }
-
-  protected:
     size_t _find_free_entry() {
       size_t idx;
       if (this->size_ < Capacity) {
         // Table is free, keep inserting
         idx = this->occupied_.find_first_false();
-        this->occupied_.set(idx, true);
-        ++this->size_;
       } else {
         // Table is full, replace the oldest entry
         idx         = 0;
@@ -194,7 +194,9 @@ namespace container {
   template<typename KT, typename VT, size_t Capacity, auto TimeFunc>
   class lru_map_t : public lru_set_t<KT, Capacity, TimeFunc> {
   public:
-    using TimeT = decltype(TimeFunc());
+    using BitArray        = bitset_t<Capacity>;
+    using TimeT           = decltype(TimeFunc());
+    using ObjectReference = ported::tuple<TimeT, KT &, VT &>;
 
   protected:
     VT values_[Capacity] = {};  // Data
@@ -204,45 +206,77 @@ namespace container {
 
     // Methods
 
-    void insert(const KT &key, const VT &value, const TimeT timestamp) {
-      size_t idx = this->find(key);
-
-      if (idx != Capacity) {
-        // Table already has key, replace the value
-        this->values_[idx]     = value;
-        this->timestamps_[idx] = timestamp;
-        return;
+    void insert(const KT &key, const VT &value) {
+      if (const auto idx_opt = this->_find(key); idx_opt) {
+        this->_touch_index(*idx_opt);
+      } else {
+        const size_t idx = this->_find_free_entry();
+        this->_insert_index(idx, key, value);
+        this->_touch_index(idx);
       }
-
-      idx                    = this->_find_free_entry();
-      this->keys_[idx]       = key;
-      this->values_[idx]     = value;
-      this->timestamps_[idx] = timestamp;
     }
 
-    void insert(const KT &key, const TimeT timestamp) {  // Override
-      this->insert(key, VT{}, timestamp);
+    void insert(KT &&key, const VT &value) {
+      if (const auto idx_opt = this->_find(key); idx_opt) {
+        this->_touch_index(*idx_opt);
+      } else {
+        const size_t idx = this->_find_free_entry();
+        this->_insert_index(idx, ported::forward<KT>(key), ported::forward<VT>(value));
+        this->_touch_index(idx);
+      }
     }
 
-    VT &get_index(const size_t index, const TimeT timestamp) {
-      this->timestamps_[index] = timestamp;
-      return this->values_[index];
+    void insert(const KT &key) {
+      static_assert(ported::is_constructible_v<VT>);
+      this->insert(key, VT{});
     }
 
-    [[nodiscard]] const VT &get_index(const size_t index, const TimeT timestamp) const {
-      this->timestamps_[index] = timestamp;
-      return this->values_[index];
+    void insert(KT &&key) {
+      static_assert(ported::is_constructible_v<VT>);
+      this->insert(key, ported::forward<VT>(VT{}));
     }
 
-    VT &get(const KT &key, const TimeT timestamp) {
-      return this->get_index(find(key), timestamp);
+    ported::optional<ObjectReference> at(const size_t index, const bool touch = false) {
+      if (index >= Capacity || !this->occupied_[index])
+        return ported::nullopt;
+      auto ret = ObjectReference(this->timestamps_[index], this->keys_[index], this->values_[index]);
+      if (touch)
+        this->_touch_index(index);
+      return ret;
     }
 
-    [[nodiscard]] const VT &get(const KT &key, const TimeT timestamp) const {
-      return this->get_index(find(key), timestamp);
+    ported::optional<ObjectReference> get(const KT &key, const bool touch = false) {
+      if (const auto idx_opt = this->_find(key); idx_opt)
+        return at(*idx_opt, touch);
+      return ported::nullopt;
     }
 
-    const VT *values() const { return this->values_; }
+    ported::optional<ObjectReference> newest(const bool touch = false) {
+      if (const auto idx_opt = this->_newest_index(); idx_opt)
+        return at(*idx_opt, touch);
+      return ported::nullopt;
+    }
+
+    ported::optional<ObjectReference> oldest(const bool touch = false) {
+      if (const auto idx_opt = this->_oldest_index(); idx_opt)
+        return at(*idx_opt, touch);
+      return ported::nullopt;
+    }
+
+  protected:
+    void _insert_index(const size_t index, const KT &key, const VT &value) {
+      this->occupied_[index] = true;
+      this->keys_[index]     = key;
+      this->values_[index]   = value;
+      ++this->size_;
+    }
+
+    void _insert_index(const size_t index, KT &&key, VT &&value) {
+      this->occupied_[index] = true;
+      this->keys_[index]     = ported::move(key);
+      this->values_[index]   = ported::move(value);
+      ++this->size_;
+    }
   };
 }  // namespace container
 

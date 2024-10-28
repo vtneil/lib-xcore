@@ -43,15 +43,15 @@ int main(int argc, char **argv) {
 
   std::cout << std::endl;
 
-  print_buf(queue.data(), queue.capacity() * sizeof(long));
+  container::bitset_t<32> bits;
 
-  std::cout << std::endl;
+  bits[1] = true;
+  bits[3] = true;
+  bits[3] &= false;
 
-  char buf[512];
-
-  xtostr(12345678, buf, 2);
-
-  std::cout << buf;
+  for (size_t i = 0; i < bits.size(); ++i) {
+    std::cout << bits[i];
+  }
 
   return 0;
 }
