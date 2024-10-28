@@ -14,7 +14,7 @@ namespace container {
   public:
     using BitArray        = bitset_t<Capacity>;
     using TimeT           = decltype(TimeFunc());
-    using ObjectReference = ported::tuple<TimeT, KT &>;
+    using ObjectReference = ported::tuple<size_t, TimeT, KT &>;
 
   protected:
     BitArray occupied_             = {};  // Lookup
@@ -60,7 +60,7 @@ namespace container {
     ported::optional<ObjectReference> at(const size_t index, const bool touch = false) {
       if (index >= Capacity || !occupied_[index])
         return ported::nullopt;
-      auto ret = ObjectReference(timestamps_[index], keys_[index]);
+      auto ret = ObjectReference(index, timestamps_[index], keys_[index]);
       if (touch)
         this->_touch_index(index);
       return ret;
@@ -195,7 +195,7 @@ namespace container {
   public:
     using BitArray        = bitset_t<Capacity>;
     using TimeT           = decltype(TimeFunc());
-    using ObjectReference = ported::tuple<TimeT, KT &, VT &>;
+    using ObjectReference = ported::tuple<size_t, TimeT, KT &, VT &>;
 
   protected:
     VT values_[Capacity] = {};  // Data
@@ -225,7 +225,7 @@ namespace container {
     ported::optional<ObjectReference> at(const size_t index, const bool touch = false) {
       if (index >= Capacity || !this->occupied_[index])
         return ported::nullopt;
-      auto ret = ObjectReference(this->timestamps_[index], this->keys_[index], this->values_[index]);
+      auto ret = ObjectReference(index, this->timestamps_[index], index, this->keys_[index], this->values_[index]);
       if (touch)
         this->_touch_index(index);
       return ret;
