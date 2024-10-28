@@ -42,6 +42,11 @@ namespace container {
         this->_remove_index(*idx_opt);
     }
 
+    void remove_by_index(const size_t index) {
+      if (index < Capacity)
+        this->_remove_index(index);
+    }
+
     void remove_expired(const TimeT &expiry_age) {
       if (size_ == 0) return;
 
