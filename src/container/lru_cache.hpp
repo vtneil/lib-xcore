@@ -43,6 +43,8 @@ namespace container {
     }
 
     void remove_expired(const TimeT &expiry_age) {
+      if (size_ == 0) return;
+
       const TimeT time = TimeFunc();
       for (size_t i = 0; i < Capacity; ++i) {
         if (this->occupied_[i] && time - this->timestamps_[i] > expiry_age)
