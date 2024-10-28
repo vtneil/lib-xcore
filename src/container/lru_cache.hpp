@@ -55,7 +55,6 @@ namespace container {
         this->_touch_index(*idx_opt);
     }
 
-
     ported::optional<ObjectReference> at(const size_t index, const bool touch = false) {
       if (index >= Capacity || !occupied_[index])
         return ported::nullopt;
