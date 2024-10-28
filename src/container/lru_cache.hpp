@@ -117,15 +117,17 @@ namespace container {
     }
 
     void _insert_index(const size_t index, const KT &key) {
+      if (!this->occupied_[index])
+        ++this->size_;
       this->occupied_[index] = true;
       this->keys_[index]     = key;
-      ++this->size_;
     }
 
     void _insert_index(const size_t index, KT &&key) {
+      if (!this->occupied_[index])
+        ++this->size_;
       this->occupied_[index] = true;
       this->keys_[index]     = ported::move(key);
-      ++this->size_;
     }
 
     void _remove_index(const size_t index) {
@@ -256,17 +258,19 @@ namespace container {
 
   protected:
     void _insert_index(const size_t index, const KT &key, const VT &value) {
+      if (!this->occupied_[index])
+        ++this->size_;
       this->occupied_[index] = true;
       this->keys_[index]     = key;
       this->values_[index]   = value;
-      ++this->size_;
     }
 
     void _insert_index(const size_t index, KT &&key, VT &&value) {
+      if (!this->occupied_[index])
+        ++this->size_;
       this->occupied_[index] = true;
       this->keys_[index]     = ported::move(key);
       this->values_[index]   = ported::move(value);
-      ++this->size_;
     }
   };
 }  // namespace container
