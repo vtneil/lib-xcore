@@ -62,6 +62,16 @@ namespace ported {
     return get<I - 1>(static_cast<tuple<Ts...> &>(t));
   }
 
+  template<size_t I, typename T, typename... Ts>
+  auto get(const tuple<T, Ts...> &t) -> enable_if_t<I == 0, const T &> {
+    return t.value;
+  }
+
+  template<size_t I, typename T, typename... Ts>
+  auto get(const tuple<T, Ts...> &t) -> enable_if_t<I != 0, const typename detail::tuple_element<I, tuple<T, Ts...>>::type &> {
+    return get<I - 1>(static_cast<const tuple<Ts...> &>(t));
+  }
+
   template<typename... Ts>
   tuple<Ts...> make_tuple(Ts &&...ts) {
     return tuple<Ts...>(ported::forward<Ts>(ts)...);
@@ -70,6 +80,16 @@ namespace ported {
   template<typename... Ts>
   constexpr tuple<Ts &...> tie(Ts &...ts) noexcept {
     return tuple<Ts &...>(ts...);
+  }
+
+  template<size_t I, typename T, typename... Ts>
+  auto get(tuple<T, Ts...> &&t) -> enable_if_t<I == 0, T &&> {
+    return ported::move(t.value);
+  }
+
+  template<size_t I, typename T, typename... Ts>
+  auto get(tuple<T, Ts...> &&t) -> enable_if_t<I != 0, typename detail::tuple_element<I, tuple<T, Ts...>>::type &&> {
+    return get<I - 1>(ported::move(static_cast<tuple<Ts...> &&>(t)));
   }
 }  // namespace ported
 
