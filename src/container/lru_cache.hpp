@@ -39,6 +39,10 @@ namespace container {
       }
     }
 
+    void insert(const KT& key) {
+      insert(ported::forward<const KT>(key));
+    }
+
     void remove(const KT &key) {
       if (auto idx_opt = this->_find(key); idx_opt)
         this->_remove_index(*idx_opt);
@@ -240,9 +244,17 @@ namespace container {
       this->_touch_index(idx);
     }
 
+    void insert(const KT& key, const VT& value) {
+      insert(ported::forward<const KT>(key), ported::forward<const VT>(value));
+    }
+
     void insert(KT &&key) {
       static_assert(ported::is_constructible_v<VT>);
       this->insert(ported::forward<KT>(key), VT{});
+    }
+
+    void insert(const KT& key) {
+      insert(ported::forward<const KT>(key));
     }
 
     template<typename... Args>
