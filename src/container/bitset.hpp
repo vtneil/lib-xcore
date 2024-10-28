@@ -5,7 +5,7 @@
 
 namespace container {
   template<size_t Nb, typename WordT = int>
-  class bitset_t {
+  struct bitset_t {
   private:
     using byte_t                        = int8_t;
 
@@ -19,6 +19,48 @@ namespace container {
     size_t                  size_actual_;
     size_t                  num_elements_;
     WordT                   data[NumElements] = {};
+
+    class bit_reference {
+      bitset_t &parent_;
+      size_t    index_;
+
+    public:
+      bit_reference(bitset_t &parent, const size_t index)
+          : parent_(parent), index_(index) {}
+
+      operator bool() const {  // Implicit
+        return parent_.get(index_);
+      }
+
+      bit_reference &operator=(const bool value) {
+        parent_.set(index_, value);
+        return *this;
+      }
+
+      bit_reference &operator=(const bit_reference &other) {
+        return *this = static_cast<bool>(other);
+      }
+
+      bit_reference &operator&=(bool value) {
+        const bool current = parent_.get(index_);
+        parent_.set(index_, current & value);
+        return *this;
+      }
+
+      // Bitwise OR assignment
+      bit_reference &operator|=(bool value) {
+        const bool current = parent_.get(index_);
+        parent_.set(index_, current | value);
+        return *this;
+      }
+
+      // Bitwise XOR assignment (toggle)
+      bit_reference &operator^=(bool value) {
+        const bool current = parent_.get(index_);
+        parent_.set(index_, current ^ value);
+        return *this;
+      }
+    };
 
   public:
     // Constructor
@@ -71,16 +113,21 @@ namespace container {
       return (data[idx_word] >> idx_bit) & 1;
     }
 
-    [[nodiscard]] constexpr bool operator[](const size_t index) const {
-      return this->get(index);
-    }
-
     constexpr void set(const size_t index, bool value) {
       size_t idx_word = index / (8 * Alignment);
       size_t idx_bit  = index % (8 * Alignment);
 
       data[idx_word] &= ~(static_cast<WordT>(1) << idx_bit);
       data[idx_word] |= static_cast<WordT>(value) << idx_bit;
+    }
+
+    bit_reference operator[](const size_t index) {
+      return bit_reference(*this, index);
+    }
+
+
+    [[nodiscard]] constexpr bool operator[](const size_t index) const {
+      return this->get(index);
     }
 
     constexpr void clear(const size_t index) {
