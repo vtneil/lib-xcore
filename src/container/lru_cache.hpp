@@ -206,13 +206,9 @@ namespace container {
     // Methods
 
     void insert(KT &&key, VT &&value) {
-      if (const auto idx_opt = this->_find(key); idx_opt) {
-        this->_touch_index(*idx_opt);
-      } else {
-        const size_t idx = this->_find_free_entry();
-        this->_insert_index(idx, ported::forward<KT>(key), ported::forward<VT>(value));
-        this->_touch_index(idx);
-      }
+      const size_t idx = this->_find(key).value_or(this->_find_free_entry());
+      this->_insert_index(idx, ported::forward<KT>(key), ported::forward<VT>(value));
+      this->_touch_index(idx);
     }
 
     void insert(KT &&key) {
