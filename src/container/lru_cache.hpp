@@ -27,16 +27,6 @@ namespace container {
 
     // Methods
 
-    void insert(const KT &key) {
-      if (const auto idx_opt = this->_find(key); idx_opt) {
-        this->_touch_index(*idx_opt);
-      } else {
-        const size_t idx = this->_find_free_entry();
-        this->_insert_index(idx, key);
-        this->_touch_index(idx);
-      }
-    }
-
     void insert(KT &&key) {
       if (const auto idx_opt = this->_find(key); idx_opt) {
         this->_touch_index(*idx_opt);
@@ -206,17 +196,7 @@ namespace container {
 
     // Methods
 
-    void insert(const KT &key, const VT &value) {
-      if (const auto idx_opt = this->_find(key); idx_opt) {
-        this->_touch_index(*idx_opt);
-      } else {
-        const size_t idx = this->_find_free_entry();
-        this->_insert_index(idx, key, value);
-        this->_touch_index(idx);
-      }
-    }
-
-    void insert(KT &&key, const VT &value) {
+    void insert(KT &&key, VT &&value) {
       if (const auto idx_opt = this->_find(key); idx_opt) {
         this->_touch_index(*idx_opt);
       } else {
@@ -226,14 +206,15 @@ namespace container {
       }
     }
 
-    void insert(const KT &key) {
-      static_assert(ported::is_constructible_v<VT>);
-      this->insert(key, VT{});
-    }
-
     void insert(KT &&key) {
       static_assert(ported::is_constructible_v<VT>);
-      this->insert(key, ported::forward<VT>(VT{}));
+      this->insert(ported::forward<KT>(key), VT{});
+    }
+
+    template<typename... Args>
+    void emplace(KT &&key, Args &&...args) {
+      static_assert(ported::is_constructible_v<VT, Args &&...>);
+      this->insert(ported::forward<KT>(key), VT(ported::forward<Args>(args)...));
     }
 
     ported::optional<ObjectReference> at(const size_t index, const bool touch = false) {

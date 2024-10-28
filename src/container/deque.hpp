@@ -41,7 +41,7 @@ namespace container {
     template<typename... Args>
     bool emplace_back(Args &&...args) {
       static_assert(ported::is_constructible_v<Tp, Args &&...>, "Arguments cannot construct the type");
-      return push_back(ported::forward<Tp>(Tp(ported::forward<Args>(args)...)));
+      return push_back(Tp(ported::forward<Args>(args)...));
     }
 
     bool push_front(const Tp &t) {
@@ -67,7 +67,7 @@ namespace container {
     template<typename... Args>
     bool emplace_front(Args &&...args) {
       static_assert(ported::is_constructible_v<Tp, Args &&...>, "Arguments cannot construct the type");
-      return push_front(ported::forward<Tp>(Tp(ported::forward<Args>(args)...)));
+      return push_front(Tp(ported::forward<Args>(args)...));
     }
 
     ported::optional<Tp> pop_front() {

@@ -36,8 +36,8 @@ int main(int argc, char *argv[]) {
 
   auto v1 = cache.get(34567, true);
   if (v1) {
-    const auto &time    = ported::get<0>(*v1);
-    const auto &key     = ported::get<1>(*v1);
+    const auto &time = ported::get<0>(*v1);
+    const auto &key  = ported::get<1>(*v1);
     std::cout << time << " " << key << std::endl;
     ported::get<1>(*v1) = 99999;
   }
