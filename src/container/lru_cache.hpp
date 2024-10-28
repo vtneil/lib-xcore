@@ -40,7 +40,13 @@ namespace container {
     }
 
     void insert(const KT& key) {
-      insert(ported::forward<const KT>(key));
+      if (const auto idx_opt = this->_find(key); idx_opt) {
+        this->_touch_index(*idx_opt);
+      } else {
+        const size_t idx = this->_find_free_entry();
+        this->_insert_index(idx, ported::forward<KT>(key));
+        this->_touch_index(idx);
+      }
     }
 
     void remove(const KT &key) {
@@ -245,7 +251,9 @@ namespace container {
     }
 
     void insert(const KT& key, const VT& value) {
-      insert(ported::forward<const KT>(key), ported::forward<const VT>(value));
+      const size_t idx = this->_find(key).value_or(this->_find_free_entry());
+      this->_insert_index(idx, ported::forward<KT>(key), ported::forward<VT>(value));
+      this->_touch_index(idx);
     }
 
     void insert(KT &&key) {
@@ -254,7 +262,8 @@ namespace container {
     }
 
     void insert(const KT& key) {
-      insert(ported::forward<const KT>(key));
+      static_assert(ported::is_constructible_v<VT>);
+      this->insert(ported::forward<KT>(key), VT{});
     }
 
     template<typename... Args>
