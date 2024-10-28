@@ -266,7 +266,7 @@ namespace container {
     ported::optional<ObjectReference> at(const size_t index, const bool touch = false) {
       if (index >= Capacity || !this->occupied_[index])
         return ported::nullopt;
-      auto ret = ObjectReference(index, this->timestamps_[index], index, this->keys_[index], this->values_[index]);
+      auto ret = ObjectReference(index, this->timestamps_[index], this->keys_[index], this->values_[index]);
       if (touch)
         this->_touch_index(index);
       return ret;
