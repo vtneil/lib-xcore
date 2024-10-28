@@ -20,7 +20,9 @@ namespace container {
     BitArray occupied_             = {};  // Lookup
     TimeT    timestamps_[Capacity] = {};  // Lookup
     KT       keys_[Capacity]       = {};  // Lookup/data
-    size_t   size_                 = {};
+    size_t   size_                 = {};  // Number of entries
+    size_t   rr_index              = {};  // Round-robin index
+    size_t   rr_ttl                = {};  // Round-robin time-to-live
 
   public:
     lru_set_t() = default;
@@ -89,6 +91,13 @@ namespace container {
       return ported::nullopt;
     }
 
+    ported::optional<ObjectReference> rr_next(const bool touch = true) {
+      if (size_ == 0) return ported::nullopt;
+      if (const auto idx_opt = this->_rr_hook(touch); idx_opt)
+        return ObjectReference(*idx_opt, timestamps_[*idx_opt], keys_[*idx_opt]);
+      return ported::nullopt;
+    }
+
     void clear() {
       this->occupied_.clear_all();
     }
@@ -113,6 +122,32 @@ namespace container {
         if (this->keys_[i] == key && this->occupied_[i])
           return i;
       }
+      return ported::nullopt;
+    }
+
+    ported::optional<size_t> _rr_hook(const bool touch) {
+      if (size_ == 0) return ported::nullopt;
+
+      if (rr_ttl == 0) {
+        if (const auto oldest_idx = _oldest_index(); oldest_idx) {
+          rr_index = *oldest_idx;
+          rr_ttl   = size_;  // Reset TTL to size
+          if (touch)
+            this->_touch_index(rr_index);
+          return rr_index;
+        }
+      }
+
+      for (size_t i = 0; i < Capacity; ++i) {
+        rr_index = (rr_index + 1) % Capacity;  // Move to next index
+        if (occupied_[rr_index]) {
+          --rr_ttl;  // Decrement TTL
+          if (touch)
+            this->_touch_index(rr_index);
+          return rr_index;
+        }
+      }
+
       return ported::nullopt;
     }
 
@@ -178,23 +213,9 @@ namespace container {
     }
 
     size_t _find_free_entry() {
-      size_t idx;
-      if (this->size_ < Capacity) {
-        // Table is free, keep inserting
-        idx = this->occupied_.find_first_false();
-      } else {
-        // Table is full, replace the oldest entry
-        idx         = 0;
-        TimeT min_t = this->timestamps_[0];
-        for (size_t i = 1; i < Capacity; ++i) {
-          if (this->timestamps_[i] < min_t) {
-            min_t = this->timestamps_[i];
-            idx   = i;
-          }
-        }
-      }
-
-      return idx;
+      return size_ < Capacity
+               ? occupied_.find_first_false()  // Vacant
+               : *_oldest_index();             // Full
     }
   };
 
@@ -254,6 +275,13 @@ namespace container {
     ported::optional<ObjectReference> oldest(const bool touch = false) {
       if (const auto idx_opt = this->_oldest_index(); idx_opt)
         return at(*idx_opt, touch);
+      return ported::nullopt;
+    }
+
+    ported::optional<ObjectReference> rr_next(const bool touch = true) {
+      if (this->size_ == 0) return ported::nullopt;
+      if (const auto idx_opt = this->_rr_hook(touch); idx_opt)
+        return ObjectReference(*idx_opt, this->timestamps_[*idx_opt], this->keys_[*idx_opt], this->values_[*idx_opt]);
       return ported::nullopt;
     }
 

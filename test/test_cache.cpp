@@ -50,6 +50,14 @@ int main(int argc, char *argv[]) {
   if (v2) {
     auto time = ported::get<1>(*v2);
     auto key  = ported::get<2>(*v2);
-    std::cout << time << " " << key << std::endl;
+    std::cout << time << " " << key << std::endl << std::endl;
+  }
+
+  for (size_t i = 0; i < 32; ++i) {
+    auto node = cache.rr_next(true);
+    std::cout << ported::get<0>(*node) << " "
+              << ported::get<1>(*node) << " "
+              << ported::get<2>(*node) << " "
+              << std::endl;
   }
 }
