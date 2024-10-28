@@ -131,8 +131,9 @@ namespace container {
     }
 
     void _remove_index(const size_t index) {
+      if (this->occupied_[index])
+        --this->size_;
       this->occupied_[index] = false;
-      --this->size_;
     }
 
     void _touch_index(const size_t index) {
