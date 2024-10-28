@@ -138,8 +138,8 @@ namespace ported {
     }
 
     template<typename U>
-    constexpr T &value_or(U &&default_value) const {
-      static_assert(ported::is_constructible_v<U &&, T>);
+    constexpr T value_or(U &&default_value) const & {
+      static_assert(ported::is_constructible_v<T, U &&>);
 
       if (this->has_value())
         return this->value();
@@ -148,8 +148,8 @@ namespace ported {
     }
 
     template<typename U>
-    constexpr T &&value_or(U &&default_value) {
-      static_assert(ported::is_constructible_v<U &&, T>);
+    constexpr T value_or(U &&default_value) && {
+      static_assert(ported::is_constructible_v<T, U &&>);
 
       if (this->has_value())
         return this->value();
