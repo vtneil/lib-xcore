@@ -38,10 +38,40 @@ namespace container {
       return true;
     }
 
+    bool push_back_force(const Tp &t) {
+      if (full()) {
+        pos_front_ = utils::cyclic<Capacity>(pos_front_ + 1);
+        --size_;
+      }
+
+      arr_[pos_back_] = t;
+      pos_back_       = utils::cyclic<Capacity>(pos_back_ + 1);
+      ++size_;
+      return true;
+    }
+
+    bool push_back_force(Tp &&t) {
+      if (full()) {
+        pos_front_ = utils::cyclic<Capacity>(pos_front_ + 1);
+        --size_;
+      }
+
+      arr_[pos_back_] = ported::move(t);
+      pos_back_       = utils::cyclic<Capacity>(pos_back_ + 1);
+      ++size_;
+      return true;
+    }
+
     template<typename... Args>
     bool emplace_back(Args &&...args) {
       static_assert(ported::is_constructible_v<Tp, Args &&...>, "Arguments cannot construct the type");
       return push_back(Tp(ported::forward<Args>(args)...));
+    }
+
+    template<typename... Args>
+    bool emplace_back_force(Args &&...args) {
+      static_assert(ported::is_constructible_v<Tp, Args &&...>, "Arguments cannot construct the type");
+      return push_back_force(Tp(ported::forward<Args>(args)...));
     }
 
     bool push_front(const Tp &t) {
@@ -64,10 +94,40 @@ namespace container {
       return true;
     }
 
+    bool push_front_force(const Tp &t) {
+      if (full()) {
+        pos_back_ = utils::cyclic<Capacity>(pos_back_ - 1);
+        --size_;
+      }
+
+      pos_front_       = utils::cyclic<Capacity>(pos_front_ - 1);
+      arr_[pos_front_] = t;
+      ++size_;
+      return true;
+    }
+
+    bool push_front_force(Tp &&t) {
+      if (full()) {
+        pos_back_ = utils::cyclic<Capacity>(pos_back_ - 1);
+        --size_;
+      }
+
+      pos_front_       = utils::cyclic<Capacity>(pos_front_ - 1);
+      arr_[pos_front_] = ported::move(t);
+      ++size_;
+      return true;
+    }
+
     template<typename... Args>
     bool emplace_front(Args &&...args) {
       static_assert(ported::is_constructible_v<Tp, Args &&...>, "Arguments cannot construct the type");
       return push_front(Tp(ported::forward<Args>(args)...));
+    }
+
+    template<typename... Args>
+    bool emplace_front_force(Args &&...args) {
+      static_assert(ported::is_constructible_v<Tp, Args &&...>, "Arguments cannot construct the type");
+      return push_front_force(Tp(ported::forward<Args>(args)...));
     }
 
     ported::optional<Tp> pop_front() {

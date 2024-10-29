@@ -25,9 +25,22 @@ namespace container {
       return Base::push_back(ported::move(value));
     }
 
+    bool push_force(const Tp &value) {
+      return Base::push_back_force(value);
+    }
+
+    bool push_force(Tp &&value) {
+      return Base::push_back_force(ported::move(value));
+    }
+
     template<typename... Args>
     bool emplace(Args &&...args) {
       return Base::emplace_back(ported::forward<Args>(args)...);
+    }
+
+    template<typename... Args>
+    bool emplace_force(Args &&...args) {
+      return Base::emplace_back_force(ported::forward<Args>(args)...);
     }
 
     ported::optional<Tp> pop() {
