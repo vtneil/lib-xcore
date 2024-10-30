@@ -7,9 +7,9 @@ void test_push_and_peek() {
 
   //
 
-  const char data1[]     = "abcd";
-  const char data2[]     = "efgh";
-  char       peek_buf[4] = {};
+  const unsigned char data1[]     = "abcd";
+  const unsigned char data2[]     = "efgh";
+  unsigned char       peek_buf[4] = {};
 
   // Test normal push and peek without wrap
   assert(buffer.push(data1, 4));
@@ -22,8 +22,8 @@ void test_push_and_peek() {
   assert(buffer.size() == 8);  // Buffer is full now
 
   // Peek entire buffer content (with wrap-around)
-  char full_buf[8] = {};
-  result           = buffer.peek(full_buf, 8);
+  unsigned char full_buf[8] = {};
+  result                    = buffer.peek(full_buf, 8);
   assert(result.has_value());
   assert(std::equal(full_buf, full_buf + 4, data1));
   assert(std::equal(full_buf + 4, full_buf + 8, data2));
@@ -33,9 +33,9 @@ void test_push_and_peek() {
 void test_push_force() {
   container::byte_buffer_t<8> buffer;
 
-  const char                  data1[]     = "abcdef";
-  const char                  data2[]     = "gh";
-  char                        peek_buf[8] = {};
+  const unsigned char         data1[]     = "abcdef";
+  const unsigned char         data2[]     = "gh";
+  unsigned char               peek_buf[8] = {};
 
   // Fill the buffer
   assert(buffer.push(data1, 6));
@@ -47,14 +47,14 @@ void test_push_force() {
   assert(result.has_value());
 
   // Expected buffer state: "cdefgh" (last 4 bytes are new)
-  const char expected[] = "cdefgh";
+  const unsigned char expected[] = "cdefgh";
   assert(std::equal(peek_buf, peek_buf + 6, expected));
   std::cout << "test_push_force passed with forced overwrite" << std::endl;
 }
 
 void test_single_byte_operations() {
   container::byte_buffer_t<8> buffer;
-  char                        peek_buf[8] = {};
+  unsigned char               peek_buf[8] = {};
 
   // Test single-byte push and force
   assert(buffer.push('x'));
@@ -70,8 +70,8 @@ void test_single_byte_operations() {
   }
 
   // Expected last state in buffer after forced pushes
-  const char expected[] = {'x', 'y', 'z', '{', '|', '}', '~'};
-  result                = buffer.peek(peek_buf, 7);
+  const unsigned char expected[] = {'x', 'y', 'z', '{', '|', '}', '~'};
+  result                         = buffer.peek(peek_buf, 7);
   assert(result.has_value());
   assert(std::equal(peek_buf, peek_buf + 7, expected));
 
@@ -81,9 +81,9 @@ void test_single_byte_operations() {
 void test_pop() {
   container::byte_buffer_t<8> buffer;
 
-  const char                  data1[]    = "abcdef";
-  const char                  data2[]    = "gh";
-  char                        pop_buf[8] = {};
+  const unsigned char         data1[]    = "abcdef";
+  const unsigned char         data2[]    = "gh";
+  unsigned char               pop_buf[8] = {};
 
   // Fill the buffer partially
   assert(buffer.push(data1, 6));

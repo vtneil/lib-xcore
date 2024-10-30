@@ -17,7 +17,7 @@ namespace container {
     bool push_back(const Tp &t) {
       if (full())
         return false;
-      _internal_push_back(ported::forward<Tp>(t));
+      _internal_push_back(t);
       return true;
     }
 
@@ -33,7 +33,7 @@ namespace container {
         pos_front_ = utils::cyclic<Capacity>(pos_front_ + 1);
         --size_;
       }
-      _internal_push_back(ported::forward<Tp>(t));
+      _internal_push_back(t);
       return true;
     }
 
@@ -61,7 +61,7 @@ namespace container {
     bool push_front(const Tp &t) {
       if (full())
         return false;
-      _internal_push_front(ported::forward<Tp>(t));
+      _internal_push_front(t);
       return true;
     }
 
@@ -77,7 +77,7 @@ namespace container {
         pos_back_ = utils::cyclic<Capacity>(pos_back_ - 1);
         --size_;
       }
-      _internal_push_front(ported::forward<Tp>(t));
+      _internal_push_front(t);
       return true;
     }
 
