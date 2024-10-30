@@ -6,8 +6,10 @@
 namespace container {
   template<typename Tp, size_t Capacity, template<typename, size_t> class Container = array_t>
   struct queue_t : protected deque_t<Tp, Capacity, Container> {
+  protected:
     using Base = deque_t<Tp, Capacity, Container>;
 
+  public:
     using Base::available_for;
     using Base::Base;
     using Base::capacity;
@@ -45,6 +47,14 @@ namespace container {
 
     ported::optional<Tp> pop() {
       return Base::pop_front();
+    }
+
+    [[nodiscard]] ported::optional<Tp &> seek() {
+      return front();
+    }
+
+    [[nodiscard]] ported::optional<const Tp &> seek() const {
+      return front();
     }
   };
 }  // namespace container

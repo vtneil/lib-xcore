@@ -7,10 +7,6 @@ namespace container {
   template<typename Tp, size_t Capacity, template<typename, size_t> class Container = array_t>
   struct deque_t {
   protected:
-    using value_type                   = Tp;
-    using reference                    = value_type &;
-    using const_reference              = const value_type &;
-
     Container<Tp, Capacity> arr_       = {};
     size_t                  pos_front_ = {};
     size_t                  pos_back_  = {};
@@ -149,20 +145,29 @@ namespace container {
       return arr_[pos_back_];
     }
 
-    // Extended element access
-    FORCE_INLINE constexpr reference front() noexcept {
+    // Extended element access with optional support
+
+    FORCE_INLINE constexpr ported::optional<Tp &> front() noexcept {
+      if (empty())
+        return ported::nullopt;
       return arr_[pos_front_];
     }
 
-    FORCE_INLINE constexpr const_reference front() const noexcept {
+    FORCE_INLINE constexpr ported::optional<const Tp &> front() const noexcept {
+      if (empty())
+        return ported::nullopt;
       return arr_[pos_front_];
     }
 
-    FORCE_INLINE constexpr reference back() noexcept {
+    FORCE_INLINE constexpr ported::optional<Tp &> back() noexcept {
+      if (empty())
+        return ported::nullopt;
       return arr_[utils::cyclic<Capacity>(pos_back_ - 1)];
     }
 
-    FORCE_INLINE constexpr const_reference back() const noexcept {
+    FORCE_INLINE constexpr ported::optional<const Tp &> back() const noexcept {
+      if (empty())
+        return ported::nullopt;
       return arr_[utils::cyclic<Capacity>(pos_back_ - 1)];
     }
 
