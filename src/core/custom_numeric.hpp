@@ -11,7 +11,7 @@ namespace utils {
     if constexpr (ported::is_signed_v<T>) {
       return (ported::make_unsigned_t<T>(1) << ((sizeof(T) * 8) - 1)) - 1;
     } else {
-      return (ported::make_unsigned_t<T>(1) << (sizeof(T) * 8)) - 1;
+      return ~T(0);
     }
   }
 
@@ -22,7 +22,7 @@ namespace utils {
       static constexpr std::size_t value = 1 + num_digits_radix<Value / Radix, Radix>::value;
     };
 
-    template<std::size_t Radix>
+    template<size_t Radix>
     struct num_digits_radix<0, Radix> {
       static constexpr std::size_t value = 0;
     };
@@ -31,7 +31,7 @@ namespace utils {
   template<typename T, std::size_t Radix = 10>
   constexpr size_t integral_buffer_size() {
     constexpr bool   is_signed   = ported::is_signed_v<T>;
-    constexpr auto   max_value   = static_cast<std::uintmax_t>(utils::max_integral<T>());
+    constexpr auto   max_value   = static_cast<uintmax_t>(utils::max_integral<T>());
     constexpr size_t digit_count = detail::num_digits_radix<max_value, Radix>::value;
     return 1 + digit_count + (is_signed ? 1 : 0) + 1;
   }
