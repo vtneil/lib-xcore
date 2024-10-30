@@ -17,20 +17,14 @@ namespace container {
     bool push_back(const Tp &t) {
       if (full())
         return false;
-
-      arr_[pos_back_] = t;
-      pos_back_       = utils::cyclic<Capacity>(pos_back_ + 1);
-      ++size_;
+      _internal_push_back(ported::forward<Tp>(t));
       return true;
     }
 
     bool push_back(Tp &&t) {
       if (full())
         return false;
-
-      arr_[pos_back_] = ported::move(t);
-      pos_back_       = utils::cyclic<Capacity>(pos_back_ + 1);
-      ++size_;
+      _internal_push_back(ported::forward<Tp>(t));
       return true;
     }
 
@@ -39,10 +33,7 @@ namespace container {
         pos_front_ = utils::cyclic<Capacity>(pos_front_ + 1);
         --size_;
       }
-
-      arr_[pos_back_] = t;
-      pos_back_       = utils::cyclic<Capacity>(pos_back_ + 1);
-      ++size_;
+      _internal_push_back(ported::forward<Tp>(t));
       return true;
     }
 
@@ -51,10 +42,7 @@ namespace container {
         pos_front_ = utils::cyclic<Capacity>(pos_front_ + 1);
         --size_;
       }
-
-      arr_[pos_back_] = ported::move(t);
-      pos_back_       = utils::cyclic<Capacity>(pos_back_ + 1);
-      ++size_;
+      _internal_push_back(ported::forward<Tp>(t));
       return true;
     }
 
@@ -73,20 +61,14 @@ namespace container {
     bool push_front(const Tp &t) {
       if (full())
         return false;
-
-      pos_front_       = utils::cyclic<Capacity>(pos_front_ - 1);
-      arr_[pos_front_] = t;
-      ++size_;
+      _internal_push_front(ported::forward<Tp>(t));
       return true;
     }
 
     bool push_front(Tp &&t) {
       if (full())
         return false;
-
-      pos_front_       = utils::cyclic<Capacity>(pos_front_ - 1);
-      arr_[pos_front_] = ported::move(t);
-      ++size_;
+      _internal_push_front(ported::forward<Tp>(t));
       return true;
     }
 
@@ -95,10 +77,7 @@ namespace container {
         pos_back_ = utils::cyclic<Capacity>(pos_back_ - 1);
         --size_;
       }
-
-      pos_front_       = utils::cyclic<Capacity>(pos_front_ - 1);
-      arr_[pos_front_] = t;
-      ++size_;
+      _internal_push_front(ported::forward<Tp>(t));
       return true;
     }
 
@@ -107,10 +86,7 @@ namespace container {
         pos_back_ = utils::cyclic<Capacity>(pos_back_ - 1);
         --size_;
       }
-
-      pos_front_       = utils::cyclic<Capacity>(pos_front_ - 1);
-      arr_[pos_front_] = ported::move(t);
-      ++size_;
+      _internal_push_front(ported::forward<Tp>(t));
       return true;
     }
 
@@ -176,13 +152,38 @@ namespace container {
 
     [[nodiscard]] FORCE_INLINE constexpr size_t capacity() const noexcept { return Capacity; }
 
-    [[nodiscard]] FORCE_INLINE constexpr bool   available_for(const size_t n) const { return Capacity - size() >= n; }
+    [[nodiscard]] FORCE_INLINE constexpr bool   available_for(const size_t n) const { return (n <= Capacity) && (Capacity - size() >= n); }
 
     [[nodiscard]] FORCE_INLINE constexpr bool   empty() const { return size() == 0; }
 
     [[nodiscard]] FORCE_INLINE constexpr bool   full() const { return !available_for(1); }
 
     constexpr const Tp                         *data() const { return arr_; }
+
+  protected:
+    FORCE_INLINE void _internal_push_back(const Tp &t) {
+      arr_[pos_back_] = t;
+      pos_back_       = utils::cyclic<Capacity>(pos_back_ + 1);
+      ++size_;
+    }
+
+    FORCE_INLINE void _internal_push_back(Tp &&t) {
+      arr_[pos_back_] = ported::move(t);
+      pos_back_       = utils::cyclic<Capacity>(pos_back_ + 1);
+      ++size_;
+    }
+
+    FORCE_INLINE void _internal_push_front(const Tp &t) {
+      pos_front_       = utils::cyclic<Capacity>(pos_front_ - 1);
+      arr_[pos_front_] = t;
+      ++size_;
+    }
+
+    FORCE_INLINE void _internal_push_front(Tp &&t) {
+      pos_front_       = utils::cyclic<Capacity>(pos_front_ - 1);
+      arr_[pos_front_] = ported::move(t);
+      ++size_;
+    }
   };
 }  // namespace container
 

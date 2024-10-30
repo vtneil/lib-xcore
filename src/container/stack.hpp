@@ -11,7 +11,6 @@ namespace container {
 
   public:
     using Base::available_for;
-    using Base::back;
     using Base::Base;
     using Base::capacity;
     using Base::data;
@@ -20,41 +19,37 @@ namespace container {
     using Base::size;
 
     bool push(const Tp &value) {
-      return Base::push_back(value);
+      return this->push_back(value);
     }
 
     bool push(Tp &&value) {
-      return Base::push_back(ported::move(value));
+      return this->push_back(ported::move(value));
     }
 
     bool push_force(const Tp &value) {
-      return Base::push_back_force(value);
+      return this->push_back_force(value);
     }
 
     bool push_force(Tp &&value) {
-      return Base::push_back_force(ported::move(value));
+      return this->push_back_force(ported::move(value));
     }
 
     template<typename... Args>
     bool emplace(Args &&...args) {
-      return Base::emplace_back(ported::forward<Args>(args)...);
+      return this->emplace_back(ported::forward<Args>(args)...);
     }
 
     template<typename... Args>
     bool emplace_force(Args &&...args) {
-      return Base::emplace_back_force(ported::forward<Args>(args)...);
+      return this->emplace_back_force(ported::forward<Args>(args)...);
     }
 
     ported::optional<Tp> pop() {
-      return Base::pop_back();
+      return this->pop_back();
     }
 
-    [[nodiscard]] ported::optional<Tp &> seek() {
-      return back();
-    }
-
-    [[nodiscard]] ported::optional<const Tp &> seek() const {
-      return back();
+    [[nodiscard]] ported::optional<const Tp &> peek() const {
+      return this->back();
     }
   };
 }  // namespace container

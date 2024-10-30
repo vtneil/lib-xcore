@@ -18,6 +18,7 @@
 #include "container/deque.hpp"
 #include "container/queue.hpp"
 #include "container/stack.hpp"
+#include "container/byte_buffer.hpp"
 #include "container/bitset.hpp"
 #include "container/lru_cache.hpp"
 #include "container/string.hpp"

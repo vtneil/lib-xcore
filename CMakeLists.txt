@@ -18,6 +18,7 @@ endfunction()
 
 # Test files
 new_target(test_include test/test_include.cpp)
+new_target(test_buffer test/test_buffer.cpp)
 new_target(test_deque test/test_deque.cpp)
 new_target(test_cache test/test_cache.cpp)
 new_target(test_string test/test_string.cpp)

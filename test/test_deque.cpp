@@ -37,18 +37,18 @@ void test_queue() {
   q.push(1);
   q.push(2);
   q.push(3);
-  assert(q.seek().has_value() && q.seek().value() == 1);  // Check front element
+  assert(q.peek().has_value() && q.peek().value() == 1);  // Check front element
 
-  // Test pop and seek
+  // Test pop and peek
   assert(q.pop().has_value() && q.pop().value() == 1);
-  assert(q.seek().has_value() && q.seek().value() == 2);
+  assert(q.peek().has_value() && q.peek().value() == 2);
 
   // Test push_force when full
   q.push(4);
   q.push(5);
   q.push(6);
   q.push_force(7);  // Overwrite front when full
-  assert(q.seek().has_value() && q.seek().value() == 3);
+  assert(q.peek().has_value() && q.peek().value() == 3);
 
   std::cout << "Queue test passed." << std::endl;
 }
@@ -60,18 +60,18 @@ void test_stack() {
   s.push(1);
   s.push(2);
   s.push(3);
-  assert(s.seek().has_value() && s.seek().value() == 3);  // Check top element
+  assert(s.peek().has_value() && s.peek().value() == 3);  // Check top element
 
-  // Test pop and seek
+  // Test pop and peek
   assert(s.pop().has_value() && s.pop().value() == 3);
-  assert(s.seek().has_value() && s.seek().value() == 2);
+  assert(s.peek().has_value() && s.peek().value() == 2);
 
   // Test push_force when full
   s.push(4);
   s.push(5);
   s.push(6);
   s.push_force(7);  // Overwrite bottom when full
-  assert(s.seek().has_value() && s.seek().value() == 7);
+  assert(s.peek().has_value() && s.peek().value() == 7);
 
   std::cout << "Stack test passed." << std::endl;
 }
