@@ -8,9 +8,9 @@
 
 namespace container {
   template<size_t Capacity, template<typename, size_t> class Container = array_t>
-  struct byte_buffer_t : protected deque_t<char, Capacity, Container> {
+  struct byte_buffer_t : protected deque_t<unsigned char, Capacity, Container> {
   protected:
-    using Base = deque_t<char, Capacity, Container>;
+    using Base = deque_t<unsigned char, Capacity, Container>;
 
   public:
     using Base::available_for;
@@ -20,9 +20,9 @@ namespace container {
     using Base::full;
     using Base::size;
 
-    bool push(const char byte) { return push(&byte, 1); }
+    bool push(const unsigned char byte) { return push(&byte, 1); }
 
-    bool push(const char *src, const size_t n) {
+    bool push(const unsigned char *src, const size_t n) {
       if (n == 0)
         return true;
 
@@ -33,9 +33,9 @@ namespace container {
       return true;
     }
 
-    bool push_force(const char byte) { return push_force(&byte, 1); }
+    bool push_force(const unsigned char byte) { return push_force(&byte, 1); }
 
-    bool push_force(const char *src, const size_t n) {
+    bool push_force(const unsigned char *src, const size_t n) {
       if (n == 0)
         return true;
 
@@ -53,7 +53,7 @@ namespace container {
       return true;
     }
 
-    ported::optional<char *> peek(char *dst, const size_t n) const {
+    ported::optional<unsigned char *> peek(unsigned char *dst, const size_t n) const {
       if (n == 0)
         return dst;
 
@@ -75,7 +75,7 @@ namespace container {
       return dst;
     }
 
-    ported::optional<char *> pop(char *dst, const size_t n) {
+    ported::optional<unsigned char *> pop(unsigned char *dst, const size_t n) {
       const auto ret_opt = peek(dst, n);
       if (!ret_opt)
         return ported::nullopt;
@@ -85,7 +85,7 @@ namespace container {
     }
 
   protected:
-    void _internal_push(const char *src, const size_t n) {
+    void _internal_push(const unsigned char *src, const size_t n) {
       const size_t pos_to_insert = this->pos_back_;
 
       if (pos_to_insert + n <= Capacity) {
