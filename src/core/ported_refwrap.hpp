@@ -1,10 +1,10 @@
-#ifndef PORTED_REFWRAP_HPP
-#define PORTED_REFWRAP_HPP
+#ifndef LIB_XCORE_CORE_PORTED_REFWRAP_HPP
+#define LIB_XCORE_CORE_PORTED_REFWRAP_HPP
 
 #include "core/ported_move.hpp"
 #include "core/ported_type_traits.hpp"
 
-namespace ported {
+namespace xcore {
   // REFERENCE WRAPPER
 
   template<typename T>
@@ -43,6 +43,6 @@ namespace ported {
   reference_wrapper<const T> cref(const T &t) noexcept {
     return reference_wrapper<const T>(t);
   }
-}  // namespace ported
+}  // namespace xcore
 
-#endif  //PORTED_REFWRAP_HPP
+#endif  //LIB_XCORE_CORE_PORTED_REFWRAP_HPP

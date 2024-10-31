@@ -1,5 +1,5 @@
-#ifndef HPA_2110452_MIN_DOM_SET_MEMORY_H
-#define HPA_2110452_MIN_DOM_SET_MEMORY_H
+#ifndef LIB_XCORE_MEMORY_ALLOCATOR_H
+#define LIB_XCORE_MEMORY_ALLOCATOR_H
 
 #include <cstddef>
 #include <cstdlib>
@@ -7,7 +7,7 @@
 #include <new>
 #include "memory/generic.hpp"
 
-namespace memory {
+namespace xcore::memory {
   template<template<typename> class allocator_form_t, typename Tp>
   class allocator_t {  // CRTP
   protected:
@@ -136,6 +136,10 @@ namespace memory {
   FORCE_INLINE constexpr bool is_nullptr(const void *pointer) {
     return !pointer;
   }
-}  // namespace memory
+}  // namespace xcore::memory
 
-#endif  //HPA_2110452_MIN_DOM_SET_MEMORY_H
+namespace xcore {
+  using namespace memory;
+}
+
+#endif  //LIB_XCORE_MEMORY_ALLOCATOR_H

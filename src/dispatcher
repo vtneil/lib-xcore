@@ -1,5 +1,5 @@
-#ifndef ENABLE_DISPATCHER
-#define ENABLE_DISPATCHER
+#ifndef LIB_XCORE_INCLUDE_DISPATCHER
+#define LIB_XCORE_INCLUDE_DISPATCHER
 
 #include "utils/task_dispatcher.hpp"
 
@@ -13,4 +13,4 @@
     GLOB_DISPATCHER_SYMBOL();                         \
   }
 
-#endif  //ENABLE_DISPATCHER
+#endif  //LIB_XCORE_INCLUDE_DISPATCHER

@@ -1,5 +1,5 @@
-#ifndef CUSTOM_NUMERIC_HPP
-#define CUSTOM_NUMERIC_HPP
+#ifndef LIB_XCORE_CORE_CUSTOM_NUMERIC_HPP
+#define LIB_XCORE_CORE_CUSTOM_NUMERIC_HPP
 
 #include "core/ported_std.hpp"
 #include <cstdint>
@@ -7,9 +7,9 @@
 namespace utils {
   template<typename T>
   constexpr T max_integral() {
-    static_assert(ported::is_integral_v<T>, "Only integral types are supported");
-    if constexpr (ported::is_signed_v<T>) {
-      return (ported::make_unsigned_t<T>(1) << ((sizeof(T) * 8) - 1)) - 1;
+    static_assert(xcore::is_integral_v<T>, "Only integral types are supported");
+    if constexpr (xcore::is_signed_v<T>) {
+      return (xcore::make_unsigned_t<T>(1) << ((sizeof(T) * 8) - 1)) - 1;
     } else {
       return ~T(0);
     }
@@ -30,11 +30,11 @@ namespace utils {
 
   template<typename T, std::size_t Radix = 10>
   constexpr size_t integral_buffer_size() {
-    constexpr bool   is_signed   = ported::is_signed_v<T>;
+    constexpr bool   is_signed   = xcore::is_signed_v<T>;
     constexpr auto   max_value   = static_cast<uintmax_t>(utils::max_integral<T>());
     constexpr size_t digit_count = detail::num_digits_radix<max_value, Radix>::value;
     return 1 + digit_count + (is_signed ? 1 : 0) + 1;
   }
 }  // namespace utils
 
-#endif  //CUSTOM_NUMERIC_HPP
+#endif  //LIB_XCORE_CORE_CUSTOM_NUMERIC_HPP

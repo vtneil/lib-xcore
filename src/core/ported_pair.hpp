@@ -1,7 +1,7 @@
-#ifndef PORTED_PAIR_HPP
-#define PORTED_PAIR_HPP
+#ifndef LIB_XCORE_CORE_PORTED_PAIR_HPP
+#define LIB_XCORE_CORE_PORTED_PAIR_HPP
 
-namespace ported {
+namespace xcore {
   template<typename T1, typename T2>
   struct pair {
     T1 first;
@@ -36,8 +36,8 @@ namespace ported {
 
   template<typename T1, typename T2>
   constexpr pair<T1, T2> make_pair(T1 &&t1, T2 &&t2) {
-    return pair<T1, T2>(ported::forward<T1>(t1), ported::forward<T2>(t2));
+    return pair<T1, T2>(xcore::forward<T1>(t1), xcore::forward<T2>(t2));
   }
 }  // namespace ported
 
-#endif  //PORTED_PAIR_HPP
+#endif  //LIB_XCORE_CORE_PORTED_PAIR_HPP

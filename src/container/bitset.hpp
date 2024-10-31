@@ -1,9 +1,9 @@
-#ifndef BITSET_HPP
-#define BITSET_HPP
+#ifndef LIB_XCORE_CONTAINER_BITSET_HPP
+#define LIB_XCORE_CONTAINER_BITSET_HPP
 
 #include "memory.hpp"
 
-namespace container {
+namespace xcore::container {
   template<size_t Nb, typename WordT = int>
   struct bitset_t {
   private:
@@ -11,7 +11,7 @@ namespace container {
 
     static constexpr size_t Alignment   = sizeof(WordT);
     static constexpr size_t NumBytes    = (Nb + 8 - 1) / 8;
-    static constexpr size_t SizeActual  = memory::nearest_alignment<byte_t, Alignment>(NumBytes);
+    static constexpr size_t SizeActual  = nearest_alignment<byte_t, Alignment>(NumBytes);
     static constexpr size_t NumElements = SizeActual / Alignment;
 
     size_t                  size_;
@@ -67,13 +67,13 @@ namespace container {
 
     constexpr bitset_t() : size_{Nb} {
       num_bytes_    = (size_ + 8 - 1) / 8;
-      size_actual_  = memory::nearest_alignment<byte_t, Alignment>(num_bytes_);
+      size_actual_  = nearest_alignment<byte_t, Alignment>(num_bytes_);
       num_elements_ = size_actual_ / Alignment;
     }
 
     explicit constexpr bitset_t(const size_t N) : size_{N} {
       num_bytes_    = (size_ + 8 - 1) / 8;
-      size_actual_  = memory::nearest_alignment<byte_t, Alignment>(num_bytes_);
+      size_actual_  = nearest_alignment<byte_t, Alignment>(num_bytes_);
       num_elements_ = size_actual_ / Alignment;
     }
 
@@ -199,6 +199,10 @@ namespace container {
       return Nb;
     }
   };
-}  // namespace container
+}  // namespace xcore::container
 
-#endif  //BITSET_HPP
+namespace xcore {
+  using namespace container;
+}
+
+#endif  //LIB_XCORE_CONTAINER_BITSET_HPP

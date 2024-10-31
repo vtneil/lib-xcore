@@ -1,10 +1,10 @@
-#include "embedded_cpp"
+#include "lib_xcore"
 #include "dispatcher"
 #include <iostream>
 
-container::queue_t<int, 10, container::array_t> queue;
-container::array_t<int, 1024>                   arr1;
-container::heap_array_t<int, 1024>              arr2;
+xcore::container::queue_t<int, 10, xcore::container::array_t> queue;
+xcore::container::array_t<int, 1024>                          arr1;
+xcore::container::heap_array_t<int, 1024>                     arr2;
 
 //
 
@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
 
   std::cout << std::endl;
 
-  container::bitset_t<32> bits;
+  xcore::container::bitset_t<32> bits;
 
   bits[1] = true;
   bits[3] = true;

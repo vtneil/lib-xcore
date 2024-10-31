@@ -1,5 +1,5 @@
-#ifndef MOVE_HPP
-#define MOVE_HPP
+#ifndef LIB_XCORE_CORE_MOVE_HPP
+#define LIB_XCORE_CORE_MOVE_HPP
 
 #include "core/ported_invoke.hpp"
 #include "core/ported_refwrap.hpp"
@@ -13,7 +13,7 @@
 #include <cstdint>
 #include <cstring>
 
-namespace ported {
+namespace xcore {
   using real_t = double;
 
   template<typename T>
@@ -88,7 +88,7 @@ namespace ported {
     */
   template<typename InputIt, typename OutputIt>
   constexpr OutputIt move(InputIt first, InputIt last, OutputIt d_first) {
-    for (; first != last; static_cast<void>(++first), static_cast<void>(++d_first)) *d_first = ported::move(*first);
+    for (; first != last; static_cast<void>(++first), static_cast<void>(++d_first)) *d_first = xcore::move(*first);
     return d_first;
   }
 
@@ -117,6 +117,6 @@ namespace ported {
   constexpr real_t integral_coefficient() {
     return detail::integral_coefficient_helper<real_t, N>::value;
   }
-}  // namespace ported
+}  // namespace xcore
 
-#endif  //MOVE_HPP
+#endif  //LIB_XCORE_CORE_MOVE_HPP

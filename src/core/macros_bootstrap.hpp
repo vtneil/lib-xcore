@@ -1,5 +1,5 @@
-#ifndef MACROS_BOOTSTRAP_H
-#define MACROS_BOOTSTRAP_H
+#ifndef LIB_XCORE_CORE_MACROS_BOOTSTRAP_H
+#define LIB_XCORE_CORE_MACROS_BOOTSTRAP_H
 
 #ifndef PACKED
 #  define PACKED __attribute__((packed))
@@ -91,4 +91,4 @@
 #  define PURE __attribute__((pure))
 #endif
 
-#endif  //MACROS_BOOTSTRAP_H
+#endif  //LIB_XCORE_CORE_MACROS_BOOTSTRAP_H

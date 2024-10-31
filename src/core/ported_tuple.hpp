@@ -1,7 +1,7 @@
-#ifndef PORTED_TUPLE_HPP
-#define PORTED_TUPLE_HPP
+#ifndef LIB_XCORE_CORE_PORTED_TUPLE_HPP
+#define LIB_XCORE_CORE_PORTED_TUPLE_HPP
 
-namespace ported {
+namespace xcore {
   template<typename... Ts>
   struct tuple;
 
@@ -40,8 +40,8 @@ namespace ported {
     }
 
     constexpr tuple &operator=(tuple &&other) noexcept {
-      value                              = ported::move(other.value);
-      static_cast<tuple<Ts...> &>(*this) = ported::move(static_cast<const tuple<Ts...> &>(other));
+      value                              = xcore::move(other.value);
+      static_cast<tuple<Ts...> &>(*this) = xcore::move(static_cast<const tuple<Ts...> &>(other));
       return *this;
     }
 
@@ -74,7 +74,7 @@ namespace ported {
 
   template<typename... Ts>
   tuple<Ts...> make_tuple(Ts &&...ts) {
-    return tuple<Ts...>(ported::forward<Ts>(ts)...);
+    return tuple<Ts...>(xcore::forward<Ts>(ts)...);
   }
 
   template<typename... Ts>
@@ -84,13 +84,13 @@ namespace ported {
 
   template<size_t I, typename T, typename... Ts>
   auto get(tuple<T, Ts...> &&t) -> enable_if_t<I == 0, T &&> {
-    return ported::move(t.value);
+    return xcore::move(t.value);
   }
 
   template<size_t I, typename T, typename... Ts>
   auto get(tuple<T, Ts...> &&t) -> enable_if_t<I != 0, typename detail::tuple_element<I, tuple<T, Ts...>>::type &&> {
-    return get<I - 1>(ported::move(static_cast<tuple<Ts...> &&>(t)));
+    return get<I - 1>(xcore::move(static_cast<tuple<Ts...> &&>(t)));
   }
 }  // namespace ported
 
-#endif  //PORTED_TUPLE_HPP
+#endif  //LIB_XCORE_CORE_PORTED_TUPLE_HPP

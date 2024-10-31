@@ -1,9 +1,9 @@
-#ifndef QUEUE_HPP
-#define QUEUE_HPP
+#ifndef LIB_XCORE_CONTAINER_QUEUE_HPP
+#define LIB_XCORE_CONTAINER_QUEUE_HPP
 
 #include "container/deque.hpp"
 
-namespace container {
+namespace xcore::container {
   template<typename Tp, size_t Capacity, template<typename, size_t> class Container = array_t>
   struct queue_t : protected deque_t<Tp, Capacity, Container> {
   protected:
@@ -23,7 +23,7 @@ namespace container {
     }
 
     bool push(Tp &&value) {
-      return this->push_back(ported::move(value));
+      return this->push_back(move(value));
     }
 
     bool push_force(const Tp &value) {
@@ -31,27 +31,31 @@ namespace container {
     }
 
     bool push_force(Tp &&value) {
-      return this->push_back_force(ported::move(value));
+      return this->push_back_force(move(value));
     }
 
     template<typename... Args>
     bool emplace(Args &&...args) {
-      return this->emplace_back(ported::forward<Args>(args)...);
+      return this->emplace_back(forward<Args>(args)...);
     }
 
     template<typename... Args>
     bool emplace_force(Args &&...args) {
-      return this->emplace_back_force(ported::forward<Args>(args)...);
+      return this->emplace_back_force(forward<Args>(args)...);
     }
 
-    ported::optional<Tp> pop() {
+    optional<Tp> pop() {
       return this->pop_front();
     }
 
-    ported::optional<const Tp &> peek() const {
+    optional<Tp> peek() const {
       return this->front();
     }
   };
 }  // namespace container
 
-#endif  //QUEUE_HPP
+namespace xcore {
+  using namespace container;
+}
+
+#endif  //LIB_XCORE_CONTAINER_QUEUE_HPP

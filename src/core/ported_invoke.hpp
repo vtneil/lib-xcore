@@ -1,11 +1,11 @@
-#ifndef PORTED_INVOKE_HPP
-#define PORTED_INVOKE_HPP
+#ifndef LIB_XCORE_CORE_PORTED_INVOKE_HPP
+#define LIB_XCORE_CORE_PORTED_INVOKE_HPP
 
 #include "core/ported_move.hpp"
 #include "core/ported_type_traits.hpp"
 #include "core/ported_refwrap.hpp"
 
-namespace ported {
+namespace xcore {
   // INVOKE_RESULT
 
   namespace detail {
@@ -143,4 +143,4 @@ namespace ported {
   }
 }  // namespace ported
 
-#endif  //PORTED_INVOKE_HPP
+#endif  //LIB_XCORE_CORE_PORTED_INVOKE_HPP

@@ -1,9 +1,11 @@
-#include "embedded_cpp"
+#include "lib_xcore"
 #include <cassert>
 #include <iostream>
 
+// todo: test is incorrect.
+
 void test_deque() {
-  container::deque_t<int, 5> d;
+  xcore::container::deque_t<int, 5> d;
 
   // Test push_back and push_front
   d.push_back(1);
@@ -11,12 +13,16 @@ void test_deque() {
   d.push_front(0);
 
   // Test front and back access
-  assert(d.front().has_value() && d.front().value() == 0);
-  assert(d.back().has_value() && d.back().value() == 2);
+  assert(d.front() && *d.front() == 0);
+  assert(d.back() && *d.back() == 2);
 
   // Test pop operations
-  assert(d.pop_front().has_value() && d.pop_front().value() == 0);
-  assert(d.pop_back().has_value() && d.pop_back().value() == 2);
+  {
+    auto x = d.pop_front();
+    assert(x && *x == 0);
+    x = d.pop_back();
+    assert(x && *x == 2);
+  }
 
   // Test push_back_force when full
   d.push_back(3);
@@ -25,19 +31,19 @@ void test_deque() {
   d.push_back(6);
   d.push_back(7);        // Deque is now full
   d.push_back_force(8);  // This should overwrite the oldest element
-  assert(d.front().has_value() && d.front().value() == 4);
+  assert(d.front() && *d.front() == 4);
 
   std::cout << "Deque test passed." << std::endl;
 }
 
 void test_queue() {
-  container::queue_t<int, 5> q;
+  xcore::container::queue_t<int, 5> q;
 
   // Test push and pop
   q.push(1);
   q.push(2);
   q.push(3);
-  assert(q.peek().has_value() && q.peek().value() == 1);  // Check front element
+  assert(q.peek() && *q.peek() == 1);  // Check front element
 
   // Test pop and peek
   assert(q.pop().has_value() && q.pop().value() == 1);
@@ -54,7 +60,7 @@ void test_queue() {
 }
 
 void test_stack() {
-  container::stack_t<int, 5> s;
+  xcore::container::stack_t<int, 5> s;
 
   // Test push and pop
   s.push(1);

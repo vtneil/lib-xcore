@@ -1,5 +1,5 @@
-#ifndef EMBEDDED_CPP_H
-#define EMBEDDED_CPP_H
+#ifndef LIB_XCORE_INCLUDE_BASIC_H
+#define LIB_XCORE_INCLUDE_BASIC_H
 
 #include "require_cpp17.hpp"
 
@@ -26,4 +26,4 @@
 #include "utils/nonblocking_delay.hpp"
 #include "utils/on_off_timer.hpp"
 
-#endif  //EMBEDDED_CPP_H
+#endif  //LIB_XCORE_INCLUDE_BASIC_H

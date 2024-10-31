@@ -1,9 +1,9 @@
-#ifndef PORTED_TYPE_TRAITS_HPP
-#define PORTED_TYPE_TRAITS_HPP
+#ifndef LIB_XCORE_CORE_PORTED_TYPE_TRAITS_HPP
+#define LIB_XCORE_CORE_PORTED_TYPE_TRAITS_HPP
 
 #include "macros_bootstrap.hpp"
 
-namespace ported {
+namespace xcore {
   typedef decltype(nullptr) nullptr_t;
 
   template<typename...>
@@ -526,4 +526,4 @@ namespace ported {
   inline constexpr bool is_convertible_v = is_convertible<From, To>::value;
 }  // namespace ported
 
-#endif  //PORTED_TYPE_TRAITS_HPP
+#endif  //LIB_XCORE_CORE_PORTED_TYPE_TRAITS_HPP

@@ -1,10 +1,10 @@
-#ifndef HPA_2110452_MIN_DOM_SET_VIRTUAL_MEMORY_H
-#define HPA_2110452_MIN_DOM_SET_VIRTUAL_MEMORY_H
+#ifndef LIB_XCORE_MEMORY_VIRTUAL_MEMORY_H
+#define LIB_XCORE_MEMORY_VIRTUAL_MEMORY_H
 
 #include "memory/allocator.hpp"
 #include <cstdint>
 
-namespace memory {
+namespace xcore::memory {
   /**
      * A virtual region memory region for extended fast region-like allocation
      * using memory pool technique. It should be substantially faster than using malloc/new if
@@ -84,7 +84,7 @@ namespace memory {
 
     template<typename T>
     [[nodiscard]] T *allocate_ptr(const size_t n = 1) noexcept {
-      byte_t *nsp = sp - memory::nearest_alignment<T, Alignment>(n);
+      byte_t *nsp = sp - xcore::nearest_alignment<T, Alignment>(n);
 
       // Check for region overflow
       if (nsp < region_limit) return nullptr;
@@ -100,7 +100,7 @@ namespace memory {
 
     template<typename T>
     [[nodiscard]] T *allocate_ptr_unsafe(const size_t n = 1) noexcept {
-      sp -= memory::nearest_alignment<T, Alignment>(n);
+      sp -= xcore::nearest_alignment<T, Alignment>(n);
       return reinterpret_cast<T *>(sp);
     }
 
@@ -111,7 +111,7 @@ namespace memory {
 
     template<typename T>
     void deallocate(const size_t n = 1) noexcept {
-      const size_t to_decr = memory::nearest_alignment<T, Alignment>(n);
+      const size_t to_decr = xcore::nearest_alignment<T, Alignment>(n);
 
       ASSUME(bp >= sp);
 
@@ -124,7 +124,7 @@ namespace memory {
 
     template<typename T>
     void deallocate_unsafe(const size_t n = 1) noexcept {
-      sp += memory::nearest_alignment<T, Alignment>(n);
+      sp += xcore::nearest_alignment<T, Alignment>(n);
     }
 
     FORCE_INLINE void              clear() noexcept { sp = bp; }
@@ -141,6 +141,10 @@ namespace memory {
       return sp - region_limit;
     }
   };
-}  // namespace memory
+}  // namespace xcore::memory
 
-#endif  //HPA_2110452_MIN_DOM_SET_VIRTUAL_MEMORY_H
+namespace xcore {
+  using namespace memory;
+}
+
+#endif  //LIB_XCORE_MEMORY_VIRTUAL_MEMORY_H

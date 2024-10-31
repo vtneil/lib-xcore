@@ -1,9 +1,9 @@
-#ifndef DEQUE_HPP
-#define DEQUE_HPP
+#ifndef LIB_XCORE_CONTAINER_DEQUE_HPP
+#define LIB_XCORE_CONTAINER_DEQUE_HPP
 
 #include "container/array.hpp"
 
-namespace container {
+namespace xcore::container {
   template<typename Tp, size_t Capacity, template<typename, size_t> class Container = array_t>
   struct deque_t {
   protected:
@@ -24,7 +24,7 @@ namespace container {
     bool push_back(Tp &&t) {
       if (full())
         return false;
-      _internal_push_back(ported::forward<Tp>(t));
+      _internal_push_back(forward<Tp>(t));
       return true;
     }
 
@@ -42,20 +42,20 @@ namespace container {
         pos_front_ = utils::cyclic<Capacity>(pos_front_ + 1);
         --size_;
       }
-      _internal_push_back(ported::forward<Tp>(t));
+      _internal_push_back(forward<Tp>(t));
       return true;
     }
 
     template<typename... Args>
     bool emplace_back(Args &&...args) {
-      static_assert(ported::is_constructible_v<Tp, Args &&...>, "Arguments cannot construct the type");
-      return push_back(Tp(ported::forward<Args>(args)...));
+      static_assert(is_constructible_v<Tp, Args &&...>, "Arguments cannot construct the type");
+      return push_back(Tp(forward<Args>(args)...));
     }
 
     template<typename... Args>
     bool emplace_back_force(Args &&...args) {
-      static_assert(ported::is_constructible_v<Tp, Args &&...>, "Arguments cannot construct the type");
-      return push_back_force(Tp(ported::forward<Args>(args)...));
+      static_assert(is_constructible_v<Tp, Args &&...>, "Arguments cannot construct the type");
+      return push_back_force(Tp(forward<Args>(args)...));
     }
 
     bool push_front(const Tp &t) {
@@ -68,7 +68,7 @@ namespace container {
     bool push_front(Tp &&t) {
       if (full())
         return false;
-      _internal_push_front(ported::forward<Tp>(t));
+      _internal_push_front(forward<Tp>(t));
       return true;
     }
 
@@ -86,25 +86,25 @@ namespace container {
         pos_back_ = utils::cyclic<Capacity>(pos_back_ - 1);
         --size_;
       }
-      _internal_push_front(ported::forward<Tp>(t));
+      _internal_push_front(forward<Tp>(t));
       return true;
     }
 
     template<typename... Args>
     bool emplace_front(Args &&...args) {
-      static_assert(ported::is_constructible_v<Tp, Args &&...>, "Arguments cannot construct the type");
-      return push_front(Tp(ported::forward<Args>(args)...));
+      static_assert(is_constructible_v<Tp, Args &&...>, "Arguments cannot construct the type");
+      return push_front(Tp(forward<Args>(args)...));
     }
 
     template<typename... Args>
     bool emplace_front_force(Args &&...args) {
-      static_assert(ported::is_constructible_v<Tp, Args &&...>, "Arguments cannot construct the type");
-      return push_front_force(Tp(ported::forward<Args>(args)...));
+      static_assert(is_constructible_v<Tp, Args &&...>, "Arguments cannot construct the type");
+      return push_front_force(Tp(forward<Args>(args)...));
     }
 
-    ported::optional<Tp> pop_front() {
+    optional<Tp> pop_front() {
       if (empty())
-        return ported::nullopt;
+        return nullopt;
 
       const size_t saved_id = pos_front_;
       pos_front_            = utils::cyclic<Capacity>(pos_front_ + 1);
@@ -112,38 +112,26 @@ namespace container {
       return arr_[saved_id];
     }
 
-    ported::optional<Tp> pop_back() {
+    optional<Tp> pop_back() {
       if (empty())
-        return ported::nullopt;
+        return nullopt;
 
       pos_back_ = utils::cyclic<Capacity>(pos_back_ - 1);
       --size_;
       return arr_[pos_back_];
     }
 
-    // Extended element access with optional support
+    // Extended element access with optional support (always copy, no referenced access)
 
-    FORCE_INLINE constexpr ported::optional<Tp &> front() noexcept {
+    FORCE_INLINE constexpr optional<Tp> front() const noexcept {
       if (empty())
-        return ported::nullopt;
+        return nullopt;
       return arr_[pos_front_];
     }
 
-    FORCE_INLINE constexpr ported::optional<const Tp &> front() const noexcept {
+    FORCE_INLINE constexpr optional<Tp> back() const noexcept {
       if (empty())
-        return ported::nullopt;
-      return arr_[pos_front_];
-    }
-
-    FORCE_INLINE constexpr ported::optional<Tp &> back() noexcept {
-      if (empty())
-        return ported::nullopt;
-      return arr_[utils::cyclic<Capacity>(pos_back_ - 1)];
-    }
-
-    FORCE_INLINE constexpr ported::optional<const Tp &> back() const noexcept {
-      if (empty())
-        return ported::nullopt;
+        return nullopt;
       return arr_[utils::cyclic<Capacity>(pos_back_ - 1)];
     }
 
@@ -168,7 +156,7 @@ namespace container {
     }
 
     FORCE_INLINE void _internal_push_back(Tp &&t) {
-      arr_[pos_back_] = ported::move(t);
+      arr_[pos_back_] = move(t);
       pos_back_       = utils::cyclic<Capacity>(pos_back_ + 1);
       ++size_;
     }
@@ -181,10 +169,14 @@ namespace container {
 
     FORCE_INLINE void _internal_push_front(Tp &&t) {
       pos_front_       = utils::cyclic<Capacity>(pos_front_ - 1);
-      arr_[pos_front_] = ported::move(t);
+      arr_[pos_front_] = move(t);
       ++size_;
     }
   };
-}  // namespace container
+}  // namespace xcore::container
 
-#endif  //DEQUE_HPP
+namespace xcore {
+  using namespace container;
+}
+
+#endif  //LIB_XCORE_CONTAINER_DEQUE_HPP

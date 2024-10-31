@@ -1,7 +1,7 @@
-// #ifndef NUMERIC_VECTOR_HPP
-// #define NUMERIC_VECTOR_HPP
-//
-// #include "core/basic_iterator.hpp"
+#ifndef LIB_XCORE_LINALG_NUMERIC_VECTOR_HPP
+#define LIB_XCORE_LINALG_NUMERIC_VECTOR_HPP
+
+#include "core/basic_iterator.hpp"
 // #include "container/array.hpp"
 //
 //
@@ -433,7 +433,7 @@
 //         * @param other Other vector
 //         */
 //       void swap(basic_vector_t &other) {
-//         for (size_t i = 0; i < Size; ++i) ported::swap(arr_[i], other.arr_[i]);
+//         for (size_t i = 0; i < Size; ++i) xcore::swap(arr_[i], other.arr_[i]);
 //       }
 //
 //       /**
@@ -446,14 +446,14 @@
 //     private:
 //       void allocate_zero() { allocate_fill(Tp()); }
 //
-//       void allocate_fill(const Tp &fill) { ported::fill(arr_, arr_ + Size, fill); }
+//       void allocate_fill(const Tp &fill) { xcore::fill(arr_, arr_ + Size, fill); }
 //
 //       void allocate_from(const basic_vector_t &other) {
-//         static_cast<void>(ported::copy(other.arr_, other.arr_ + Size, arr_));
+//         static_cast<void>(xcore::copy(other.arr_, other.arr_ + Size, arr_));
 //       }
 //
 //       void allocate_from(const Tp (&array)[Size]) {
-//         static_cast<void>(ported::copy(array, array + Size, arr_));
+//         static_cast<void>(xcore::copy(array, array + Size, arr_));
 //       }
 //
 //     public:
@@ -494,5 +494,5 @@
 //     }
 //   }  // namespace impl
 // }  // namespace math
-//
-// #endif  //NUMERIC_VECTOR_HPP
+
+#endif  //LIB_XCORE_LINALG_NUMERIC_VECTOR_HPP

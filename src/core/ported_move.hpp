@@ -1,9 +1,9 @@
-#ifndef PORTED_MOVE_HPP
-#define PORTED_MOVE_HPP
+#ifndef LIB_XCORE_CORE_PORTED_MOVE_HPP
+#define LIB_XCORE_CORE_PORTED_MOVE_HPP
 
 #include "core/ported_type_traits.hpp"
 
-namespace ported {
+namespace xcore {
   /**
    * Mimic std::move.
    *
@@ -26,4 +26,4 @@ namespace ported {
   }
 }  // namespace ported
 
-#endif  //PORTED_MOVE_HPP
+#endif  //LIB_XCORE_CORE_PORTED_MOVE_HPP

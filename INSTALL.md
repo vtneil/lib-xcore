@@ -6,7 +6,7 @@ To use this library in PlatformIO project, put the following in `platformio.ini`
 
 ```ini
 lib_deps =
-    embedded-cpp=https://gitlab.com/vtneil/embedded-cpp.git
+    lib-xcore=https://gitlab.com/vtneil/lib-xcore.git
 ```
 
 Make sure your platform supports C++17.
@@ -19,12 +19,12 @@ or related forums on setting up C++17 support in your PlatformIO project.
 
 ## Including the header
 
-This library has the main library header file `embedded_cpp` which includes almost all
+This library has the main library header file `lib_xcore` which includes almost all
 basic features into your project. Other than that, there are other modules you can include.
 To use basic utilities, put this at the top of your project source/header file.
 
 ```c++
-#include "embedded_cpp"
+#include "lib_xcore"
 ```
 
 To use task dispatcher, also include the following.

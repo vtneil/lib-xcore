@@ -1,8 +1,8 @@
-#ifndef REQUIRE_CPP20_HPP
-#define REQUIRE_CPP20_HPP
+#ifndef LIB_XCORE_REQUIRE_CPP_VERSION_HPP
+#define LIB_XCORE_REQUIRE_CPP_VERSION_HPP
 
 #if __cplusplus < 201703L
-#error "Requires C++17 or GNU++17 compiler to work!"
+#  error "Requires C++17 or GNU++17 compiler to work!"
 #endif
 
-#endif  //REQUIRE_CPP20_HPP
+#endif  //LIB_XCORE_REQUIRE_CPP_VERSION_HPP

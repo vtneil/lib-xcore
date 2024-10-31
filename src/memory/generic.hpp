@@ -1,9 +1,9 @@
-#ifndef HPA_2110452_MIN_DOM_SET_MEMORY_UTILS_H
-#define HPA_2110452_MIN_DOM_SET_MEMORY_UTILS_H
+#ifndef LIB_XCORE_MEMORY_GENERIC_H
+#define LIB_XCORE_MEMORY_GENERIC_H
 
 #include "core/builtins_bootstrap.hpp"
 
-namespace memory {
+namespace xcore::memory {
   template<typename R = void, typename Tp>
   FORCE_INLINE constexpr auto addressof(Tp &value) {
     return reinterpret_cast<R *>(&value);
@@ -23,6 +23,10 @@ namespace memory {
   FORCE_INLINE constexpr size_t nearest_alignment(const size_t n = 1) {
     return nearest_alignment<Tp, sizeof(AlignT)>(n);
   }
-}  // namespace memory
+}  // namespace xcore::memory
 
-#endif  //HPA_2110452_MIN_DOM_SET_MEMORY_UTILS_H
+namespace xcore {
+  using namespace memory;
+}
+
+#endif  //LIB_XCORE_MEMORY_GENERIC_H

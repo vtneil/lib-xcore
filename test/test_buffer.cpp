@@ -1,9 +1,9 @@
 #include <iostream>
 #include <cassert>
-#include "embedded_cpp"
+#include "lib_xcore"
 
 void test_push_and_peek() {
-  container::byte_buffer_t<8> buffer;
+  xcore::container::byte_buffer_t<8> buffer;
 
   //
 
@@ -31,7 +31,7 @@ void test_push_and_peek() {
 }
 
 void test_push_force() {
-  container::byte_buffer_t<8> buffer;
+  xcore::container::byte_buffer_t<8> buffer;
 
   const unsigned char         data1[]     = "abcdef";
   const unsigned char         data2[]     = "gh";
@@ -53,7 +53,7 @@ void test_push_force() {
 }
 
 void test_single_byte_operations() {
-  container::byte_buffer_t<8> buffer;
+  xcore::container::byte_buffer_t<8> buffer;
   unsigned char               peek_buf[8] = {};
 
   // Test single-byte push and force
@@ -62,14 +62,14 @@ void test_single_byte_operations() {
   assert(buffer.size() == 2);
 
   auto result = buffer.peek(peek_buf, 2);
-  assert(result.has_value() && peek_buf[0] == 'x' && peek_buf[1] == 'y');
+  assert(result && peek_buf[0] == 'x' && peek_buf[1] == 'y');
 
-  // Force a byte push to fill and wrap the buffer
+  // Force a byte push to fill
   for (int i = 0; i < 7; ++i) {
-    buffer.push_force('z' + i);
+    buffer.push('z' + i);
   }
 
-  // Expected last state in buffer after forced pushes
+  // Expected last state in buffer after pushes
   const unsigned char expected[] = {'x', 'y', 'z', '{', '|', '}', '~'};
   result                         = buffer.peek(peek_buf, 7);
   assert(result.has_value());
@@ -79,7 +79,7 @@ void test_single_byte_operations() {
 }
 
 void test_pop() {
-  container::byte_buffer_t<8> buffer;
+  xcore::container::byte_buffer_t<8> buffer;
 
   const unsigned char         data1[]    = "abcdef";
   const unsigned char         data2[]    = "gh";

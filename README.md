@@ -1,7 +1,7 @@
-# Embedded C++(17)
+# C++17 Extended Core Library
 
-A comprehensive library for embedded system (minimum: C++17).
-This includes many ported functionality from standard library (`std` -> `ported`),
+A comprehensive library targeted for, but not limited to, embedded system (minimum: C++17).
+This includes many ported functionality from standard library (`std` -> `xcore`),
 hence somewhat independent of standard library.
 
 This library is being merged and refactored with my old `vt-linalg` linear algebra library, so

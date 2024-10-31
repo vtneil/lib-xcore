@@ -1,5 +1,5 @@
-#ifndef STRING_FORMAT_HPP
-#define STRING_FORMAT_HPP
+#ifndef LIB_XCORE_CORE_STRING_FORMAT_HPP
+#define LIB_XCORE_CORE_STRING_FORMAT_HPP
 
 #include "core/ported_std.hpp"
 #include <cstdio>
@@ -8,7 +8,7 @@
 * Overload: integral (signed/unsigned char, short, int, long, long long) to string
 */
 template<typename Tp>
-ported::enable_if_t<ported::is_integral_v<Tp>, char *> xtostr(Tp value, char *buf, unsigned int radix = 10) {
+xcore::enable_if_t<xcore::is_integral_v<Tp>, char *> xtostr(Tp value, char *buf, unsigned int radix = 10) {
   if (radix < 2 || radix > 36) {
     buf[0] = '\0';
     return buf;
@@ -16,7 +16,7 @@ ported::enable_if_t<ported::is_integral_v<Tp>, char *> xtostr(Tp value, char *bu
 
   constexpr char digits[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   char          *p        = buf;
-  const bool     negative = value < 0 && ported::is_signed_v<Tp> && radix == 10;
+  const bool     negative = value < 0 && xcore::is_signed_v<Tp> && radix == 10;
 
   if (negative) {
     value = -value;
@@ -48,7 +48,7 @@ ported::enable_if_t<ported::is_integral_v<Tp>, char *> xtostr(Tp value, char *bu
 * Overload: floating points (float, double) to string
 */
 template<typename Tp>
-ported::enable_if_t<ported::is_floating_point_v<Tp>, char *> xtostr(Tp value, char *buf, const int width, const int precision) {
+xcore::enable_if_t<xcore::is_floating_point_v<Tp>, char *> xtostr(Tp value, char *buf, const int width, const int precision) {
   char format[10];
   sprintf(format, "%%%d.%df", width, precision);
   sprintf(buf, format, value);
@@ -56,4 +56,4 @@ ported::enable_if_t<ported::is_floating_point_v<Tp>, char *> xtostr(Tp value, ch
   return buf;
 }
 
-#endif  //STRING_FORMAT_HPP
+#endif  //LIB_XCORE_CORE_STRING_FORMAT_HPP

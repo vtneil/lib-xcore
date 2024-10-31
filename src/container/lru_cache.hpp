@@ -1,12 +1,12 @@
-#ifndef LRU_CACHE_HPP
-#define LRU_CACHE_HPP
+#ifndef LIB_XCORE_CONTAINER_LRU_CACHE_HPP
+#define LIB_XCORE_CONTAINER_LRU_CACHE_HPP
 
 #include "core/ported_std.hpp"
 #include "core/ported_optional.hpp"
 #include "core/ported_tuple.hpp"
 #include "container/bitset.hpp"
 
-namespace container {
+namespace xcore::container {
   template<typename KT, size_t Capacity, auto TimeFunc>
   class lru_set_t {
     static_assert(Capacity > 0);
@@ -14,7 +14,7 @@ namespace container {
   public:
     using BitArray        = bitset_t<Capacity>;
     using TimeT           = decltype(TimeFunc());
-    using ObjectReference = ported::tuple<size_t, TimeT, KT &>;
+    using ObjectReference = tuple<size_t, TimeT, KT &>;
 
   protected:
     BitArray occupied_             = {};  // Lookup
@@ -34,7 +34,7 @@ namespace container {
         this->_touch_index(*idx_opt);
       } else {
         const size_t idx = this->_find_free_entry();
-        this->_insert_index(idx, ported::forward<KT>(key));
+        this->_insert_index(idx, forward<KT>(key));
         this->_touch_index(idx);
       }
     }
@@ -74,38 +74,38 @@ namespace container {
         this->_touch_index(*idx_opt);
     }
 
-    ported::optional<ObjectReference> at(const size_t index, const bool touch = false) {
+    optional<ObjectReference> at(const size_t index, const bool touch = false) {
       if (index >= Capacity || !occupied_[index])
-        return ported::nullopt;
+        return nullopt;
       auto ret = ObjectReference(index, timestamps_[index], keys_[index]);
       if (touch)
         this->_touch_index(index);
       return ret;
     }
 
-    ported::optional<ObjectReference> get(const KT &key, const bool touch = false) {
+    optional<ObjectReference> get(const KT &key, const bool touch = false) {
       if (const auto idx_opt = this->_find(key); idx_opt)
         return at(*idx_opt, touch);
-      return ported::nullopt;
+      return nullopt;
     }
 
-    ported::optional<ObjectReference> newest(const bool touch = false) {
+    optional<ObjectReference> newest(const bool touch = false) {
       if (const auto idx_opt = this->_newest_index(); idx_opt)
         return at(*idx_opt, touch);
-      return ported::nullopt;
+      return nullopt;
     }
 
-    ported::optional<ObjectReference> oldest(const bool touch = false) {
+    optional<ObjectReference> oldest(const bool touch = false) {
       if (const auto idx_opt = this->_oldest_index(); idx_opt)
         return at(*idx_opt, touch);
-      return ported::nullopt;
+      return nullopt;
     }
 
-    ported::optional<ObjectReference> rr_next(const bool touch = true) {
-      if (size_ == 0) return ported::nullopt;
+    optional<ObjectReference> rr_next(const bool touch = true) {
+      if (size_ == 0) return nullopt;
       if (const auto idx_opt = this->_rr_hook(touch); idx_opt)
         return ObjectReference(*idx_opt, timestamps_[*idx_opt], keys_[*idx_opt]);
-      return ported::nullopt;
+      return nullopt;
     }
 
     void clear() {
@@ -125,18 +125,18 @@ namespace container {
     }
 
   protected:
-    ported::optional<size_t> _find(const KT &key) const {
-      if (size_ == 0) return ported::nullopt;
+    optional<size_t> _find(const KT &key) const {
+      if (size_ == 0) return nullopt;
 
       for (size_t i = 0; i < Capacity; ++i) {
         if (this->keys_[i] == key && this->occupied_[i])
           return i;
       }
-      return ported::nullopt;
+      return nullopt;
     }
 
-    ported::optional<size_t> _rr_hook(const bool touch) {
-      if (size_ == 0) return ported::nullopt;
+    optional<size_t> _rr_hook(const bool touch) {
+      if (size_ == 0) return nullopt;
 
       if (rr_ttl == 0) {
         if (const auto oldest_idx = _oldest_index(); oldest_idx) {
@@ -158,7 +158,7 @@ namespace container {
         }
       }
 
-      return ported::nullopt;
+      return nullopt;
     }
 
     void _insert_index(const size_t index, const KT &key) {
@@ -172,7 +172,7 @@ namespace container {
       if (!this->occupied_[index])
         ++this->size_;
       this->occupied_[index] = true;
-      this->keys_[index]     = ported::move(key);
+      this->keys_[index]     = move(key);
     }
 
     void _remove_index(const size_t index) {
@@ -189,8 +189,8 @@ namespace container {
       return this->keys_[index];
     }
 
-    [[nodiscard]] ported::optional<size_t> _newest_index() const {
-      if (size_ == 0) return ported::nullopt;
+    [[nodiscard]] optional<size_t> _newest_index() const {
+      if (size_ == 0) return nullopt;
 
       size_t idx   = 0;
       TimeT  max_t = this->timestamps_[0];
@@ -202,12 +202,12 @@ namespace container {
         }
       }
 
-      if (!this->occupied_[0] && idx == 0) return ported::nullopt;
+      if (!this->occupied_[0] && idx == 0) return nullopt;
       return idx;
     }
 
-    [[nodiscard]] ported::optional<size_t> _oldest_index() const {
-      if (size_ == 0) return ported::nullopt;
+    [[nodiscard]] optional<size_t> _oldest_index() const {
+      if (size_ == 0) return nullopt;
 
       size_t idx   = 0;
       TimeT  min_t = this->timestamps_[0];
@@ -234,7 +234,7 @@ namespace container {
   public:
     using BitArray        = bitset_t<Capacity>;
     using TimeT           = decltype(TimeFunc());
-    using ObjectReference = ported::tuple<size_t, TimeT, KT &, VT &>;
+    using ObjectReference = tuple<size_t, TimeT, KT &, VT &>;
 
   protected:
     VT values_[Capacity] = {};  // Data
@@ -246,7 +246,7 @@ namespace container {
 
     void insert(KT &&key, VT &&value) {
       const size_t idx = this->_find(key).value_or(this->_find_free_entry());
-      this->_insert_index(idx, ported::forward<KT>(key), ported::forward<VT>(value));
+      this->_insert_index(idx, forward<KT>(key), forward<VT>(value));
       this->_touch_index(idx);
     }
 
@@ -257,53 +257,53 @@ namespace container {
     }
 
     void insert(KT &&key) {
-      static_assert(ported::is_constructible_v<VT>);
-      this->insert(ported::forward<KT>(key), VT{});
+      static_assert(is_constructible_v<VT>);
+      this->insert(forward<KT>(key), VT{});
     }
 
     void insert(const KT &key) {
-      static_assert(ported::is_constructible_v<VT>);
-      this->insert(ported::forward<KT>(key), VT{});
+      static_assert(is_constructible_v<VT>);
+      this->insert(forward<KT>(key), VT{});
     }
 
     template<typename... Args>
     void emplace(KT &&key, Args &&...args) {
-      static_assert(ported::is_constructible_v<VT, Args &&...>);
-      this->insert(ported::forward<KT>(key), VT(ported::forward<Args>(args)...));
+      static_assert(is_constructible_v<VT, Args &&...>);
+      this->insert(forward<KT>(key), VT(forward<Args>(args)...));
     }
 
-    ported::optional<ObjectReference> at(const size_t index, const bool touch = false) {
+    optional<ObjectReference> at(const size_t index, const bool touch = false) {
       if (index >= Capacity || !this->occupied_[index])
-        return ported::nullopt;
+        return nullopt;
       auto ret = ObjectReference(index, this->timestamps_[index], this->keys_[index], this->values_[index]);
       if (touch)
         this->_touch_index(index);
       return ret;
     }
 
-    ported::optional<ObjectReference> get(const KT &key, const bool touch = false) {
+    optional<ObjectReference> get(const KT &key, const bool touch = false) {
       if (const auto idx_opt = this->_find(key); idx_opt)
         return at(*idx_opt, touch);
-      return ported::nullopt;
+      return nullopt;
     }
 
-    ported::optional<ObjectReference> newest(const bool touch = false) {
+    optional<ObjectReference> newest(const bool touch = false) {
       if (const auto idx_opt = this->_newest_index(); idx_opt)
         return at(*idx_opt, touch);
-      return ported::nullopt;
+      return nullopt;
     }
 
-    ported::optional<ObjectReference> oldest(const bool touch = false) {
+    optional<ObjectReference> oldest(const bool touch = false) {
       if (const auto idx_opt = this->_oldest_index(); idx_opt)
         return at(*idx_opt, touch);
-      return ported::nullopt;
+      return nullopt;
     }
 
-    ported::optional<ObjectReference> rr_next(const bool touch = true) {
-      if (this->size_ == 0) return ported::nullopt;
+    optional<ObjectReference> rr_next(const bool touch = true) {
+      if (this->size_ == 0) return nullopt;
       if (const auto idx_opt = this->_rr_hook(touch); idx_opt)
         return ObjectReference(*idx_opt, this->timestamps_[*idx_opt], this->keys_[*idx_opt], this->values_[*idx_opt]);
-      return ported::nullopt;
+      return nullopt;
     }
 
   protected:
@@ -319,10 +319,14 @@ namespace container {
       if (!this->occupied_[index])
         ++this->size_;
       this->occupied_[index] = true;
-      this->keys_[index]     = ported::move(key);
-      this->values_[index]   = ported::move(value);
+      this->keys_[index]     = move(key);
+      this->values_[index]   = move(value);
     }
   };
-}  // namespace container
+}  // namespace xcore::container
 
-#endif  //LRU_CACHE_HPP
+namespace xcore {
+  using namespace container;
+}
+
+#endif  //LIB_XCORE_CONTAINER_LRU_CACHE_HPP

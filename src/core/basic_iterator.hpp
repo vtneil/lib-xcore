@@ -1,7 +1,7 @@
-#ifndef BASIC_ITERATOR_HPP
-#define BASIC_ITERATOR_HPP
+#ifndef LIB_XCORE_CORE_BASIC_ITERATOR_HPP
+#define LIB_XCORE_CORE_BASIC_ITERATOR_HPP
 
-namespace ported {
+namespace xcore {
   template<typename T>
   struct iterator {
   private:
@@ -96,6 +96,6 @@ namespace ported {
       }
     };
   }  // namespace detail
-}  // namespace ported
+}  // namespace xcore
 
-#endif  //BASIC_ITERATOR_HPP
+#endif  //LIB_XCORE_CORE_BASIC_ITERATOR_HPP

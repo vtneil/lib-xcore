@@ -1,11 +1,11 @@
-#ifndef ARRAY_HPP
-#define ARRAY_HPP
+#ifndef LIB_XCORE_CONTAINER_ARRAY_HPP
+#define LIB_XCORE_CONTAINER_ARRAY_HPP
 
 #include "core/ported_std.hpp"
 #include "memory.hpp"
 #include <cstdlib>
 
-namespace container {
+namespace xcore::container {
   template<typename Tp, size_t N>
   using c_array = Tp[N];
 
@@ -18,7 +18,7 @@ namespace container {
     template<template<typename, size_t, template<typename> class> class ArrayForm, typename Tp, size_t Size>
     struct array_container_t {
     private:
-      using concrete_array_t = ArrayForm<Tp, Size, memory::unused_allocator_t>;
+      using concrete_array_t = ArrayForm<Tp, Size, unused_allocator_t>;
 
       constexpr concrete_array_t *derived() {
         return static_cast<concrete_array_t *>(this);
@@ -117,11 +117,11 @@ namespace container {
 
       // Iterator
       [[nodiscard]] FORCE_INLINE constexpr Tp *begin() noexcept {
-        return memory::addressof<Tp>(get_derived_data()[0]);
+        return addressof<Tp>(get_derived_data()[0]);
       }
 
       [[nodiscard]] FORCE_INLINE constexpr const Tp *begin() const noexcept {
-        return memory::addressof<Tp>(get_derived_data()[0]);
+        return addressof<Tp>(get_derived_data()[0]);
       }
 
       [[nodiscard]] FORCE_INLINE constexpr const Tp *cbegin() const noexcept {
@@ -129,11 +129,11 @@ namespace container {
       }
 
       [[nodiscard]] FORCE_INLINE constexpr Tp *end() noexcept {
-        return memory::addressof<Tp>(get_derived_data()[0]) + Size;
+        return addressof<Tp>(get_derived_data()[0]) + Size;
       }
 
       [[nodiscard]] FORCE_INLINE constexpr const Tp *end() const noexcept {
-        return memory::addressof<Tp>(get_derived_data()[0]) + Size;
+        return addressof<Tp>(get_derived_data()[0]) + Size;
       }
 
       [[nodiscard]] FORCE_INLINE constexpr const Tp *cend() const noexcept {
@@ -164,7 +164,7 @@ namespace container {
   /**
    * Static region-allocated data container
    */
-  template<typename Tp, size_t Size, template<typename> class = memory::unused_allocator_t>
+  template<typename Tp, size_t Size, template<typename> class = unused_allocator_t>
   struct array_t : detail::array_container_t<array_t, Tp, Size> {
   protected:
     c_array<Tp, Size> arr_ = {};
@@ -175,27 +175,27 @@ namespace container {
 
     // Copy Constructor
     constexpr array_t(const array_t &other) {
-      ported::copy(other.arr_, other.arr_ + Size, arr_);
+      copy(other.arr_, other.arr_ + Size, arr_);
     }
 
     // Move Constructor
     constexpr array_t(array_t &&other) noexcept {
-      ported::move(other.arr_, other.arr_ + Size, arr_);
+      move(other.arr_, other.arr_ + Size, arr_);
     }
 
     // Fill constructor
-    explicit constexpr array_t(const Tp &fill) : array_t(fill, ported::make_index_sequence<Size>{}) {}
+    explicit constexpr array_t(const Tp &fill) : array_t(fill, make_index_sequence<Size>{}) {}
 
   private:
     template<size_t... I>
-    explicit constexpr array_t(const Tp &fill, ported::index_sequence<I...>)
+    explicit constexpr array_t(const Tp &fill, index_sequence<I...>)
         : arr_{((void) I, fill)...} {}
 
   public:
     // Copy Assignment Operator
     constexpr array_t &operator=(const array_t &other) {
       if (this != &other) {
-        ported::copy(other.arr_, other.arr_ + Size, arr_);
+        copy(other.arr_, other.arr_ + Size, arr_);
       }
       return *this;
     }
@@ -203,7 +203,7 @@ namespace container {
     // Move Assignment Operator
     constexpr array_t &operator=(array_t &&other) noexcept {
       if (this != &other) {
-        ported::move(other.arr_, other.arr_ + Size, arr_);
+        move(other.arr_, other.arr_ + Size, arr_);
       }
       return *this;
     }
@@ -225,7 +225,7 @@ namespace container {
   /**
    * Static heap-allocated data container
    */
-  template<typename Tp, size_t Size, template<typename> class BaseAllocator = memory::default_allocator_t>
+  template<typename Tp, size_t Size, template<typename> class BaseAllocator = default_allocator_t>
   struct heap_array_t : detail::array_container_t<heap_array_t, Tp, Size> {
   private:
     using array_type      = array_t<Tp, Size>;
@@ -240,7 +240,7 @@ namespace container {
 
     // Copy Constructor
     constexpr heap_array_t(const heap_array_t &other) : arr_(array_allocator::allocate(1)) {
-      ported::copy(other.arr_->begin(), other.arr_->end(), arr_->begin());
+      copy(other.arr_->begin(), other.arr_->end(), arr_->begin());
     }
 
     // Move Constructor
@@ -266,7 +266,7 @@ namespace container {
       if (this != &other) {
         if (!arr_)
           arr_ = array_allocator::allocate(1);
-        ported::copy(other.arr_->begin(), other.arr_->end(), arr_->begin());
+        copy(other.arr_->begin(), other.arr_->end(), arr_->begin());
       }
       return *this;
     }
@@ -296,7 +296,7 @@ namespace container {
   * This is not a ported version of std::vector.
   * NOT INTENDED FOR DIRECT USAGE.
   */
-  template<typename Tp, size_t, template<typename> class BaseAllocator = memory::default_allocator_t>
+  template<typename Tp, size_t, template<typename> class BaseAllocator = default_allocator_t>
   struct dynamic_array_t : detail::array_container_t<dynamic_array_t, Tp, 0> {
   private:
     using array_allocator = BaseAllocator<Tp>;
@@ -317,7 +317,7 @@ namespace container {
     // Copy Constructor
     constexpr dynamic_array_t(const dynamic_array_t &other)
         : arr_(array_allocator::allocate(other.size_)), size_(other.size_) {
-      ported::copy(other.arr_, other.arr_ + size_, arr_);
+      copy(other.arr_, other.arr_ + size_, arr_);
     }
 
     // Move Constructor
@@ -329,7 +329,7 @@ namespace container {
 
     // Fill Constructor
     constexpr dynamic_array_t(const size_t initial_size, const Tp &fill) : dynamic_array_t(initial_size) {
-      ported::fill(arr_, arr_ + initial_size, fill);
+      fill(arr_, arr_ + initial_size, fill);
     }
 
     // Copy Assignment Operator
@@ -339,7 +339,7 @@ namespace container {
           array_allocator::deallocate(arr_);
         size_ = other.size_;
         arr_  = array_allocator::allocate(size_);
-        ported::copy(other.arr_, other.arr_ + size_, arr_);
+        copy(other.arr_, other.arr_ + size_, arr_);
       }
       return *this;
     }
@@ -391,6 +391,10 @@ namespace container {
       return arr_;                                                               // Implicit
     }
   };
-}  // namespace container
+}  // namespace xcore::container
 
-#endif  //ARRAY_HPP
+namespace xcore {
+  using namespace container;
+}
+
+#endif  //LIB_XCORE_CONTAINER_ARRAY_HPP

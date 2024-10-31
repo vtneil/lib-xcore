@@ -1,6 +1,6 @@
-#ifndef MATH_MODULE_H
-#define MATH_MODULE_H
+#ifndef LIB_XCORE_INCLUDE_MATH_MODULE_H
+#define LIB_XCORE_INCLUDE_MATH_MODULE_H
 
 #include "linalg/numeric_vector.hpp"
 
-#endif  //MATH_MODULE_H
+#endif  //LIB_XCORE_INCLUDE_MATH_MODULE_H

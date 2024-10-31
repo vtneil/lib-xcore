@@ -1,12 +1,12 @@
-#ifndef BYTE_BUFFER_HPP
-#define BYTE_BUFFER_HPP
+#ifndef LIB_XCORE_CONTAINER_BYTE_BUFFER_HPP
+#define LIB_XCORE_CONTAINER_BYTE_BUFFER_HPP
 
 #include "container/deque.hpp"
 #include <cstring>
 #include <cstdlib>
 #include <cstdint>
 
-namespace container {
+namespace xcore::container {
   template<size_t Capacity, template<typename, size_t> class Container = array_t>
   struct byte_buffer_t : protected deque_t<unsigned char, Capacity, Container> {
   protected:
@@ -53,12 +53,12 @@ namespace container {
       return true;
     }
 
-    ported::optional<unsigned char *> peek(unsigned char *dst, const size_t n) const {
+    optional<unsigned char *> peek(unsigned char *dst, const size_t n) const {
       if (n == 0)
         return dst;
 
       if (n > this->size_)
-        return ported::nullopt;
+        return nullopt;
 
       const size_t pos_to_read = this->pos_front_;
 
@@ -75,10 +75,10 @@ namespace container {
       return dst;
     }
 
-    ported::optional<unsigned char *> pop(unsigned char *dst, const size_t n) {
+    optional<unsigned char *> pop(unsigned char *dst, const size_t n) {
       const auto ret_opt = peek(dst, n);
       if (!ret_opt)
-        return ported::nullopt;
+        return nullopt;
       this->pos_front_ = utils::cyclic<Capacity>(this->pos_front_ + n);
       this->size_ -= n;
       return ret_opt;
@@ -104,4 +104,8 @@ namespace container {
   };
 }  // namespace container
 
-#endif  //BYTE_BUFFER_HPP
+namespace xcore {
+  using namespace container;
+}
+
+#endif  //LIB_XCORE_CONTAINER_BYTE_BUFFER_HPP

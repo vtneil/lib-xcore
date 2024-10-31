@@ -1,5 +1,5 @@
-#ifndef BUILTINS_BOOTSTRAP_H
-#define BUILTINS_BOOTSTRAP_H
+#ifndef LIB_XCORE_CORE_BUILTINS_BOOTSTRAP_H
+#define LIB_XCORE_CORE_BUILTINS_BOOTSTRAP_H
 
 #include "core/macros_bootstrap.hpp"
 
@@ -11,4 +11,4 @@ namespace builtin {
   }
 }  // namespace builtin
 
-#endif  //BUILTINS_BOOTSTRAP_H
+#endif  //LIB_XCORE_CORE_BUILTINS_BOOTSTRAP_H

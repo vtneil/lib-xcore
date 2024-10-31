@@ -1,12 +1,12 @@
-#ifndef STRING_HPP
-#define STRING_HPP
+#ifndef LIB_XCORE_CONTAINER_STRING_HPP
+#define LIB_XCORE_CONTAINER_STRING_HPP
 
 #include "core/string_format.hpp"
 #include "container/array.hpp"
 #include "core/custom_numeric.hpp"
 #include <cstring>
 
-namespace container {
+namespace xcore::container {
   namespace impl {
     template<typename CharT, size_t Capacity, template<typename, size_t> class Container = array_t>
     struct lazy_add_string_t;
@@ -36,22 +36,22 @@ namespace container {
 
       basic_string_t(const char c) {  // Implicit
         const char buf[] = {c, '\0'};
-        *this            = ported::move(basic_string_t(buf));
+        *this            = move(basic_string_t(buf));
       }
 
-      template<typename T, typename = ported::enable_if_t<ported::is_integral_v<T>>>
+      template<typename T, typename = enable_if_t<is_integral_v<T>>>
       basic_string_t(T value, const unsigned char radix = 10) {  // Implicit
         char buf[::utils::integral_buffer_size<T>()];
         xtostr<T>(value, buf, radix);
-        *this = ported::move(basic_string_t(buf));
+        *this = move(basic_string_t(buf));
       }
 
-      template<typename T, typename = ported::enable_if_t<ported::is_floating_point_v<T>>>
+      template<typename T, typename = enable_if_t<is_floating_point_v<T>>>
       basic_string_t(T value, const unsigned int decimal_places = 2) {  // Implicit
         basic_string_t tmp_str{};
         size_t         n;
 
-        if constexpr (ported::is_same_v<ported::remove_cv_t<T>, float>) {
+        if constexpr (is_same_v<remove_cv_t<T>, float>) {
           // Float
           n = decimal_places + 42;
         } else {
@@ -61,12 +61,12 @@ namespace container {
 
         if (!tmp_str.reserve(n)) {
           tmp_str._invalidate();
-          *this = ported::move(basic_string_t("nan"));
+          *this = move(basic_string_t("nan"));
           return;
         }
 
         xtostr<T>(value, tmp_str._buffer(), decimal_places + 2, decimal_places);
-        *this = ported::move(basic_string_t(tmp_str._buffer()));
+        *this = move(basic_string_t(tmp_str._buffer()));
       }
 
       template<size_t OCapacity, template<typename, size_t> class OContainer>
@@ -93,7 +93,7 @@ namespace container {
       basic_string_t &operator=(basic_string_t &&other) noexcept = default;
 
       basic_string_t &operator=(const char *c_str) {
-        *this = ported::move(basic_string_t(c_str));
+        *this = move(basic_string_t(c_str));
         return *this;
       }
 
@@ -174,20 +174,20 @@ namespace container {
 
       // Integral overload
       template<typename T>
-      ported::enable_if_t<ported::is_integral_v<T>, bool> concat(T value) {
+      enable_if_t<is_integral_v<T>, bool> concat(T value) {
         return this->concat(basic_string_t(value, 10));
       }
 
       // Floating point overload
       template<typename T>
-      ported::enable_if_t<ported::is_floating_point_v<T>, bool> concat(T value) {
+      enable_if_t<is_floating_point_v<T>, bool> concat(T value) {
         return this->concat(basic_string_t(value, 2));
       }
 
       // Shortcut inplace addition
       template<typename VarT>
       basic_string_t &operator+=(VarT &&v) {
-        this->concat(ported::forward<VarT>(v));
+        this->concat(forward<VarT>(v));
         return *this;
       }
 
@@ -291,6 +291,10 @@ namespace container {
   using heap_string_t    = impl::basic_string_t<char, Capacity, heap_array_t>;
 
   using dynamic_string_t = impl::basic_string_t<char, 0, dynamic_array_t>;
-}  // namespace container
+}  // namespace xcore::container
 
-#endif  //STRING_HPP
+namespace xcore {
+  using namespace container;
+}
+
+#endif  //LIB_XCORE_CONTAINER_STRING_HPP

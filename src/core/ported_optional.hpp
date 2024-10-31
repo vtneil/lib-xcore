@@ -1,10 +1,10 @@
-#ifndef PORTED_OPTIONAL_HPP
-#define PORTED_OPTIONAL_HPP
+#ifndef LIB_XCORE_CORE_PORTED_OPTIONAL_HPP
+#define LIB_XCORE_CORE_PORTED_OPTIONAL_HPP
 
 #include "memory.hpp"
 #include "core/ported_std.hpp"
 
-namespace ported {
+namespace xcore {
   struct nullopt_t {
     explicit constexpr nullopt_t() = default;
   };
@@ -15,7 +15,7 @@ namespace ported {
   struct optional {
   private:
     bool          is_initialized;
-    unsigned char storage[memory::nearest_alignment<T, void *>()];
+    unsigned char storage[xcore::nearest_alignment<T, void *>()];
 
   public:
     optional() : is_initialized(false) {}
@@ -139,29 +139,29 @@ namespace ported {
 
     template<typename U>
     constexpr T value_or(U &&default_value) const & {
-      static_assert(ported::is_constructible_v<T, U &&>);
+      static_assert(xcore::is_constructible_v<T, U &&>);
 
       if (this->has_value())
         return this->value();
 
-      return static_cast<T>(ported::forward<U>(default_value));
+      return static_cast<T>(xcore::forward<U>(default_value));
     }
 
     template<typename U>
     constexpr T value_or(U &&default_value) && {
-      static_assert(ported::is_constructible_v<T, U &&>);
+      static_assert(xcore::is_constructible_v<T, U &&>);
 
       if (this->has_value())
         return this->value();
 
-      return static_cast<T>(ported::forward<U>(default_value));
+      return static_cast<T>(xcore::forward<U>(default_value));
     }
   };
 
   template<typename T, typename... Args>
   constexpr optional<T> make_optional(Args &&...args) {
-    return optional<T>(ported::forward<Args>(args)...);
+    return optional<T>(xcore::forward<Args>(args)...);
   }
 }  // namespace ported
 
-#endif  //PORTED_OPTIONAL_HPP
+#endif  //LIB_XCORE_CORE_PORTED_OPTIONAL_HPP
