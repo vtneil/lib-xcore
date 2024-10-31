@@ -11,6 +11,7 @@
 #include "core/string_format.hpp"
 #include "core/ported_pair.hpp"
 #include "core/ported_tuple.hpp"
+#include "core/ported_random.hpp"
 
 #include "memory.hpp"
 
@@ -25,5 +26,6 @@
 
 #include "utils/nonblocking_delay.hpp"
 #include "utils/on_off_timer.hpp"
+#include "utils/pipeline.hpp"
 
 #endif  //LIB_XCORE_INCLUDE_BASIC_H
