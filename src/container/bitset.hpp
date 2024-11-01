@@ -8,17 +8,13 @@ namespace xcore::container {
   template<size_t Nb, typename WordT = int>
   struct bitset_t {
   private:
-    using byte_t                        = int8_t;
+    using byte_t                              = int8_t;
 
-    static constexpr size_t Alignment   = sizeof(WordT);
-    static constexpr size_t NumBytes    = (Nb + 8 - 1) / 8;
-    static constexpr size_t SizeActual  = nearest_alignment<byte_t, Alignment>(NumBytes);
-    static constexpr size_t NumElements = SizeActual / Alignment;
+    static constexpr size_t Alignment         = sizeof(WordT);
+    static constexpr size_t NumBytes          = (Nb + 8 - 1) / 8;
+    static constexpr size_t SizeActual        = nearest_alignment<byte_t, Alignment>(NumBytes);
+    static constexpr size_t NumElements       = SizeActual / Alignment;
 
-    size_t                  size_;
-    size_t                  num_bytes_;
-    size_t                  size_actual_;
-    size_t                  num_elements_;
     WordT                   data[NumElements] = {};
 
     class bit_reference {
@@ -66,17 +62,7 @@ namespace xcore::container {
   public:
     // Constructor
 
-    constexpr bitset_t() : size_{Nb} {
-      num_bytes_    = (size_ + 8 - 1) / 8;
-      size_actual_  = nearest_alignment<byte_t, Alignment>(num_bytes_);
-      num_elements_ = size_actual_ / Alignment;
-    }
-
-    explicit constexpr bitset_t(const size_t N) : size_{N} {
-      num_bytes_    = (size_ + 8 - 1) / 8;
-      size_actual_  = nearest_alignment<byte_t, Alignment>(num_bytes_);
-      num_elements_ = size_actual_ / Alignment;
-    }
+    constexpr bitset_t()                      = default;
 
     constexpr bitset_t(const bitset_t &other) = default;
 
@@ -93,7 +79,7 @@ namespace xcore::container {
             return i * Alignment + j;
         }
       }
-      return size_;
+      return size();
     }
 
     size_t find_first_false() {
@@ -105,7 +91,7 @@ namespace xcore::container {
             return i * Alignment + j;
         }
       }
-      return size_;
+      return size();
     }
 
     [[nodiscard]] constexpr bool get(const size_t index) const {
@@ -193,10 +179,10 @@ namespace xcore::container {
     // Capacity
 
     [[nodiscard]] constexpr size_t size() const {
-      return size_;
+      return Nb;
     }
 
-    [[nodiscard]] static constexpr size_t capacity() {
+    [[nodiscard]] constexpr size_t capacity() const {
       return Nb;
     }
   };
