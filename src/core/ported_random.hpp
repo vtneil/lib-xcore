@@ -560,19 +560,19 @@ namespace xcore {
       if (has_spare_) {
         has_spare_ = false;
         return spare_ * stddev_ + mean_;
-      } else {
-        double u, v, s;
-        do {
-          u = static_cast<RealType>(engine() - engine.min()) / static_cast<RealType>(engine.max() - engine.min()) * 2.0 - 1.0;
-          v = static_cast<RealType>(engine() - engine.min()) / static_cast<RealType>(engine.max() - engine.min()) * 2.0 - 1.0;
-          s = u * u + v * v;
-        } while (s >= 1 || s == 0);
-
-        s          = sqrt(-2.0 * log(s) / s);
-        spare_     = v * s;
-        has_spare_ = true;
-        return u * s * stddev_ + mean_;
       }
+
+      double u, v, s;
+      do {
+        u = static_cast<RealType>(engine() - engine.min()) / static_cast<RealType>(engine.max() - engine.min()) * 2.0 - 1.0;
+        v = static_cast<RealType>(engine() - engine.min()) / static_cast<RealType>(engine.max() - engine.min()) * 2.0 - 1.0;
+        s = u * u + v * v;
+      } while (s >= 1 || s == 0);
+
+      s          = sqrt(-2.0 * log(s) / s);
+      spare_     = v * s;
+      has_spare_ = true;
+      return u * s * stddev_ + mean_;
     }
 
     void        reset() { has_spare_ = false; }
