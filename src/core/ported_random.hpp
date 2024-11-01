@@ -563,12 +563,8 @@ namespace xcore {
       } else {
         double u, v, s;
         do {
-          u = static_cast<RealType>(engine() - engine.min()) /
-                (engine.max() - engine.min()) * 2.0 -
-              1.0;
-          v = static_cast<RealType>(engine() - engine.min()) /
-                (engine.max() - engine.min()) * 2.0 -
-              1.0;
+          u = static_cast<RealType>(engine() - engine.min()) / static_cast<RealType>(engine.max() - engine.min()) * 2.0 - 1.0;
+          v = static_cast<RealType>(engine() - engine.min()) / static_cast<RealType>(engine.max() - engine.min()) * 2.0 - 1.0;
           s = u * u + v * v;
         } while (s >= 1 || s == 0);
 
