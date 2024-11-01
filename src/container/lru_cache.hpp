@@ -12,9 +12,14 @@ namespace xcore::container {
     static_assert(Capacity > 0);
 
   public:
-    using BitArray        = bitset_t<Capacity>;
-    using TimeT           = decltype(TimeFunc());
-    using ObjectReference = tuple<size_t, TimeT, KT &>;
+    using BitArray = bitset_t<Capacity>;
+    using TimeT    = decltype(TimeFunc());
+
+    struct entry_t {
+      size_t index;
+      TimeT  timestamp;
+      KT    &key;
+    };
 
   protected:
     BitArray occupied_             = {};  // Lookup
@@ -74,37 +79,37 @@ namespace xcore::container {
         this->_touch_index(*idx_opt);
     }
 
-    optional<ObjectReference> at(const size_t index, const bool touch = false) {
+    optional<entry_t> at(const size_t index, const bool touch = false) {
       if (index >= Capacity || !occupied_[index])
         return nullopt;
-      auto ret = ObjectReference(index, timestamps_[index], keys_[index]);
+      auto ret = entry_t{index, timestamps_[index], keys_[index]};
       if (touch)
         this->_touch_index(index);
       return ret;
     }
 
-    optional<ObjectReference> get(const KT &key, const bool touch = false) {
+    optional<entry_t> get(const KT &key, const bool touch = false) {
       if (const auto idx_opt = this->_find(key); idx_opt)
         return at(*idx_opt, touch);
       return nullopt;
     }
 
-    optional<ObjectReference> newest(const bool touch = false) {
+    optional<entry_t> newest(const bool touch = false) {
       if (const auto idx_opt = this->_newest_index(); idx_opt)
         return at(*idx_opt, touch);
       return nullopt;
     }
 
-    optional<ObjectReference> oldest(const bool touch = false) {
+    optional<entry_t> oldest(const bool touch = false) {
       if (const auto idx_opt = this->_oldest_index(); idx_opt)
         return at(*idx_opt, touch);
       return nullopt;
     }
 
-    optional<ObjectReference> rr_next(const bool touch = true) {
+    optional<entry_t> rr_next(const bool touch = true) {
       if (size_ == 0) return nullopt;
       if (const auto idx_opt = this->_rr_hook(touch); idx_opt)
-        return ObjectReference(*idx_opt, timestamps_[*idx_opt], keys_[*idx_opt]);
+        return entry_t{*idx_opt, timestamps_[*idx_opt], keys_[*idx_opt]};
       return nullopt;
     }
 
@@ -232,9 +237,15 @@ namespace xcore::container {
   template<typename KT, typename VT, size_t Capacity, auto TimeFunc>
   class lru_map_t : public lru_set_t<KT, Capacity, TimeFunc> {
   public:
-    using BitArray        = bitset_t<Capacity>;
-    using TimeT           = decltype(TimeFunc());
-    using ObjectReference = tuple<size_t, TimeT, KT &, VT &>;
+    using BitArray = bitset_t<Capacity>;
+    using TimeT    = decltype(TimeFunc());
+
+    struct entry_t {
+      size_t index;
+      TimeT  timestamp;
+      KT    &key;
+      VT    &value;
+    };
 
   protected:
     VT values_[Capacity] = {};  // Data
@@ -272,37 +283,37 @@ namespace xcore::container {
       this->insert(forward<KT>(key), VT(forward<Args>(args)...));
     }
 
-    optional<ObjectReference> at(const size_t index, const bool touch = false) {
+    optional<entry_t> at(const size_t index, const bool touch = false) {
       if (index >= Capacity || !this->occupied_[index])
         return nullopt;
-      auto ret = ObjectReference(index, this->timestamps_[index], this->keys_[index], this->values_[index]);
+      auto ret = entry_t{index, this->timestamps_[index], this->keys_[index], this->values_[index]};
       if (touch)
         this->_touch_index(index);
       return ret;
     }
 
-    optional<ObjectReference> get(const KT &key, const bool touch = false) {
+    optional<entry_t> get(const KT &key, const bool touch = false) {
       if (const auto idx_opt = this->_find(key); idx_opt)
         return at(*idx_opt, touch);
       return nullopt;
     }
 
-    optional<ObjectReference> newest(const bool touch = false) {
+    optional<entry_t> newest(const bool touch = false) {
       if (const auto idx_opt = this->_newest_index(); idx_opt)
         return at(*idx_opt, touch);
       return nullopt;
     }
 
-    optional<ObjectReference> oldest(const bool touch = false) {
+    optional<entry_t> oldest(const bool touch = false) {
       if (const auto idx_opt = this->_oldest_index(); idx_opt)
         return at(*idx_opt, touch);
       return nullopt;
     }
 
-    optional<ObjectReference> rr_next(const bool touch = true) {
+    optional<entry_t> rr_next(const bool touch = true) {
       if (this->size_ == 0) return nullopt;
       if (const auto idx_opt = this->_rr_hook(touch); idx_opt)
-        return ObjectReference(*idx_opt, this->timestamps_[*idx_opt], this->keys_[*idx_opt], this->values_[*idx_opt]);
+        return entry_t{*idx_opt, this->timestamps_[*idx_opt], this->keys_[*idx_opt], this->values_[*idx_opt]};
       return nullopt;
     }
 

@@ -1,6 +1,7 @@
 #ifndef LIB_XCORE_INCLUDE_DISPATCHER
 #define LIB_XCORE_INCLUDE_DISPATCHER
 
+#include "lib_xcore"
 #include "utils/task_dispatcher.hpp"
 
 #define USE_DISPATCHER(GLOB_DISPATCHER_SYMBOL)        \
