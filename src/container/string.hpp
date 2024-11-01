@@ -41,7 +41,7 @@ namespace xcore::container {
 
       template<typename T, typename = enable_if_t<is_integral_v<T>>>
       basic_string_t(T value, const unsigned char radix = 10) {  // Implicit
-        char buf[::utils::integral_buffer_size<T>()];
+        char buf[integral_buffer_size<T>()];
         xtostr<T>(value, buf, radix);
         *this = move(basic_string_t(buf));
       }
