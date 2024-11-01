@@ -40,24 +40,25 @@ int main(int argc, char *argv[]) {
 
   auto v1 = cache.get(67890, true);
   if (v1) {
-    const auto &time = xcore::get<1>(*v1);
-    const auto &key  = xcore::get<2>(*v1);
+    const auto &time = v1->timestamp;
+    const auto &key  = v1->key;
     std::cout << time << " " << key << std::endl;
-    xcore::get<2>(*v1) = 99999;
+    v1->key = 99999;
   }
 
   auto v2 = cache.get(99999);
   if (v2) {
-    auto time = xcore::get<1>(*v2);
-    auto key  = xcore::get<2>(*v2);
-    std::cout << time << " " << key << std::endl << std::endl;
+    auto time = v2->timestamp;
+    auto key  = v2->key;
+    std::cout << time << " " << key << std::endl
+              << std::endl;
   }
 
   for (size_t i = 0; i < 32; ++i) {
     auto node = cache.rr_next(true);
-    std::cout << xcore::get<0>(*node) << " "
-              << xcore::get<1>(*node) << " "
-              << xcore::get<2>(*node) << " "
+    std::cout << node->index << " "
+              << node->timestamp << " "
+              << node->key << " "
               << std::endl;
   }
 }

@@ -1,11 +1,10 @@
 #ifndef LIB_XCORE_CORE_PORTED_TYPE_TRAITS_HPP
 #define LIB_XCORE_CORE_PORTED_TYPE_TRAITS_HPP
 
-#include "macros_bootstrap.hpp"
+#include "core/macros_bootstrap.hpp"
+#include "core/ported_config.hpp"
 
 namespace xcore {
-  typedef decltype(nullptr) nullptr_t;
-
   template<typename...>
   using void_t = void;
 
@@ -80,6 +79,55 @@ namespace xcore {
 
   using false_type    = bool_constant<false>;
 
+  // CONDITIONALS
+
+  template<bool, typename T, typename>
+  struct conditional {
+    using type = T;
+  };
+
+  template<typename T, typename F>
+  struct conditional<false, T, F> {
+    using type = F;
+  };
+
+  template<bool B, typename T, typename F>
+  using conditional_t = typename conditional<B, T, F>::type;
+
+  template<typename...>
+  struct disjunction : false_type {};
+
+  template<typename B1>
+  struct disjunction<B1> : B1 {};
+
+  template<typename B1, typename... Bn>
+  struct disjunction<B1, Bn...>
+      : conditional_t<static_cast<bool>(B1::value), B1, disjunction<Bn...>> {};
+
+  template<typename...>
+  struct conjunction : true_type {};
+
+  template<typename B1>
+  struct conjunction<B1> : B1 {};
+
+  template<typename B1, typename... Bn>
+  struct conjunction<B1, Bn...>
+      : conditional_t<static_cast<bool>(B1::value), conjunction<Bn...>, B1> {};
+
+  namespace detail {
+    template<typename... Bs>
+    struct or_impl : disjunction<Bs...> {};
+
+    template<typename... Bs>
+    struct and_impl : conjunction<Bs...> {};
+
+    template<typename... Bs>
+    inline constexpr bool or_impl_v = or_impl<Bs...>::value;
+
+    template<typename... Bs>
+    inline constexpr bool and_impl_v = and_impl<Bs...>::value;
+  }  // namespace detail
+
   // IS_SAME
 
   template<typename, typename>
@@ -90,6 +138,8 @@ namespace xcore {
 
   template<typename T, typename U>
   inline constexpr bool is_same_v = is_same<T, U>::value;
+
+  // REFERENCES
 
   namespace detail {
     template<typename>
@@ -235,6 +285,14 @@ namespace xcore {
   struct is_floating_point : detail::is_floating_point_impl<remove_cv_t<T>>::type {};
 
   namespace detail {
+    template<typename T>
+    struct is_arithmetic_impl : or_impl<is_integral<T>, is_floating_point<T>> {};
+  }  // namespace detail
+
+  template<typename T>
+  struct is_arithmetic : detail::is_arithmetic_impl<remove_cv_t<T>>::type {};
+
+  namespace detail {
     template<typename>
     struct is_signed_impl : false_type {};
 
@@ -259,6 +317,17 @@ namespace xcore {
 
   template<typename T>
   struct is_signed : detail::is_signed_impl<remove_cv_t<T>>::type {};
+
+  namespace detail {
+    template<typename T, bool = is_arithmetic<T>::value>
+    struct is_unsigned_impl : integral_constant<bool, T(0) < T(-1)> {};
+
+    template<typename T>
+    struct is_unsigned_impl<T, false> : false_type {};
+  }  // namespace detail
+
+  template<typename T>
+  struct is_unsigned : detail::is_unsigned_impl<remove_cv_t<T>>::type {};
 
   namespace detail {
     template<typename T>
@@ -348,6 +417,9 @@ namespace xcore {
 
   template<typename T>
   inline constexpr bool is_signed_v = is_signed<T>::value;
+
+  template<typename T>
+  inline constexpr bool is_unsigned_v = is_unsigned<T>::value;
 
   template<typename T>
   inline constexpr bool is_floating_point_v = is_floating_point<T>::value;
@@ -524,6 +596,6 @@ namespace xcore {
 
   template<typename From, typename To>
   inline constexpr bool is_convertible_v = is_convertible<From, To>::value;
-}  // namespace ported
+}  // namespace xcore
 
 #endif  //LIB_XCORE_CORE_PORTED_TYPE_TRAITS_HPP
