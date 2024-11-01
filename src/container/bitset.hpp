@@ -2,6 +2,7 @@
 #define LIB_XCORE_CONTAINER_BITSET_HPP
 
 #include "memory.hpp"
+#include <cstdint>
 
 namespace xcore::container {
   template<size_t Nb, typename WordT = int>
