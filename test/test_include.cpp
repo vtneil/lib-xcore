@@ -24,13 +24,13 @@ void print_buf(const void *buf, const size_t n) {
 }
 
 void test_bitset() {
-  xcore::bitset_t<64, unsigned char> b;
+  xcore::bitset_t<64, int> b;
 
   for (size_t i = 0; i < b.capacity(); i += 2) {
     b[i] = true;
   }
 
-  print_buf(static_cast<char *>(b), b.capacity() / 8);
+  print_buf(static_cast<const uint8_t *>(b), b.capacity() / 8);
   for (size_t i = 1; i < b.capacity(); ++i) {
     std::cout << b[i];
   }
