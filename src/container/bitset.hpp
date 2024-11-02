@@ -211,6 +211,14 @@ namespace xcore::container {
     [[nodiscard]] FORCE_INLINE constexpr explicit operator const TargetT *() const noexcept {
       return reinterpret_cast<const TargetT *>(static_cast<const WordT *>(data_));
     }
+
+    constexpr unsigned char *as_bytes() {
+      return static_cast<unsigned char *>(*this);
+    }
+
+    [[nodiscard]] constexpr const unsigned char *as_bytes() const {
+      return static_cast<const unsigned char *>(*this);
+    }
   };
 }  // namespace xcore::container
 
