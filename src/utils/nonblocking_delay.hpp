@@ -26,22 +26,23 @@ namespace xcore {
     inline constexpr bool is_invocable_and_numeric_v = is_invocable_and_numeric<Func>::value;
   }  // namespace detail
 
-  namespace impl {
-    template<typename TimeType>
-    class nonblocking_delay {
+  namespace detail {
+    template<typename TimeType, bool Adaptive>
+    class nonblocking_delay_impl {
     public:
       using time_func_t = TimeType();
 
     private:
-      time_func_t *m_func            = {};
-      TimeType     m_target_interval = {};
-      TimeType     m_prev_time       = {};
-      TimeType     m_true_interval   = {};
+      time_func_t *func_            = {};
+      TimeType     target_interval_ = {};
+      TimeType     prev_time_       = {};
+      TimeType     gate_interval_   = {};
 
       struct proc_else {
-        bool value;
+        nonblocking_delay_impl &parent;
+        bool               value;
 
-        template<typename Proc, typename = enable_if_t<xcore::detail::is_procedure_v<Proc>>>
+        template<typename Proc, typename = enable_if_t<is_procedure_v<Proc>>>
         void otherwise(Proc &&proc) {
           if (!value) {
             proc();
@@ -50,45 +51,45 @@ namespace xcore {
       };
 
     public:
-      nonblocking_delay(const nonblocking_delay &)     = default;
+      nonblocking_delay_impl(const nonblocking_delay_impl &)     = default;
 
-      nonblocking_delay(nonblocking_delay &&) noexcept = default;
+      nonblocking_delay_impl(nonblocking_delay_impl &&) noexcept = default;
 
-      nonblocking_delay(TimeType interval, time_func_t *time_func)
-          : m_func{time_func}, m_target_interval{interval}, m_true_interval{interval} {
+      nonblocking_delay_impl(TimeType interval, time_func_t *time_func)
+          : func_{time_func}, target_interval_{interval}, gate_interval_{interval} {
         if (time_func != nullptr)
-          m_prev_time = time_func();
+          prev_time_ = time_func();
       }
 
-      nonblocking_delay &operator=(const nonblocking_delay &other) {
+      nonblocking_delay_impl &operator=(const nonblocking_delay_impl &other) {
         if (this == &other) {
           return *this;
         }
 
-        m_func            = other.m_func;
-        m_target_interval = other.m_target_interval;
-        m_prev_time       = other.m_prev_time;
-        m_true_interval   = other.m_true_interval;
+        func_            = other.func_;
+        target_interval_ = other.target_interval_;
+        prev_time_       = other.prev_time_;
+        gate_interval_   = other.gate_interval_;
 
         return *this;
       }
 
-      nonblocking_delay &operator=(nonblocking_delay &&other) noexcept {
-        m_func            = move(other.m_func);
-        m_target_interval = move(other.m_target_interval);
-        m_prev_time       = move(other.m_prev_time);
-        m_true_interval   = move(other.m_true_interval);
+      nonblocking_delay_impl &operator=(nonblocking_delay_impl &&other) noexcept {
+        func_            = move(other.func_);
+        target_interval_ = move(other.target_interval_);
+        prev_time_       = move(other.prev_time_);
+        gate_interval_   = move(other.gate_interval_);
 
         return *this;
       }
 
-      template<typename Proc, typename = enable_if_t<xcore::detail::is_procedure_v<Proc>>>
+      template<typename Proc, typename = enable_if_t<is_procedure_v<Proc>>>
       proc_else operator()(Proc &&proc) {
         const bool v = this->operator bool();
         if (v) {
           proc();
         }
-        return {v};
+        return {*this, v};
       }
 
       bool triggered() {
@@ -100,26 +101,28 @@ namespace xcore {
       }
 
       explicit operator bool() {
-        if (m_func == nullptr) {
+        if (func_ == nullptr) {
           return false;
         }
 
-        if (m_target_interval == 0) {
+        if (target_interval_ == 0) {
           return true;
         }
 
-        // Adaptive interval adjustment
-        TimeType curr_time = m_func();
-        if (curr_time - m_prev_time >= m_true_interval) {
-          // absolute delta_e
-          TimeType delta_e = m_target_interval > m_true_interval
-                               ? m_target_interval - m_true_interval
-                               : m_true_interval - m_target_interval;
-          m_true_interval  = delta_e < m_true_interval
-                               ? m_true_interval - delta_e
-                               : m_true_interval + delta_e;
-          m_prev_time      = curr_time;
+        TimeType curr_time = func_();
 
+        if (curr_time - prev_time_ >= gate_interval_) {
+          if constexpr (Adaptive) {
+            // Adaptive interval adjustment
+            // Adjust gate interval to match target interval
+            TimeType delta_e = target_interval_ > gate_interval_
+                                 ? target_interval_ - gate_interval_
+                                 : gate_interval_ - target_interval_;
+            gate_interval_   = delta_e < gate_interval_
+                                 ? gate_interval_ - delta_e
+                                 : gate_interval_ + delta_e;
+          }
+          prev_time_ = curr_time;
           return true;
         }
 
@@ -127,25 +130,25 @@ namespace xcore {
       }
 
       void reset() {
-        if (m_func != nullptr) {
-          m_prev_time = m_func();
+        if (func_ != nullptr) {
+          prev_time_ = func_();
         }
       }
 
       constexpr TimeType interval() const {
-        return m_true_interval;
+        return gate_interval_;
       }
 
       void set_interval(const TimeType new_interval) {
-        m_target_interval = new_interval;
-        m_true_interval   = new_interval;
+        target_interval_ = new_interval;
+        gate_interval_   = new_interval;
         this->reset();
       }
     };
   }  // namespace impl
 
-  template<typename TimeT>
-  using nonblocking_delay = xcore::impl::nonblocking_delay<TimeT>;
+  template<typename TimeT, bool Adaptive = true>
+  using nonblocking_delay = xcore::detail::nonblocking_delay_impl<TimeT, Adaptive>;
 
   /**
    * Default non-blocking delay type for most frameworks

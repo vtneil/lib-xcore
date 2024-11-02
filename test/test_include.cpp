@@ -14,7 +14,7 @@ void print() {
 
 unsigned long millis() {
   static unsigned long t = 0;
-  return t++;
+  return t += 2;
 }
 
 void print_buf(const void *buf, const size_t n) {
@@ -37,7 +37,37 @@ void test_bitset() {
   std::cout << std::endl;
 }
 
+void test_nb() {
+  xcore::nonblocking_delay<decltype(millis()), false> timeout(10, millis);
+  timeout.reset();
+  for (size_t i = 0; i < 20; ++i) {
+    timeout([&]() -> void {
+      std::cout << "RUN CALL" << std::endl;
+    }).otherwise([&]() -> void {
+      std::cout << "RUN OTHERWISE" << std::endl;
+    });
+  }
+
+  auto task1 = []() -> void {
+    std::cout << "RUN TASK #1" << std::endl;
+  };
+
+  auto task2 = []() -> void {
+    std::cout << "RUN TASK #2" << std::endl;
+  };
+
+  xcore::Dispatcher<20> dispatcher;
+  dispatcher << xcore::Task(task1, 1, millis);
+  dispatcher << xcore::Task(task2, 10, millis);
+
+  for (size_t i = 0; i < 20; ++i) {
+    dispatcher();
+  }
+}
+
 int main(int argc, char **argv) {
+  test_nb();
+  exit(0);
   test_bitset();
 
   queue.push(1);

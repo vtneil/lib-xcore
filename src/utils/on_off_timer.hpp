@@ -4,17 +4,17 @@
 #include "utils/nonblocking_delay.hpp"
 
 namespace xcore {
-  namespace impl {
+  namespace detail {
     /**
      * A flip-flop smart delay timer
      *
      * @tparam TimeType
      */
-    template<typename TimeType, typename = enable_if_t<is_integral_v<TimeType>>>
-    class on_off_timer {
+    template<typename TimeType, bool Adaptive, typename = enable_if_t<is_integral_v<TimeType>>>
+    class on_off_timer_impl {
     public:
       using time_func_t = TimeType();
-      using NbDelay     = nonblocking_delay<TimeType>;
+      using NbDelay     = nonblocking_delay_impl<TimeType, Adaptive>;
 
       struct interval_params {
         TimeType t_on;
@@ -27,11 +27,11 @@ namespace xcore {
       bool    is_on = false;
 
     public:
-      on_off_timer(TimeType interval_on, TimeType interval_off, time_func_t *time_func)
+      on_off_timer_impl(TimeType interval_on, TimeType interval_off, time_func_t *time_func)
           : sd_on{NbDelay(interval_on, time_func)}, sd_off{NbDelay(interval_off, time_func)} {}
 
-      template<typename Proc, typename = enable_if_t<xcore::detail::is_procedure_v<Proc>>>
-      on_off_timer &on_rising(Proc &&proc) {
+      template<typename Proc, typename = enable_if_t<is_procedure_v<Proc>>>
+      on_off_timer_impl &on_rising(Proc &&proc) {
         if (!is_on) {  // if 0
           sd_off([&]() -> void {
             proc();
@@ -43,8 +43,8 @@ namespace xcore {
         return *this;
       }
 
-      template<typename Proc, typename = enable_if_t<xcore::detail::is_procedure_v<Proc>>>
-      on_off_timer &on_falling(Proc &&proc) {
+      template<typename Proc, typename = enable_if_t<is_procedure_v<Proc>>>
+      on_off_timer_impl &on_falling(Proc &&proc) {
         if (is_on) {  // if 1
           sd_on([&]() -> void {
             proc();
@@ -77,10 +77,10 @@ namespace xcore {
         sd_off.reset();
       }
     };
-  }  // namespace impl
+  }  // namespace detail
 
-  template<typename TimeT>
-  using on_off_timer = xcore::impl::on_off_timer<TimeT>;
+  template<typename TimeT, bool Adaptive = true>
+  using on_off_timer = xcore::detail::on_off_timer_impl<TimeT, Adaptive>;
 
   /**
    * Default flip-flip timer type for most frameworks
