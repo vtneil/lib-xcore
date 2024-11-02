@@ -30,7 +30,7 @@ void test_bitset() {
     b[i] = true;
   }
 
-  print_buf(b, b.capacity() / 8);
+  print_buf(static_cast<char *>(b), b.capacity() / 8);
   for (size_t i = 1; i < b.capacity(); ++i) {
     std::cout << b[i];
   }

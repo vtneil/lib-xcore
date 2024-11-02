@@ -200,14 +200,11 @@ namespace xcore::container {
       return Nb;
     }
 
-    // Implicit conversion to unsigned char *
+    // Explicit conversions
 
-    [[nodiscard]] FORCE_INLINE constexpr operator unsigned char *() noexcept {  // Implicit
-      return reinterpret_cast<unsigned char *>(static_cast<WordT *>(data_));    // Implicit
-    }
-
-    [[nodiscard]] FORCE_INLINE constexpr operator const unsigned char *() const noexcept {  // Implicit
-      return reinterpret_cast<const unsigned char *>(static_cast<const WordT *>(data_));    // Implicit
+    template<typename TargetT>
+    [[nodiscard]] FORCE_INLINE constexpr explicit operator TargetT *() noexcept {
+      return reinterpret_cast<TargetT *>(static_cast<WordT *>(data_));
     }
   };
 }  // namespace xcore::container
