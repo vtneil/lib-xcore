@@ -209,7 +209,7 @@ namespace xcore::container {
 
     template<typename TargetT>
     [[nodiscard]] FORCE_INLINE constexpr explicit operator const TargetT *() const noexcept {
-      return reinterpret_cast<const TargetT *>(static_cast<WordT *>(data_));
+      return reinterpret_cast<const TargetT *>(static_cast<const WordT *>(data_));
     }
   };
 }  // namespace xcore::container
