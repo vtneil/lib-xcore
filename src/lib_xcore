@@ -5,6 +5,9 @@
 
 #include "core/macros_bootstrap.hpp"
 #include "core/builtins_bootstrap.hpp"
+
+#include "core/ported_variant.hpp"
+
 #include "core/ported_config.hpp"
 #include "core/ported_std.hpp"
 #include "core/ported_optional.hpp"
@@ -13,6 +16,7 @@
 #include "core/ported_pair.hpp"
 #include "core/ported_tuple.hpp"
 #include "core/ported_random.hpp"
+
 
 #include "memory.hpp"
 

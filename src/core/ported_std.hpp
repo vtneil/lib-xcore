@@ -17,12 +17,18 @@ namespace xcore {
   using real_t = double;
 
   template<typename T>
+  FORCE_INLINE constexpr const T &min(const T &v) { return v; }
+
+  template<typename T>
   FORCE_INLINE constexpr const T &min(const T &a, const T &b) { return a < b ? a : b; }
 
   template<typename T, typename... Ts>
   FORCE_INLINE constexpr const T &min(const T &a, const T &b, const Ts &...args) {
     return min(min(a, b), args...);
   }
+
+  template<typename T>
+  FORCE_INLINE constexpr const T &max(const T &v) { return v; }
 
   template<typename T>
   FORCE_INLINE constexpr const T &max(const T &a, const T &b) { return a > b ? a : b; }

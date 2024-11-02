@@ -91,6 +91,6 @@ namespace xcore {
   auto get(tuple<T, Ts...> &&t) -> enable_if_t<I != 0, typename detail::tuple_element<I, tuple<T, Ts...>>::type &&> {
     return get<I - 1>(xcore::move(static_cast<tuple<Ts...> &&>(t)));
   }
-}  // namespace ported
+}  // namespace xcore
 
 #endif  //LIB_XCORE_CORE_PORTED_TUPLE_HPP

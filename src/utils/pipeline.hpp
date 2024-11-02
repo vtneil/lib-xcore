@@ -1,6 +1,7 @@
 #ifndef LIB_XCORE_UTILS_PIPELINE_HPP
 #define LIB_XCORE_UTILS_PIPELINE_HPP
 
+// TODO
 // Idea:
 // pipeline_t pipe;
 // auto result = pipe.run(func1)

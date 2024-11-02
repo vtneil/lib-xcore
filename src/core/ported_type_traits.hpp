@@ -596,6 +596,49 @@ namespace xcore {
 
   template<typename From, typename To>
   inline constexpr bool is_convertible_v = is_convertible<From, To>::value;
+
+  // DECAY
+  namespace detail {
+    template<typename T>
+    struct decay_array {
+      using type = T;
+    };
+
+    template<typename T, std::size_t N>
+    struct decay_array<T[N]> {
+      using type = T *;
+    };
+
+    template<typename T>
+    struct decay_array<T[]> {
+      using type = T *;
+    };
+
+    // Function to pointer transformation
+    template<typename T>
+    struct decay_function {
+      using type = T;
+    };
+
+    template<typename R, typename... Args>
+    struct decay_function<R(Args...)> {
+      using type = R (*)(Args...);
+    };
+
+    template<typename R, typename... Args>
+    struct decay_function<R(Args..., ...)> {
+      using type = R (*)(Args..., ...);
+    };
+  }  // namespace detail
+
+  template<typename T>
+  struct decay {
+    using U    = typename remove_reference<T>::type;
+    using type = typename detail::decay_array<typename detail::decay_function<typename remove_cv<U>::type>::type>::type;
+  };
+
+  template<typename T>
+  using decay_t = typename decay<T>::type;
 }  // namespace xcore
 
 #endif  //LIB_XCORE_CORE_PORTED_TYPE_TRAITS_HPP
