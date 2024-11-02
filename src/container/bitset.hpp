@@ -5,17 +5,17 @@
 #include <cstdint>
 
 namespace xcore::container {
-  template<size_t Nb, typename WordT = int>
+  template<size_t Nb, typename WordT = int, template<typename, size_t> class Container = array_t>
   struct bitset_t {
   private:
-    using byte_t                              = int8_t;
+    using byte_t                              = signed char;
 
-    static constexpr size_t Alignment         = sizeof(WordT);
-    static constexpr size_t NumBytes          = (Nb + 8 - 1) / 8;
-    static constexpr size_t SizeActual        = nearest_alignment<byte_t, Alignment>(NumBytes);
-    static constexpr size_t NumElements       = SizeActual / Alignment;
+    static constexpr size_t       Alignment   = sizeof(WordT);
+    static constexpr size_t       NumBytes    = (Nb + 8 - 1) / 8;
+    static constexpr size_t       SizeActual  = nearest_alignment<byte_t, Alignment>(NumBytes);
+    static constexpr size_t       NumElements = SizeActual / Alignment;
 
-    WordT                   data[NumElements] = {};
+    Container<WordT, NumElements> data_       = {};
 
     class bit_reference {
       bitset_t &parent_;
@@ -72,10 +72,10 @@ namespace xcore::container {
 
     size_t find_first_true() {
       for (size_t i = 0; i < NumElements; ++i) {
-        if (!data[i])
+        if (!data_[i])
           continue;
         for (size_t j = 0; j < 8 * Alignment; ++j) {
-          if ((data[i] >> j) & 1)
+          if ((data_[i] >> j) & 1)
             return i * Alignment + j;
         }
       }
@@ -84,10 +84,10 @@ namespace xcore::container {
 
     size_t find_first_false() {
       for (size_t i = 0; i < NumElements; ++i) {
-        if (!~data[i])
+        if (!~data_[i])
           continue;
         for (size_t j = 0; j < 8 * Alignment; ++j) {
-          if (!((data[i] >> j) & 1))
+          if (!((data_[i] >> j) & 1))
             return i * Alignment + j;
         }
       }
@@ -97,15 +97,15 @@ namespace xcore::container {
     [[nodiscard]] constexpr bool get(const size_t index) const {
       size_t idx_word = index / (8 * Alignment);
       size_t idx_bit  = index % (8 * Alignment);
-      return (data[idx_word] >> idx_bit) & 1;
+      return (data_[idx_word] >> idx_bit) & 1;
     }
 
     constexpr void set(const size_t index, bool value) {
       size_t idx_word = index / (8 * Alignment);
       size_t idx_bit  = index % (8 * Alignment);
 
-      data[idx_word] &= ~(static_cast<WordT>(1) << idx_bit);
-      data[idx_word] |= static_cast<WordT>(value) << idx_bit;
+      data_[idx_word] &= ~(static_cast<WordT>(1) << idx_bit);
+      data_[idx_word] |= static_cast<WordT>(value) << idx_bit;
     }
 
     bit_reference operator[](const size_t index) {
@@ -121,34 +121,34 @@ namespace xcore::container {
       size_t idx_word = index / (8 * Alignment);
       size_t idx_bit  = index % (8 * Alignment);
 
-      data[idx_word] &= ~(static_cast<WordT>(1) << idx_bit);
+      data_[idx_word] &= ~(static_cast<WordT>(1) << idx_bit);
     }
 
     constexpr void toggle(const size_t index) {
       size_t idx_word = index / (8 * Alignment);
       size_t idx_bit  = index % (8 * Alignment);
 
-      data[idx_word] ^= static_cast<WordT>(1) << idx_bit;
+      data_[idx_word] ^= static_cast<WordT>(1) << idx_bit;
     }
 
     void clear_all() {
-      memset(data, 0x00, SizeActual);
+      memset(data_, 0x00, SizeActual);
     }
 
     void set_all() {
-      memset(data, 0xFF, SizeActual);
+      memset(data_, 0xFF, SizeActual);
     }
 
     bitset_t &operator&=(const bitset_t &other) {
       for (size_t i = 0; i < NumElements; ++i) {
-        data[i] &= other.data[i];
+        data_[i] &= other.data_[i];
       }
       return *this;
     }
 
     bitset_t &operator|=(const bitset_t &other) {
       for (size_t i = 0; i < NumElements; ++i) {
-        data[i] |= other.data[i];
+        data_[i] |= other.data_[i];
       }
       return *this;
     }
@@ -167,7 +167,7 @@ namespace xcore::container {
 
     bool operator==(const bitset_t &other) const {
       for (size_t i = 0; i < NumElements; ++i) {
-        if (data[i] != other.data[i]) return false;
+        if (data_[i] != other.data_[i]) return false;
       }
       return true;
     }
@@ -184,6 +184,16 @@ namespace xcore::container {
 
     [[nodiscard]] constexpr size_t capacity() const {
       return Nb;
+    }
+
+    // Implicit conversion to unsigned char *
+
+    [[nodiscard]] FORCE_INLINE constexpr operator unsigned char *() noexcept {  // Implicit
+      return reinterpret_cast<unsigned char *>(static_cast<WordT *>(data_));    // Implicit
+    }
+
+    [[nodiscard]] FORCE_INLINE constexpr operator const unsigned char *() const noexcept {  // Implicit
+      return reinterpret_cast<const unsigned char *>(static_cast<const WordT *>(data_));    // Implicit
     }
   };
 }  // namespace xcore::container

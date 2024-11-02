@@ -23,6 +23,16 @@ void print_buf(const void *buf, const size_t n) {
   }
 }
 
+void test_bitset() {
+  xcore::bitset_t<64, unsigned char> b;
+
+  for (size_t i = 1; i < b.capacity(); i += 2) {
+    b[i] = true;
+  }
+
+  print_buf(b, b.capacity() / 8);
+}
+
 int main(int argc, char **argv) {
   queue.push(1);
   queue.push(2);
