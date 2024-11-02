@@ -17,6 +17,7 @@ namespace xcore::container {
 
     Container<WordT, NumElements> data_       = {};
 
+    // Read-write bit reference
     class bit_reference {
       bitset_t &parent_;
       size_t    index_;
@@ -38,24 +39,38 @@ namespace xcore::container {
         return *this = static_cast<bool>(other);
       }
 
-      bit_reference &operator&=(bool value) {
+      bit_reference &operator&=(const bool value) {
         const bool current = parent_.get(index_);
         parent_.set(index_, current & value);
         return *this;
       }
 
       // Bitwise OR assignment
-      bit_reference &operator|=(bool value) {
+      bit_reference &operator|=(const bool value) {
         const bool current = parent_.get(index_);
         parent_.set(index_, current | value);
         return *this;
       }
 
       // Bitwise XOR assignment (toggle)
-      bit_reference &operator^=(bool value) {
+      bit_reference &operator^=(const bool value) {
         const bool current = parent_.get(index_);
         parent_.set(index_, current ^ value);
         return *this;
+      }
+    };
+
+    // Read-only bit reference
+    class const_bit_reference {
+      const bitset_t &parent_;
+      size_t          index_;
+
+    public:
+      const_bit_reference(const bitset_t &parent, const size_t index)
+          : parent_(parent), index_(index) {}
+
+      operator bool() const {  // Implicit
+        return parent_.get(index_);
       }
     };
 
@@ -112,9 +127,8 @@ namespace xcore::container {
       return bit_reference(*this, index);
     }
 
-
-    [[nodiscard]] constexpr bool operator[](const size_t index) const {
-      return this->get(index);
+    const_bit_reference operator[](const size_t index) const {
+      return const_bit_reference(*this, index);
     }
 
     constexpr void clear(const size_t index) {

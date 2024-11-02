@@ -26,14 +26,20 @@ void print_buf(const void *buf, const size_t n) {
 void test_bitset() {
   xcore::bitset_t<64, unsigned char> b;
 
-  for (size_t i = 1; i < b.capacity(); i += 2) {
+  for (size_t i = 0; i < b.capacity(); i += 2) {
     b[i] = true;
   }
 
   print_buf(b, b.capacity() / 8);
+  for (size_t i = 1; i < b.capacity(); ++i) {
+    std::cout << b[i];
+  }
+  std::cout << std::endl;
 }
 
 int main(int argc, char **argv) {
+  test_bitset();
+
   queue.push(1);
   queue.push(2);
   queue.push(3);
