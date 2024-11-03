@@ -212,12 +212,22 @@ namespace xcore::container {
       return reinterpret_cast<const TargetT *>(static_cast<const WordT *>(data_));
     }
 
-    constexpr unsigned char *as_bytes() {
+    constexpr auto as_bytes() -> unsigned char * {
       return static_cast<unsigned char *>(*this);
     }
 
-    [[nodiscard]] constexpr const unsigned char *as_bytes() const {
+    [[nodiscard]] constexpr auto as_bytes() const -> const unsigned char * {
       return static_cast<const unsigned char *>(*this);
+    }
+
+    template<typename TargetT>
+    [[nodiscard]] FORCE_INLINE constexpr auto ptr(const size_t byte_offset) -> TargetT * {
+      return reinterpret_cast<TargetT *>(this->as_bytes() + byte_offset);
+    }
+
+    template<typename TargetT>
+    [[nodiscard]] FORCE_INLINE constexpr auto ptr(const size_t byte_offset) const -> const TargetT * {
+      return reinterpret_cast<const TargetT *>(this->as_bytes() + byte_offset);
     }
   };
 }  // namespace xcore::container

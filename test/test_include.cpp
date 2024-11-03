@@ -67,7 +67,6 @@ void test_nb() {
 
 int main(int argc, char **argv) {
   test_nb();
-  exit(0);
   test_bitset();
 
   queue.push(1);
