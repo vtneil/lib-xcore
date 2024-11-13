@@ -3,7 +3,7 @@
 
 namespace xcore::network {
   template<auto MicrosTimeFunc>
-    class nav_t {
+  class nav_t {
     using TimeT = decltype(MicrosTimeFunc());
 
   protected:
@@ -24,6 +24,10 @@ namespace xcore::network {
       return curr_time > nav_;
     }
   };
+}  // namespace xcore::network
+
+namespace xcore {
+  using namespace network;
 }
 
-#endif //LIB_XCORE_NETWORK_NAV_HPP
+#endif  //LIB_XCORE_NETWORK_NAV_HPP
