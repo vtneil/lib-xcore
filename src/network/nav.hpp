@@ -7,21 +7,18 @@ namespace xcore::network {
     using TimeT = decltype(MicrosTimeFunc());
 
   protected:
-    TimeT nav_ = {};
+    TimeT prev_time_ = {};
+    TimeT duration_  = {};
 
   public:
     void update_nav(const TimeT duration) {
-      const TimeT curr_time = MicrosTimeFunc();
-      const TimeT nav_exp   = curr_time + duration;
-
-      if (nav_exp > nav_)
-        nav_ = nav_exp;
+      prev_time_ = MicrosTimeFunc();
+      duration_  = duration;
     }
 
-    void is_medium_free() {
+    bool is_medium_free() {
       const TimeT curr_time = MicrosTimeFunc();
-
-      return curr_time > nav_;
+      return curr_time - prev_time_ > duration_;
     }
   };
 }  // namespace xcore::network
