@@ -11,4 +11,26 @@ namespace builtin {
   }
 }  // namespace builtin
 
+namespace xcore {
+  template<typename R, typename T>
+  constexpr R &cast_as(T &ptr) {
+    return *reinterpret_cast<R *>(&ptr);
+  }
+
+  template<typename R, typename T>
+  constexpr const R &cast_as(const T &ref) {
+    return *reinterpret_cast<const R *>(&ref);
+  }
+
+  template<typename R, typename T>
+  constexpr R &cast_as(T *ptr) {
+    return *reinterpret_cast<R *>(ptr);
+  }
+
+  template<typename R, typename T>
+  constexpr const R &cast_as(const T *ptr) {
+    return *reinterpret_cast<const R *>(ptr);
+  }
+}  // namespace xcore
+
 #endif  //LIB_XCORE_CORE_BUILTINS_BOOTSTRAP_H

@@ -17,5 +17,13 @@ int main(int argc, char **argv) {
                   .run(add<int>, 5, 2)
                   .run(mul<int>, 6)
                   .run(div, 14);
-  std::cout << v;
+  std::cout << v << std::endl;
+
+  uint8_t data[2];
+
+  xcore::cast_as<uint16_t>(*data) = 256;
+
+  std::cout << xcore::cast_as<const uint16_t>(data) << std::endl;
+  std::cout << +data[0] << std::endl;
+  std::cout << +data[1] << std::endl;
 }
