@@ -197,34 +197,37 @@ namespace xcore::container {
     [[nodiscard]] optional<size_t> _newest_index() const {
       if (size_ == 0) return nullopt;
 
-      size_t idx   = 0;
-      TimeT  max_t = this->timestamps_[0];
+      optional<size_t> newest_idx = nullopt;
+      TimeT            max_t      = {};
 
-      for (size_t i = 1; i < Capacity; ++i) {
-        if (this->occupied_[i] && this->timestamps_[i] > max_t) {
-          max_t = this->timestamps_[i];
-          idx   = i;
+      for (size_t i = 0; i < Capacity; ++i) {
+        if (this->occupied_[i]) {
+          if (!newest_idx || this->timestamps_[i] > max_t) {
+            max_t      = this->timestamps_[i];
+            newest_idx = i;
+          }
         }
       }
 
-      if (!this->occupied_[0] && idx == 0) return nullopt;
-      return idx;
+      return newest_idx;
     }
 
     [[nodiscard]] optional<size_t> _oldest_index() const {
       if (size_ == 0) return nullopt;
 
-      size_t idx   = 0;
-      TimeT  min_t = this->timestamps_[0];
+      optional<size_t> oldest_idx = nullopt;
+      TimeT            min_t      = {};
 
-      for (size_t i = 1; i < Capacity; ++i) {
-        if (this->occupied_[i] && this->timestamps_[i] < min_t) {
-          min_t = this->timestamps_[i];
-          idx   = i;
+      for (size_t i = 0; i < Capacity; ++i) {
+        if (this->occupied_[i]) {
+          if (!oldest_idx || this->timestamps_[i] < min_t) {
+            min_t      = this->timestamps_[i];
+            oldest_idx = i;
+          }
         }
       }
 
-      return idx;
+      return oldest_idx;
     }
 
     size_t _find_free_entry() {
