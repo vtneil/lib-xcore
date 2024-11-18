@@ -16,7 +16,7 @@ namespace xcore::network {
       duration_  = duration;
     }
 
-    bool is_medium_free() {
+    [[nodiscard]] bool is_medium_free() const {
       const TimeT curr_time = MicrosTimeFunc();
       return curr_time - prev_time_ > duration_;
     }
