@@ -78,5 +78,16 @@ int main(int argc, char *argv[]) {
     print_string((s4 + s1 + "X"));
   }
 
+  {
+    xcore::container::string_t<512> sstr("0123");
+    std::cout << sstr.length() << " " << sstr.capacity() << std::endl;
+
+    xcore::container::dynamic_string_t str;
+    str.reserve(10000);
+    std::cout << str.printf("0123") << std::endl;
+    print_string(str);
+    std::cout << str.length() << " " << str.capacity() << std::endl;
+  }
+
   return 0;
 }

@@ -197,6 +197,29 @@ namespace xcore::container {
         return this->copy() += v;
       }
 
+      // Print
+      template<typename... Args>
+      int printf(const char *__restrict fmt, const Args &...args) {
+        const int len = snprintf(nullptr, 0, fmt, args...);
+        if (len < 0) {
+          return 0;
+        }
+
+        reserve(len + 1);
+
+        // Check for static string (reserve does nothing)
+        if (capacity() < static_cast<size_t>(len + 1))
+          return 0;
+
+        const int written = snprintf(_buffer(), len + 1, fmt, args...);
+        if (written < 0) {
+          return 0;
+        }
+
+        _set_size(len);
+        return len;
+      }
+
       // Comparison
       // todo: ==, !=, >, >=, <, <=
 
