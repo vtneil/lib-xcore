@@ -199,7 +199,7 @@ namespace xcore::container {
 
       // Print
       template<typename... Args>
-      int printf(const char *__restrict fmt, const Args &...args) __attribute__ ((format (printf, 2, 3))) {
+      int printf(const char *__restrict fmt, const Args &...args) __attribute__((format(printf, 2, 3))) {
         const int len = snprintf(nullptr, 0, fmt, args...);
         if (len < 0) {
           return 0;
