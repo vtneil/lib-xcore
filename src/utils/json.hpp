@@ -34,6 +34,8 @@ namespace xcore {
 
     // Clear
     void clear() {
+      counter      = 0;
+      value_called = false;
       str.clear();
       str += "{";
     }
@@ -47,6 +49,11 @@ namespace xcore {
     }
 
     const BaseString &value() {
+      if (value_called)
+        return str;
+
+      value_called = true;
+
       if (str.size() == 0)
         return str;
 
@@ -60,8 +67,9 @@ namespace xcore {
     }
 
   private:
-    BaseString str     = "{";
-    size_t     counter = 0;
+    BaseString str          = "{";
+    size_t     counter      = 0;
+    bool       value_called = false;
   };
 }  // namespace xcore
 

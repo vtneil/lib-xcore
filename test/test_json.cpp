@@ -20,4 +20,10 @@ int main(int argc, char *argv[]) {
   payload.clear();
 
   print_string(payload.value());
+
+  payload.clear();
+  payload["key3"] = 9;
+
+  print_string(payload.value());
+  print_string(payload.value());
 }
