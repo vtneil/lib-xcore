@@ -66,6 +66,11 @@ namespace xcore {
       return str;
     }
 
+    // Implicit conversion to char array buffer
+    [[nodiscard]] FORCE_INLINE constexpr operator const char *() const noexcept {  // Implicit
+      return str;
+    }
+
   private:
     BaseString str          = "{";
     size_t     counter      = 0;
