@@ -4,6 +4,8 @@
 #include "core/string_format.hpp"
 #include "container/array.hpp"
 #include "core/custom_numeric.hpp"
+
+#include <cstdarg>
 #include <cstring>
 
 namespace xcore::container {
@@ -193,14 +195,17 @@ namespace xcore::container {
 
       // Addition
       template<typename VarT>
-      basic_string_t operator+(VarT &&v) {
+      basic_string_t operator+(VarT &&v) const {
         return this->copy() += v;
       }
 
       // Print
-      template<typename... Args>
-      int printf(const char *__restrict fmt, const Args &...args) __attribute__((format(printf, 2, 3))) {
-        const int len = snprintf(nullptr, 0, fmt, args...);
+      int printf(const char *__restrict fmt, ...) __attribute__((format(printf, 2, 3))) {
+        va_list ap;
+        va_start(ap, fmt);
+        const int len = vsnprintf(nullptr, 0, fmt, ap);
+        va_end(ap);
+
         if (len < 0) {
           return 0;
         }
@@ -211,13 +216,24 @@ namespace xcore::container {
         if (capacity() < static_cast<size_t>(len + 1))
           return 0;
 
-        const int written = snprintf(_buffer(), len + 1, fmt, args...);
+        va_start(ap, fmt);
+        const int written = vsnprintf(_buffer(), len + 1, fmt, ap);
+        va_end(ap);
+
         if (written < 0) {
           return 0;
         }
 
         _set_size(len);
         return len;
+      }
+
+      // Enquote
+      basic_string_t enquote(const char quote) const {
+        basic_string_t str{quote};
+        str += *this;
+        str += quote;
+        return str;
       }
 
       // Comparison

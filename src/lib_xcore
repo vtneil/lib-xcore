@@ -32,6 +32,7 @@
 #include "utils/nonblocking_delay.hpp"
 #include "utils/on_off_timer.hpp"
 #include "utils/pipeline.hpp"
+#include "utils/json.hpp"
 
 #include "network/nav.hpp"
 
