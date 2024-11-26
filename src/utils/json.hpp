@@ -6,7 +6,7 @@ namespace xcore {
   struct json {
     // Helper class
     struct StringAppend {
-      json &parent;
+      json         &parent;
 
       StringAppend &operator=(const char *value) {
         parent.str += BaseString(value).enquote('\"');
@@ -32,6 +32,12 @@ namespace xcore {
       }
     };
 
+    // Clear
+    void clear() {
+      str.clear();
+      str += "{";
+    }
+
     // Assign value to key
     StringAppend operator[](const char *key) {
       str += '\"';
@@ -41,6 +47,14 @@ namespace xcore {
     }
 
     const BaseString &value() {
+      if (str.size() == 0)
+        return str;
+
+      if (str.size() == 1) {
+        str += "}";
+        return str;
+      }
+
       str[str.size() - 1] = '}';
       return str;
     }

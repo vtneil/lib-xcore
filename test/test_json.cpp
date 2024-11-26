@@ -16,4 +16,8 @@ int main(int argc, char *argv[]) {
   payload["key3"] = xcore::string_t<32>(9.8888888, 12);
 
   print_string(payload.value());
+
+  payload.clear();
+
+  print_string(payload.value());
 }
