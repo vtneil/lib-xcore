@@ -15,15 +15,15 @@ int main(int argc, char *argv[]) {
   payload["key3"] = 9;
   payload["key3"] = xcore::string_t<32>(9.8888888, 12);
 
-  print_string(payload.value());
+  print_string(payload);
 
   payload.clear();
 
-  print_string(payload.value());
+  print_string(payload);
 
   payload.clear();
   payload["key3"] = 9;
 
-  print_string(payload.value());
-  print_string(payload.value());
+  print_string(payload);
+  print_string(payload);
 }

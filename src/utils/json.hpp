@@ -67,7 +67,7 @@ namespace xcore {
     }
 
     // Implicit conversion to char array buffer
-    [[nodiscard]] FORCE_INLINE constexpr operator const char *() const noexcept {  // Implicit
+    [[nodiscard]] FORCE_INLINE constexpr operator const char *() noexcept {  // Implicit
       return value();
     }
 
