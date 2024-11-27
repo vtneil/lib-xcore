@@ -12,6 +12,9 @@ namespace xcore::network {
 
   public:
     void update_nav(const TimeT duration) {
+      if (!is_medium_free())
+        return;
+
       prev_time_ = MicrosTimeFunc();
       duration_  = duration;
     }
