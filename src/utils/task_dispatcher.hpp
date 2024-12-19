@@ -46,7 +46,7 @@ namespace xcore {
       template<typename T>
       using func_ptr_Tref = void (*)(T &);
 
-      using func_ptr      = void      (*)();
+      using func_ptr      = void (*)();
       using func_ptr_arg  = func_ptr_Targ<void>;
       using time_func_t   = TimeType();
       using priority_t    = uint8_t;
@@ -149,9 +149,9 @@ namespace xcore {
       Task   m_tasks[MaxTasks] = {};
 
     public:
-                            task_dispatcher_impl()                                 = default;
-                            task_dispatcher_impl(const task_dispatcher_impl &)     = default;
-                            task_dispatcher_impl(task_dispatcher_impl &&) noexcept = default;
+      task_dispatcher_impl()                                 = default;
+      task_dispatcher_impl(const task_dispatcher_impl &)     = default;
+      task_dispatcher_impl(task_dispatcher_impl &&) noexcept = default;
 
       task_dispatcher_impl &operator+=(typename Task::addition_struct &&task_struct) {
         return this->operator<<(xcore::forward<Task>(task_struct));
@@ -171,8 +171,7 @@ namespace xcore {
       task_dispatcher_impl &operator<<(Task &&task) {
         if (m_size < MaxTasks) {
           size_t i;
-          for (i = 0; i < m_size && m_tasks[i].m_priority < task.m_priority; ++i)
-            ;
+          for (i = 0; i < m_size && m_tasks[i].m_priority < task.m_priority; ++i);
           for (size_t j = 0; j < m_size - i; ++j) {
             m_tasks[m_size - j] = xcore::move(m_tasks[m_size - j - 1]);
           }
@@ -205,16 +204,22 @@ namespace xcore {
     };
   }  // namespace detail
 
+  template<template<typename, bool> class NonblockingT, typename TimeT, bool Adaptive = true>
+  using task_t = xcore::detail::task_impl<NonblockingT, TimeT, Adaptive>;
+
+  template<size_t MaxTasks, template<typename, bool> class NonblockingT, typename TimeT, bool Adaptive = true>
+  using task_dispatcher = xcore::detail::task_dispatcher_impl<MaxTasks, NonblockingT, TimeT, Adaptive>;
+
   /**
    * Default task type for most frameworks
    */
-  using Task = xcore::detail::task_impl<xcore::detail::nonblocking_delay_impl, unsigned long, true>;
+  using Task = task_t<xcore::detail::nonblocking_delay_impl, unsigned long, true>;
 
   /**
    * Default task dispatcher type for most frameworks
    */
   template<size_t MaxTasks>
-  using Dispatcher = xcore::detail::task_dispatcher_impl<MaxTasks, xcore::detail::nonblocking_delay_impl, unsigned long, true>;
+  using Dispatcher = task_dispatcher<MaxTasks, xcore::detail::nonblocking_delay_impl, unsigned long, true>;
 }  // namespace xcore
 
 #endif  //LIB_XCORE_UTILS_TASK_DISPATCHER_HPP
