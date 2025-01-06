@@ -1,6 +1,7 @@
 #ifndef LIB_XCORE_CONTAINER_DEQUE_HPP
 #define LIB_XCORE_CONTAINER_DEQUE_HPP
 
+#include "internal/macros.hpp"
 #include "container/array.hpp"
 
 namespace xcore::container {
@@ -175,7 +176,8 @@ namespace xcore::container {
   };
 }  // namespace xcore::container
 
-namespace xcore {
+LIB_XCORE_BEGIN_NAMESPACE
+
   using namespace container;
 }
 

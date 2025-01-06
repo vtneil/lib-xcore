@@ -1,43 +1,46 @@
 #ifndef LIB_XCORE_CORE_PORTED_PAIR_HPP
 #define LIB_XCORE_CORE_PORTED_PAIR_HPP
 
-namespace xcore {
-  template<typename T1, typename T2>
-  struct pair {
-    T1 first;
-    T2 second;
+#include "internal/macros.hpp"
 
-    // Default constructor
-    pair() = default;
+LIB_XCORE_BEGIN_NAMESPACE
 
-    // Copy constructor
-    pair(const pair &other) = default;
+template<typename T1, typename T2>
+struct pair {
+  T1 first;
+  T2 second;
 
-    // Move constructor
-    pair(pair &&other) noexcept = default;
+  // Default constructor
+  pair() = default;
 
-    // Copy objects constructor
-    pair(const T1 &first, const T2 &second) : first(first), second(second) {}
+  // Copy constructor
+  pair(const pair &other) = default;
 
-    // Move objects constructor
-    pair(T1 &&first, T2 &&second) noexcept : first(move(first)), second(move(second)) {}
+  // Move constructor
+  pair(pair &&other) noexcept = default;
 
-    // Copy assignment
-    pair &operator=(const pair &other) = default;
+  // Copy objects constructor
+  pair(const T1 &first, const T2 &second) : first(first), second(second) {}
 
-    // Move assignment
-    pair &operator=(pair &&other) noexcept = default;
-  };
+  // Move objects constructor
+  pair(T1 &&first, T2 &&second) noexcept : first(move(first)), second(move(second)) {}
 
-  template<typename T1, typename T2>
-  constexpr pair<T1, T2> make_pair(const T1 &t1, const T2 &t2) {
-    return pair<T1, T2>(t1, t2);
-  }
+  // Copy assignment
+  pair &operator=(const pair &other) = default;
 
-  template<typename T1, typename T2>
-  constexpr pair<T1, T2> make_pair(T1 &&t1, T2 &&t2) {
-    return pair<T1, T2>(xcore::forward<T1>(t1), xcore::forward<T2>(t2));
-  }
+  // Move assignment
+  pair &operator=(pair &&other) noexcept = default;
+};
+
+template<typename T1, typename T2>
+constexpr pair<T1, T2> make_pair(const T1 &t1, const T2 &t2) {
+  return pair<T1, T2>(t1, t2);
+}
+
+template<typename T1, typename T2>
+constexpr pair<T1, T2> make_pair(T1 &&t1, T2 &&t2) {
+  return pair<T1, T2>(xcore::forward<T1>(t1), xcore::forward<T2>(t2));
+}
 }  // namespace ported
 
 #endif  //LIB_XCORE_CORE_PORTED_PAIR_HPP

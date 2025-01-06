@@ -14,39 +14,43 @@
 //
 // const T &, T &, T &&
 
-namespace xcore {
-  namespace detail {
-    template<typename T>
-    struct pipeline_intermediate {
-      explicit constexpr pipeline_intermediate(T &&val) : value(xcore::forward<T>(val)) {}
+#include "internal/macros.hpp"
 
-      template<typename Func, typename... Args,
-               typename R = invoke_result_t<Func, T, Args...>>
-      constexpr auto run(Func func, Args &&...args) && -> pipeline_intermediate<R> {
-        return pipeline_intermediate<R>{func(xcore::forward<T>(value), xcore::forward<Args>(args)...)};
-      }
+LIB_XCORE_BEGIN_NAMESPACE
 
-      constexpr T &&result() && {
-        return xcore::move(value);
-      }
+namespace detail {
+  template<typename T>
+  struct pipeline_intermediate {
+    explicit constexpr pipeline_intermediate(T &&val) : value(xcore::forward<T>(val)) {}
 
-      constexpr operator T() { return value; }
+    template<typename Func, typename... Args,
+             typename R = invoke_result_t<Func, T, Args...>>
+    constexpr auto run(Func func, Args &&...args) && -> pipeline_intermediate<R> {
+      return pipeline_intermediate<R>{func(xcore::forward<T>(value), xcore::forward<Args>(args)...)};
+    }
 
-    private:
-      T value;
-    };
+    constexpr T &&result() && {
+      return xcore::move(value);
+    }
 
-    struct pipeline_start {
+    constexpr operator T() { return value; }
 
-      template<typename Func, typename... Args,
-               typename R = invoke_result_t<Func, Args...>>
-      constexpr auto run(Func func, Args &&...args) && -> pipeline_intermediate<R> {
-        return pipeline_intermediate<R>{func(xcore::forward<Args>(args)...)};
-      }
-    };
-  }  // namespace detail
+  private:
+    T value;
+  };
 
-  using pipeline = xcore::detail::pipeline_start;
-}  // namespace xcore
+  struct pipeline_start {
+
+    template<typename Func, typename... Args,
+             typename R = invoke_result_t<Func, Args...>>
+    constexpr auto run(Func func, Args &&...args) && -> pipeline_intermediate<R> {
+      return pipeline_intermediate<R>{func(xcore::forward<Args>(args)...)};
+    }
+  };
+}  // namespace detail
+
+using pipeline = xcore::detail::pipeline_start;
+
+LIB_XCORE_END_NAMESPACE
 
 #endif  //LIB_XCORE_UTILS_PIPELINE_HPP

@@ -1,81 +1,85 @@
 #ifndef JSON_HPP
 #define JSON_HPP
 
-namespace xcore {
-  template<typename BaseString>
-  struct json {
-    // Helper class
-    struct StringAppend {
-      json         &parent;
+#include "internal/macros.hpp"
 
-      StringAppend &operator=(const char *value) {
-        parent.str += BaseString(value).enquote('\"');
-        if (++parent.counter > 0)
-          parent.str += ",";
-        return *this;
-      }
+LIB_XCORE_BEGIN_NAMESPACE
 
-      template<typename VT>
-      StringAppend &operator=(const VT &value) {
-        parent.str += BaseString(value);
-        if (++parent.counter > 0)
-          parent.str += ",";
-        return *this;
-      }
+template<typename BaseString>
+struct json {
+  // Helper class
+  struct StringAppend {
+    json         &parent;
 
-      template<typename VT>
-      StringAppend &operator=(VT &&value) {
-        parent.str += BaseString(xcore::forward<VT>(value));
-        if (++parent.counter > 0)
-          parent.str += ",";
-        return *this;
-      }
-    };
-
-    // Clear
-    void clear() {
-      counter      = 0;
-      value_called = false;
-      str.clear();
-      str += "{";
+    StringAppend &operator=(const char *value) {
+      parent.str += BaseString(value).enquote('\"');
+      if (++parent.counter > 0)
+        parent.str += ",";
+      return *this;
     }
 
-    // Assign value to key
-    StringAppend operator[](const char *key) {
-      str += '\"';
-      str += key;
-      str += "\":";
-      return StringAppend{*this};
+    template<typename VT>
+    StringAppend &operator=(const VT &value) {
+      parent.str += BaseString(value);
+      if (++parent.counter > 0)
+        parent.str += ",";
+      return *this;
     }
 
-    const BaseString &value() {
-      if (value_called)
-        return str;
+    template<typename VT>
+    StringAppend &operator=(VT &&value) {
+      parent.str += BaseString(xcore::forward<VT>(value));
+      if (++parent.counter > 0)
+        parent.str += ",";
+      return *this;
+    }
+  };
 
-      value_called = true;
+  // Clear
+  void clear() {
+    counter      = 0;
+    value_called = false;
+    str.clear();
+    str += "{";
+  }
 
-      if (str.size() == 0)
-        return str;
+  // Assign value to key
+  StringAppend operator[](const char *key) {
+    str += '\"';
+    str += key;
+    str += "\":";
+    return StringAppend{*this};
+  }
 
-      if (str.size() == 1) {
-        str += "}";
-        return str;
-      }
+  const BaseString &value() {
+    if (value_called)
+      return str;
 
-      str[str.size() - 1] = '}';
+    value_called = true;
+
+    if (str.size() == 0)
+      return str;
+
+    if (str.size() == 1) {
+      str += "}";
       return str;
     }
 
-    // Implicit conversion to char array buffer
-    [[nodiscard]] FORCE_INLINE constexpr operator const char *() noexcept {  // Implicit
-      return value();
-    }
+    str[str.size() - 1] = '}';
+    return str;
+  }
 
-  private:
-    BaseString str          = "{";
-    size_t     counter      = 0;
-    bool       value_called = false;
-  };
-}  // namespace xcore
+  // Implicit conversion to char array buffer
+  [[nodiscard]] FORCE_INLINE constexpr operator const char *() noexcept {  // Implicit
+    return value();
+  }
+
+private:
+  BaseString str          = "{";
+  size_t     counter      = 0;
+  bool       value_called = false;
+};
+
+LIB_XCORE_END_NAMESPACE
 
 #endif  //JSON_HPP

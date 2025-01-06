@@ -1,6 +1,8 @@
 #ifndef LIB_XCORE_LINALG_NUMERIC_VECTOR_HPP
 #define LIB_XCORE_LINALG_NUMERIC_VECTOR_HPP
 
+#include "internal/macros.hpp"
+
 #include "core/basic_iterator.hpp"
 // #include "container/array.hpp"
 //

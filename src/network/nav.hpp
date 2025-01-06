@@ -1,7 +1,11 @@
 #ifndef LIB_XCORE_NETWORK_NAV_HPP
 #define LIB_XCORE_NETWORK_NAV_HPP
 
-namespace xcore::network {
+#include "internal/macros.hpp"
+
+LIB_XCORE_BEGIN_NAMESPACE
+
+namespace network {
   template<auto MicrosTimeFunc>
   class nav_t {
     using TimeT = decltype(MicrosTimeFunc());
@@ -24,10 +28,14 @@ namespace xcore::network {
       return curr_time - prev_time_ > duration_;
     }
   };
-}  // namespace xcore::network
+}  // namespace network
 
-namespace xcore {
-  using namespace network;
-}
+LIB_XCORE_END_NAMESPACE
+
+LIB_XCORE_BEGIN_NAMESPACE
+
+using namespace network;
+
+LIB_XCORE_END_NAMESPACE
 
 #endif  //LIB_XCORE_NETWORK_NAV_HPP

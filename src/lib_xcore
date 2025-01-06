@@ -3,6 +3,8 @@
 
 #include "require_cpp17.hpp"
 
+#include "internal/macros.hpp"
+
 #include "core/macros_bootstrap.hpp"
 #include "core/builtins_bootstrap.hpp"
 
@@ -16,7 +18,6 @@
 #include "core/ported_pair.hpp"
 #include "core/ported_tuple.hpp"
 #include "core/ported_random.hpp"
-
 
 #include "memory.hpp"
 

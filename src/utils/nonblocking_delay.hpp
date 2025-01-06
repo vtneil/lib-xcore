@@ -1,159 +1,162 @@
 #ifndef LIB_XCORE_UTILS_NONBLOCKING_DELAY_HPP
 #define LIB_XCORE_UTILS_NONBLOCKING_DELAY_HPP
 
+#include "internal/macros.hpp"
 #include "core/ported_std.hpp"
 
-namespace xcore {
-  namespace detail {
-    template<typename F>
-    struct is_procedure : is_invocable_r<void, F> {};
+LIB_XCORE_BEGIN_NAMESPACE
 
-    template<typename F>
-    inline constexpr bool is_procedure_v = is_procedure<F>::value;
+namespace detail {
+  template<typename F>
+  struct is_procedure : is_invocable_r<void, F> {};
 
-    template<auto Func>
-    struct is_invocable_and_numeric {
-      static constexpr bool is_invocable = is_invocable_v<decltype(Func)>;
+  template<typename F>
+  inline constexpr bool is_procedure_v = is_procedure<F>::value;
 
-      static constexpr bool returns_numeric =
-        is_integral_v<invoke_result_t<decltype(Func)>> ||
-        is_floating_point_v<invoke_result_t<decltype(Func)>>;
+  template<auto Func>
+  struct is_invocable_and_numeric {
+    static constexpr bool is_invocable = is_invocable_v<decltype(Func)>;
 
-      static constexpr bool value = is_invocable && returns_numeric;
-    };
+    static constexpr bool returns_numeric =
+      is_integral_v<invoke_result_t<decltype(Func)>> ||
+      is_floating_point_v<invoke_result_t<decltype(Func)>>;
 
-    template<auto Func>
-    inline constexpr bool is_invocable_and_numeric_v = is_invocable_and_numeric<Func>::value;
-  }  // namespace detail
+    static constexpr bool value = is_invocable && returns_numeric;
+  };
 
-  namespace detail {
-    template<typename TimeType, bool Adaptive>
-    class nonblocking_delay_impl {
-    public:
-      using time_func_t = TimeType();
+  template<auto Func>
+  inline constexpr bool is_invocable_and_numeric_v = is_invocable_and_numeric<Func>::value;
+}  // namespace detail
 
-    private:
-      time_func_t *func_            = {};
-      TimeType     target_interval_ = {};
-      TimeType     prev_time_       = {};
-      TimeType     gate_interval_   = {};
+namespace detail {
+  template<typename TimeType, bool Adaptive>
+  class nonblocking_delay_impl {
+  public:
+    using time_func_t = TimeType();
 
-      struct proc_else {
-        nonblocking_delay_impl &parent;
-        bool               value;
+  private:
+    time_func_t *func_            = {};
+    TimeType     target_interval_ = {};
+    TimeType     prev_time_       = {};
+    TimeType     gate_interval_   = {};
 
-        template<typename Proc, typename = enable_if_t<is_procedure_v<Proc>>>
-        void otherwise(Proc &&proc) {
-          if (!value) {
-            proc();
-          }
-        }
-      };
-
-    public:
-      nonblocking_delay_impl(const nonblocking_delay_impl &)     = default;
-
-      nonblocking_delay_impl(nonblocking_delay_impl &&) noexcept = default;
-
-      nonblocking_delay_impl(TimeType interval, time_func_t *time_func)
-          : func_{time_func}, target_interval_{interval}, gate_interval_{interval} {
-        if (time_func != nullptr)
-          prev_time_ = time_func();
-      }
-
-      nonblocking_delay_impl &operator=(const nonblocking_delay_impl &other) {
-        if (this == &other) {
-          return *this;
-        }
-
-        func_            = other.func_;
-        target_interval_ = other.target_interval_;
-        prev_time_       = other.prev_time_;
-        gate_interval_   = other.gate_interval_;
-
-        return *this;
-      }
-
-      nonblocking_delay_impl &operator=(nonblocking_delay_impl &&other) noexcept {
-        func_            = move(other.func_);
-        target_interval_ = move(other.target_interval_);
-        prev_time_       = move(other.prev_time_);
-        gate_interval_   = move(other.gate_interval_);
-
-        return *this;
-      }
+    struct proc_else {
+      nonblocking_delay_impl &parent;
+      bool                    value;
 
       template<typename Proc, typename = enable_if_t<is_procedure_v<Proc>>>
-      proc_else operator()(Proc &&proc) {
-        const bool v = this->operator bool();
-        if (v) {
+      void otherwise(Proc &&proc) {
+        if (!value) {
           proc();
         }
-        return {*this, v};
+      }
+    };
+
+  public:
+    nonblocking_delay_impl(const nonblocking_delay_impl &)     = default;
+
+    nonblocking_delay_impl(nonblocking_delay_impl &&) noexcept = default;
+
+    nonblocking_delay_impl(TimeType interval, time_func_t *time_func)
+        : func_{time_func}, target_interval_{interval}, gate_interval_{interval} {
+      if (time_func != nullptr)
+        prev_time_ = time_func();
+    }
+
+    nonblocking_delay_impl &operator=(const nonblocking_delay_impl &other) {
+      if (this == &other) {
+        return *this;
       }
 
-      bool triggered() {
-        return this->operator bool();
+      func_            = other.func_;
+      target_interval_ = other.target_interval_;
+      prev_time_       = other.prev_time_;
+      gate_interval_   = other.gate_interval_;
+
+      return *this;
+    }
+
+    nonblocking_delay_impl &operator=(nonblocking_delay_impl &&other) noexcept {
+      func_            = move(other.func_);
+      target_interval_ = move(other.target_interval_);
+      prev_time_       = move(other.prev_time_);
+      gate_interval_   = move(other.gate_interval_);
+
+      return *this;
+    }
+
+    template<typename Proc, typename = enable_if_t<is_procedure_v<Proc>>>
+    proc_else operator()(Proc &&proc) {
+      const bool v = this->operator bool();
+      if (v) {
+        proc();
       }
+      return {*this, v};
+    }
 
-      bool passed() {
-        return this->operator bool();
-      }
+    bool triggered() {
+      return this->operator bool();
+    }
 
-      explicit operator bool() {
-        if (func_ == nullptr) {
-          return false;
-        }
+    bool passed() {
+      return this->operator bool();
+    }
 
-        if (target_interval_ == 0) {
-          return true;
-        }
-
-        TimeType curr_time = func_();
-
-        if (curr_time - prev_time_ >= gate_interval_) {
-          if constexpr (Adaptive) {
-            // Adaptive interval adjustment
-            // Adjust gate interval to match target interval
-            TimeType delta_e = target_interval_ > gate_interval_
-                                 ? target_interval_ - gate_interval_
-                                 : gate_interval_ - target_interval_;
-            gate_interval_   = delta_e < gate_interval_
-                                 ? gate_interval_ - delta_e
-                                 : gate_interval_ + delta_e;
-          }
-          prev_time_ = curr_time;
-          return true;
-        }
-
+    explicit operator bool() {
+      if (func_ == nullptr) {
         return false;
       }
 
-      void reset() {
-        if (func_ != nullptr) {
-          prev_time_ = func_();
+      if (target_interval_ == 0) {
+        return true;
+      }
+
+      TimeType curr_time = func_();
+
+      if (curr_time - prev_time_ >= gate_interval_) {
+        if constexpr (Adaptive) {
+          // Adaptive interval adjustment
+          // Adjust gate interval to match target interval
+          TimeType delta_e = target_interval_ > gate_interval_
+                               ? target_interval_ - gate_interval_
+                               : gate_interval_ - target_interval_;
+          gate_interval_   = delta_e < gate_interval_
+                               ? gate_interval_ - delta_e
+                               : gate_interval_ + delta_e;
         }
+        prev_time_ = curr_time;
+        return true;
       }
 
-      constexpr TimeType interval() const {
-        return gate_interval_;
+      return false;
+    }
+
+    void reset() {
+      if (func_ != nullptr) {
+        prev_time_ = func_();
       }
+    }
 
-      void set_interval(const TimeType new_interval) {
-        target_interval_ = new_interval;
-        gate_interval_   = new_interval;
-        this->reset();
-      }
-    };
-  }  // namespace impl
+    constexpr TimeType interval() const {
+      return gate_interval_;
+    }
 
-  template<typename TimeT, bool Adaptive = true>
-  using nonblocking_delay = xcore::detail::nonblocking_delay_impl<TimeT, Adaptive>;
+    void set_interval(const TimeType new_interval) {
+      target_interval_ = new_interval;
+      gate_interval_   = new_interval;
+      this->reset();
+    }
+  };
+}  // namespace detail
 
-  /**
+template<typename TimeT, bool Adaptive = true>
+using nonblocking_delay = xcore::detail::nonblocking_delay_impl<TimeT, Adaptive>;
+
+/**
    * Default non-blocking delay type for most frameworks
    */
-  using NbDelay = nonblocking_delay<unsigned long>;
-}  // namespace xcore
+using NbDelay = nonblocking_delay<unsigned long>;
+
+LIB_XCORE_END_NAMESPACE
 
 #endif  //LIB_XCORE_UTILS_NONBLOCKING_DELAY_HPP

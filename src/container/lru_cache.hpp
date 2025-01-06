@@ -1,6 +1,7 @@
 #ifndef LIB_XCORE_CONTAINER_LRU_CACHE_HPP
 #define LIB_XCORE_CONTAINER_LRU_CACHE_HPP
 
+#include "internal/macros.hpp"
 #include "core/ported_std.hpp"
 #include "core/ported_optional.hpp"
 #include "container/bitset.hpp"
@@ -338,7 +339,8 @@ namespace xcore::container {
   };
 }  // namespace xcore::container
 
-namespace xcore {
+LIB_XCORE_BEGIN_NAMESPACE
+
   using namespace container;
 }
 

@@ -1,6 +1,7 @@
 #ifndef LIB_XCORE_CONTAINER_BITSET_HPP
 #define LIB_XCORE_CONTAINER_BITSET_HPP
 
+#include "internal/macros.hpp"
 #include "memory.hpp"
 #include <cstdint>
 
@@ -232,7 +233,8 @@ namespace xcore::container {
   };
 }  // namespace xcore::container
 
-namespace xcore {
+LIB_XCORE_BEGIN_NAMESPACE
+
   using namespace container;
 }
 

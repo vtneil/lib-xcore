@@ -1,6 +1,7 @@
 #ifndef LIB_XCORE_CONTAINER_BYTE_BUFFER_HPP
 #define LIB_XCORE_CONTAINER_BYTE_BUFFER_HPP
 
+#include "internal/macros.hpp"
 #include "container/deque.hpp"
 #include <cstring>
 #include <cstdlib>
@@ -104,7 +105,8 @@ namespace xcore::container {
   };
 }  // namespace container
 
-namespace xcore {
+LIB_XCORE_BEGIN_NAMESPACE
+
   using namespace container;
 }
 

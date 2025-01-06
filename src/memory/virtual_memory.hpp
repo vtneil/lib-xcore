@@ -1,10 +1,13 @@
 #ifndef LIB_XCORE_MEMORY_VIRTUAL_MEMORY_H
 #define LIB_XCORE_MEMORY_VIRTUAL_MEMORY_H
 
+#include "internal/macros.hpp"
 #include "memory/allocator.hpp"
 #include <cstdint>
 
-namespace xcore::memory {
+LIB_XCORE_BEGIN_NAMESPACE
+
+namespace memory {
   /**
      * A virtual region memory region for extended fast region-like allocation
      * using memory pool technique. It should be substantially faster than using malloc/new if
@@ -141,10 +144,14 @@ namespace xcore::memory {
       return sp - region_limit;
     }
   };
-}  // namespace xcore::memory
+}  // namespace memory
 
-namespace xcore {
-  using namespace memory;
-}
+LIB_XCORE_END_NAMESPACE
+
+LIB_XCORE_BEGIN_NAMESPACE
+
+using namespace memory;
+
+LIB_XCORE_END_NAMESPACE
 
 #endif  //LIB_XCORE_MEMORY_VIRTUAL_MEMORY_H

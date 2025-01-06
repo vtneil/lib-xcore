@@ -1,6 +1,7 @@
 #ifndef LIB_XCORE_CONTAINER_STRING_HPP
 #define LIB_XCORE_CONTAINER_STRING_HPP
 
+#include "internal/macros.hpp"
 #include "core/string_format.hpp"
 #include "container/array.hpp"
 #include "core/custom_numeric.hpp"
@@ -8,7 +9,9 @@
 #include <cstdarg>
 #include <cstring>
 
-namespace xcore::container {
+LIB_XCORE_BEGIN_NAMESPACE
+
+namespace container {
   namespace impl {
     template<typename CharT, size_t Capacity, template<typename, size_t> class Container = array_t>
     struct lazy_add_string_t;
@@ -330,10 +333,14 @@ namespace xcore::container {
   using heap_string_t    = impl::basic_string_t<char, Capacity, heap_array_t>;
 
   using dynamic_string_t = impl::basic_string_t<char, 0, dynamic_array_t>;
-}  // namespace xcore::container
+}  // namespace container
 
-namespace xcore {
-  using namespace container;
-}
+LIB_XCORE_END_NAMESPACE
+
+LIB_XCORE_BEGIN_NAMESPACE
+
+using namespace container;
+
+LIB_XCORE_END_NAMESPACE
 
 #endif  //LIB_XCORE_CONTAINER_STRING_HPP

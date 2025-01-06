@@ -1,13 +1,17 @@
 #ifndef LIB_XCORE_MEMORY_ALLOCATOR_H
 #define LIB_XCORE_MEMORY_ALLOCATOR_H
 
+#include "internal/macros.hpp"
+
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
 #include <new>
 #include "memory/generic.hpp"
 
-namespace xcore::memory {
+LIB_XCORE_BEGIN_NAMESPACE
+
+namespace memory {
   template<template<typename> class allocator_form_t, typename Tp>
   class allocator_t {  // CRTP
   protected:
@@ -136,10 +140,14 @@ namespace xcore::memory {
   FORCE_INLINE constexpr bool is_nullptr(const void *pointer) {
     return !pointer;
   }
-}  // namespace xcore::memory
+}  // namespace memory
 
-namespace xcore {
-  using namespace memory;
-}
+LIB_XCORE_END_NAMESPACE
+
+LIB_XCORE_BEGIN_NAMESPACE
+
+using namespace memory;
+
+LIB_XCORE_END_NAMESPACE
 
 #endif  //LIB_XCORE_MEMORY_ALLOCATOR_H

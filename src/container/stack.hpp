@@ -1,9 +1,12 @@
 #ifndef LIB_XCORE_CONTAINER_STACK_HPP
 #define LIB_XCORE_CONTAINER_STACK_HPP
 
+#include "internal/macros.hpp"
 #include "container/deque.hpp"
 
-namespace xcore::container {
+LIB_XCORE_BEGIN_NAMESPACE
+
+namespace container {
   template<typename Tp, size_t Capacity, template<typename, size_t> class Container = array_t>
   struct stack_t : protected deque_t<Tp, Capacity, Container> {
   protected:
@@ -54,8 +57,12 @@ namespace xcore::container {
   };
 }  // namespace container
 
-namespace xcore {
-  using namespace container;
-}
+LIB_XCORE_END_NAMESPACE
+
+LIB_XCORE_BEGIN_NAMESPACE
+
+using namespace container;
+
+LIB_XCORE_END_NAMESPACE
 
 #endif  //LIB_XCORE_CONTAINER_STACK_HPP

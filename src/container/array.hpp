@@ -1,6 +1,7 @@
 #ifndef LIB_XCORE_CONTAINER_ARRAY_HPP
 #define LIB_XCORE_CONTAINER_ARRAY_HPP
 
+#include "internal/macros.hpp"
 #include "core/ported_std.hpp"
 #include "memory.hpp"
 #include <cstdlib>
@@ -393,7 +394,8 @@ namespace xcore::container {
   };
 }  // namespace xcore::container
 
-namespace xcore {
+LIB_XCORE_BEGIN_NAMESPACE
+
   using namespace container;
 }
 
