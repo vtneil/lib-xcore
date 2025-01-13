@@ -82,7 +82,7 @@ namespace detail {
 }  // namespace detail
 
 template<typename TimeT, bool Adaptive = true>
-using on_off_timer = xcore::detail::on_off_timer_impl<TimeT, Adaptive>;
+using on_off_timer = LIB_XCORE_NAMESPACE::detail::on_off_timer_impl<TimeT, Adaptive>;
 
 /**
    * Default flip-flip timer type for most frameworks

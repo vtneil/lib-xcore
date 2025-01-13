@@ -1,14 +1,17 @@
 #ifndef LIB_XCORE_CORE_STRING_FORMAT_HPP
 #define LIB_XCORE_CORE_STRING_FORMAT_HPP
 
+#include "internal/macros.hpp"
 #include "core/ported_std.hpp"
 #include <cstdio>
+
+LIB_XCORE_BEGIN_NAMESPACE
 
 /**
 * Overload: integral (signed/unsigned char, short, int, long, long long) to string
 */
 template<typename Tp>
-xcore::enable_if_t<xcore::is_integral_v<Tp>, char *> xtostr(Tp value, char *buf, unsigned int radix = 10) {
+enable_if_t<is_integral_v<Tp>, char *> xtostr(Tp value, char *buf, unsigned int radix = 10) {
   if (radix < 2 || radix > 36) {
     buf[0] = '\0';
     return buf;
@@ -16,7 +19,7 @@ xcore::enable_if_t<xcore::is_integral_v<Tp>, char *> xtostr(Tp value, char *buf,
 
   constexpr char digits[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   char          *p        = buf;
-  const bool     negative = value < 0 && xcore::is_signed_v<Tp> && radix == 10;
+  const bool     negative = value < 0 && is_signed_v<Tp> && radix == 10;
 
   if (negative) {
     value = -value;
@@ -48,12 +51,14 @@ xcore::enable_if_t<xcore::is_integral_v<Tp>, char *> xtostr(Tp value, char *buf,
 * Overload: floating points (float, double) to string
 */
 template<typename Tp>
-xcore::enable_if_t<xcore::is_floating_point_v<Tp>, char *> xtostr(Tp value, char *buf, const int width, const int precision) {
+enable_if_t<is_floating_point_v<Tp>, char *> xtostr(Tp value, char *buf, const int width, const int precision) {
   char format[10];
   sprintf(format, "%%%d.%df", width, precision);
   sprintf(buf, format, value);
 
   return buf;
 }
+
+LIB_XCORE_END_NAMESPACE
 
 #endif  //LIB_XCORE_CORE_STRING_FORMAT_HPP

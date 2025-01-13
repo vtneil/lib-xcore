@@ -150,7 +150,7 @@ namespace detail {
 }  // namespace detail
 
 template<typename TimeT, bool Adaptive = true>
-using nonblocking_delay = xcore::detail::nonblocking_delay_impl<TimeT, Adaptive>;
+using nonblocking_delay = LIB_XCORE_NAMESPACE::detail::nonblocking_delay_impl<TimeT, Adaptive>;
 
 /**
    * Default non-blocking delay type for most frameworks

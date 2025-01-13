@@ -5,7 +5,9 @@
 #include "memory.hpp"
 #include <cstdint>
 
-namespace xcore::container {
+LIB_XCORE_BEGIN_NAMESPACE
+
+namespace container {
   template<size_t Nb, typename WordT = int, template<typename, size_t> class Container = array_t>
   struct bitset_t {
   private:
@@ -231,11 +233,11 @@ namespace xcore::container {
       return reinterpret_cast<const TargetT *>(this->as_bytes() + byte_offset);
     }
   };
-}  // namespace xcore::container
+}  // namespace container
 
-LIB_XCORE_BEGIN_NAMESPACE
 
-  using namespace container;
-}
+using namespace container;
+
+LIB_XCORE_END_NAMESPACE
 
 #endif  //LIB_XCORE_CONTAINER_BITSET_HPP

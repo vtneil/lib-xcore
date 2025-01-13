@@ -43,8 +43,8 @@ public:
   }
 
   constexpr tuple &operator=(tuple &&other) noexcept {
-    value                              = xcore::move(other.value);
-    static_cast<tuple<Ts...> &>(*this) = xcore::move(static_cast<const tuple<Ts...> &>(other));
+    value                              = move(other.value);
+    static_cast<tuple<Ts...> &>(*this) = move(static_cast<const tuple<Ts...> &>(other));
     return *this;
   }
 
@@ -77,7 +77,7 @@ auto get(const tuple<T, Ts...> &t) -> enable_if_t<I != 0, const typename detail:
 
 template<typename... Ts>
 tuple<Ts...> make_tuple(Ts &&...ts) {
-  return tuple<Ts...>(xcore::forward<Ts>(ts)...);
+  return tuple<Ts...>(forward<Ts>(ts)...);
 }
 
 template<typename... Ts>
@@ -87,12 +87,12 @@ constexpr tuple<Ts &...> tie(Ts &...ts) noexcept {
 
 template<size_t I, typename T, typename... Ts>
 auto get(tuple<T, Ts...> &&t) -> enable_if_t<I == 0, T &&> {
-  return xcore::move(t.value);
+  return move(t.value);
 }
 
 template<size_t I, typename T, typename... Ts>
 auto get(tuple<T, Ts...> &&t) -> enable_if_t<I != 0, typename detail::tuple_element<I, tuple<T, Ts...>>::type &&> {
-  return get<I - 1>(xcore::move(static_cast<tuple<Ts...> &&>(t)));
+  return get<I - 1>(move(static_cast<tuple<Ts...> &&>(t)));
 }
 
 LIB_XCORE_END_NAMESPACE

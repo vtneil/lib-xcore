@@ -21,16 +21,16 @@ LIB_XCORE_BEGIN_NAMESPACE
 namespace detail {
   template<typename T>
   struct pipeline_intermediate {
-    explicit constexpr pipeline_intermediate(T &&val) : value(xcore::forward<T>(val)) {}
+    explicit constexpr pipeline_intermediate(T &&val) : value(forward<T>(val)) {}
 
     template<typename Func, typename... Args,
              typename R = invoke_result_t<Func, T, Args...>>
     constexpr auto run(Func func, Args &&...args) && -> pipeline_intermediate<R> {
-      return pipeline_intermediate<R>{func(xcore::forward<T>(value), xcore::forward<Args>(args)...)};
+      return pipeline_intermediate<R>{func(forward<T>(value), xcore::forward<Args>(args)...)};
     }
 
     constexpr T &&result() && {
-      return xcore::move(value);
+      return move(value);
     }
 
     constexpr operator T() { return value; }
@@ -44,12 +44,12 @@ namespace detail {
     template<typename Func, typename... Args,
              typename R = invoke_result_t<Func, Args...>>
     constexpr auto run(Func func, Args &&...args) && -> pipeline_intermediate<R> {
-      return pipeline_intermediate<R>{func(xcore::forward<Args>(args)...)};
+      return pipeline_intermediate<R>{func(forward<Args>(args)...)};
     }
   };
 }  // namespace detail
 
-using pipeline = xcore::detail::pipeline_start;
+using pipeline = LIB_XCORE_NAMESPACE::detail::pipeline_start;
 
 LIB_XCORE_END_NAMESPACE
 

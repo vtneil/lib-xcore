@@ -6,7 +6,9 @@
 #include "core/ported_optional.hpp"
 #include "container/bitset.hpp"
 
-namespace xcore::container {
+LIB_XCORE_BEGIN_NAMESPACE
+
+namespace container {
   template<typename KT, size_t Capacity, auto TimeFunc>
   class lru_set_t {
     static_assert(Capacity > 0);
@@ -337,11 +339,10 @@ namespace xcore::container {
       this->values_[index]   = move(value);
     }
   };
-}  // namespace xcore::container
+}  // namespace container
 
-LIB_XCORE_BEGIN_NAMESPACE
+using namespace container;
 
-  using namespace container;
-}
+LIB_XCORE_END_NAMESPACE
 
 #endif  //LIB_XCORE_CONTAINER_LRU_CACHE_HPP

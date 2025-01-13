@@ -18,10 +18,10 @@ namespace traits {
   struct is_nbdelay : false_type {};
 
   template<typename C, typename T>
-  struct is_nbdelay<C, T, void_t<decltype(C(xcore::declval<T>(), xcore::declval<T (*)()>()))>>
+  struct is_nbdelay<C, T, void_t<decltype(C(declval<T>(), declval<T (*)()>()))>>
       : integral_constant<bool,
-                          is_same_v<decltype(static_cast<bool>(xcore::declval<C>())), bool> &&
-                            is_same_v<decltype(xcore::declval<C>().reset()), void> &&
+                          is_same_v<decltype(static_cast<bool>(declval<C>())), bool> &&
+                            is_same_v<decltype(declval<C>().reset()), void> &&
                             is_integral_v<T>> {};
 
   template<typename C, typename T>
@@ -113,10 +113,10 @@ namespace detail {
     }
 
     task_impl &operator=(task_impl &&other) noexcept {
-      m_func     = xcore::move(other.m_func);
-      m_arg      = xcore::move(other.m_arg);
-      m_sd       = xcore::move(other.m_sd);
-      m_priority = xcore::move(other.m_priority);
+      m_func     = move(other.m_func);
+      m_arg      = move(other.m_arg);
+      m_sd       = move(other.m_sd);
+      m_priority = move(other.m_priority);
 
       return *this;
     }
@@ -132,7 +132,7 @@ namespace detail {
     }
 
     addition_struct operator,(const bool pred) const {
-      return {xcore::move(*this), pred};
+      return {move(*this), pred};
     }
 
     constexpr TimeType interval() const {
@@ -156,18 +156,18 @@ namespace detail {
     task_dispatcher_impl(task_dispatcher_impl &&) noexcept = default;
 
     task_dispatcher_impl &operator+=(typename Task::addition_struct &&task_struct) {
-      return this->operator<<(xcore::forward<Task>(task_struct));
+      return this->operator<<(forward<Task>(task_struct));
     }
 
     task_dispatcher_impl &operator<<(typename Task::addition_struct &&task_struct) {
       if (task_struct.pred) {
-        this->operator<<(xcore::move(task_struct.task));
+        this->operator<<(move(task_struct.task));
       }
       return *this;
     }
 
     task_dispatcher_impl &operator+=(Task &&task) {
-      return this->operator<<(xcore::forward<Task>(task));
+      return this->operator<<(forward<Task>(task));
     }
 
     task_dispatcher_impl &operator<<(Task &&task) {
@@ -175,9 +175,9 @@ namespace detail {
         size_t i;
         for (i = 0; i < m_size && m_tasks[i].m_priority < task.m_priority; ++i);
         for (size_t j = 0; j < m_size - i; ++j) {
-          m_tasks[m_size - j] = xcore::move(m_tasks[m_size - j - 1]);
+          m_tasks[m_size - j] = move(m_tasks[m_size - j - 1]);
         }
-        m_tasks[i] = xcore::move(task);
+        m_tasks[i] = move(task);
         ++m_size;
       }
 
@@ -207,21 +207,21 @@ namespace detail {
 }  // namespace detail
 
 template<template<typename, bool> class NonblockingT, typename TimeT, bool Adaptive = true>
-using task_t = xcore::detail::task_impl<NonblockingT, TimeT, Adaptive>;
+using task_t = LIB_XCORE_NAMESPACE::detail::task_impl<NonblockingT, TimeT, Adaptive>;
 
 template<size_t MaxTasks, template<typename, bool> class NonblockingT, typename TimeT, bool Adaptive = true>
-using task_dispatcher = xcore::detail::task_dispatcher_impl<MaxTasks, NonblockingT, TimeT, Adaptive>;
+using task_dispatcher = LIB_XCORE_NAMESPACE::detail::task_dispatcher_impl<MaxTasks, NonblockingT, TimeT, Adaptive>;
 
 /**
    * Default task type for most frameworks
    */
-using Task = task_t<xcore::detail::nonblocking_delay_impl, unsigned long, true>;
+using Task = task_t<LIB_XCORE_NAMESPACE::detail::nonblocking_delay_impl, unsigned long, true>;
 
 /**
    * Default task dispatcher type for most frameworks
    */
 template<size_t MaxTasks>
-using Dispatcher = task_dispatcher<MaxTasks, xcore::detail::nonblocking_delay_impl, unsigned long, true>;
+using Dispatcher = task_dispatcher<MaxTasks, LIB_XCORE_NAMESPACE::detail::nonblocking_delay_impl, unsigned long, true>;
 
 LIB_XCORE_END_NAMESPACE
 

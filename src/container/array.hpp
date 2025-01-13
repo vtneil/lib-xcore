@@ -6,7 +6,9 @@
 #include "memory.hpp"
 #include <cstdlib>
 
-namespace xcore::container {
+LIB_XCORE_BEGIN_NAMESPACE
+
+namespace container {
   template<typename Tp, size_t N>
   using c_array = Tp[N];
 
@@ -330,7 +332,7 @@ namespace xcore::container {
 
     // Fill Constructor
     constexpr dynamic_array_t(const size_t initial_size, const Tp &fill) : dynamic_array_t(initial_size) {
-      fill(arr_, arr_ + initial_size, fill);
+      LIB_XCORE_NAMESPACE::fill(arr_, arr_ + initial_size, fill);
     }
 
     // Copy Assignment Operator
@@ -392,11 +394,10 @@ namespace xcore::container {
       return arr_;                                                               // Implicit
     }
   };
-}  // namespace xcore::container
+}  // namespace container
 
-LIB_XCORE_BEGIN_NAMESPACE
+using namespace container;
 
-  using namespace container;
-}
+LIB_XCORE_END_NAMESPACE
 
 #endif  //LIB_XCORE_CONTAINER_ARRAY_HPP

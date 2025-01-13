@@ -87,7 +87,7 @@ namespace memory {
 
     template<typename T>
     [[nodiscard]] T *allocate_ptr(const size_t n = 1) noexcept {
-      byte_t *nsp = sp - xcore::nearest_alignment<T, Alignment>(n);
+      byte_t *nsp = sp - nearest_alignment<T, Alignment>(n);
 
       // Check for region overflow
       if (nsp < region_limit) return nullptr;
@@ -103,7 +103,7 @@ namespace memory {
 
     template<typename T>
     [[nodiscard]] T *allocate_ptr_unsafe(const size_t n = 1) noexcept {
-      sp -= xcore::nearest_alignment<T, Alignment>(n);
+      sp -= nearest_alignment<T, Alignment>(n);
       return reinterpret_cast<T *>(sp);
     }
 
@@ -114,7 +114,7 @@ namespace memory {
 
     template<typename T>
     void deallocate(const size_t n = 1) noexcept {
-      const size_t to_decr = xcore::nearest_alignment<T, Alignment>(n);
+      const size_t to_decr = nearest_alignment<T, Alignment>(n);
 
       ASSUME(bp >= sp);
 
@@ -127,7 +127,7 @@ namespace memory {
 
     template<typename T>
     void deallocate_unsafe(const size_t n = 1) noexcept {
-      sp += xcore::nearest_alignment<T, Alignment>(n);
+      sp += nearest_alignment<T, Alignment>(n);
     }
 
     FORCE_INLINE void              clear() noexcept { sp = bp; }
@@ -145,10 +145,6 @@ namespace memory {
     }
   };
 }  // namespace memory
-
-LIB_XCORE_END_NAMESPACE
-
-LIB_XCORE_BEGIN_NAMESPACE
 
 using namespace memory;
 

@@ -39,8 +39,9 @@ constexpr pair<T1, T2> make_pair(const T1 &t1, const T2 &t2) {
 
 template<typename T1, typename T2>
 constexpr pair<T1, T2> make_pair(T1 &&t1, T2 &&t2) {
-  return pair<T1, T2>(xcore::forward<T1>(t1), xcore::forward<T2>(t2));
+  return pair<T1, T2>(forward<T1>(t1), forward<T2>(t2));
 }
-}  // namespace ported
+
+LIB_XCORE_END_NAMESPACE
 
 #endif  //LIB_XCORE_CORE_PORTED_PAIR_HPP

@@ -17,7 +17,7 @@ template<typename T>
 struct optional {
 private:
   bool          is_initialized;
-  unsigned char storage[xcore::nearest_alignment<T, void *>()];
+  unsigned char storage[nearest_alignment<T, void *>()];
 
 public:
   optional() : is_initialized(false) {}
@@ -141,29 +141,30 @@ public:
 
   template<typename U>
   constexpr T value_or(U &&default_value) const & {
-    static_assert(xcore::is_constructible_v<T, U &&>);
+    static_assert(is_constructible_v<T, U &&>);
 
     if (this->has_value())
       return this->value();
 
-    return static_cast<T>(xcore::forward<U>(default_value));
+    return static_cast<T>(forward<U>(default_value));
   }
 
   template<typename U>
   constexpr T value_or(U &&default_value) && {
-    static_assert(xcore::is_constructible_v<T, U &&>);
+    static_assert(is_constructible_v<T, U &&>);
 
     if (this->has_value())
       return this->value();
 
-    return static_cast<T>(xcore::forward<U>(default_value));
+    return static_cast<T>(forward<U>(default_value));
   }
 };
 
 template<typename T, typename... Args>
 constexpr optional<T> make_optional(Args &&...args) {
-  return optional<T>(xcore::forward<Args>(args)...);
+  return optional<T>(forward<Args>(args)...);
 }
-}  // namespace ported
+
+LIB_XCORE_END_NAMESPACE
 
 #endif  //LIB_XCORE_CORE_PORTED_OPTIONAL_HPP

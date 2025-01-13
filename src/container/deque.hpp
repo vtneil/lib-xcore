@@ -4,7 +4,9 @@
 #include "internal/macros.hpp"
 #include "container/array.hpp"
 
-namespace xcore::container {
+LIB_XCORE_BEGIN_NAMESPACE
+
+namespace container {
   template<typename Tp, size_t Capacity, template<typename, size_t> class Container = array_t>
   struct deque_t {
   protected:
@@ -174,11 +176,10 @@ namespace xcore::container {
       ++size_;
     }
   };
-}  // namespace xcore::container
+}  // namespace container
 
-LIB_XCORE_BEGIN_NAMESPACE
+using namespace container;
 
-  using namespace container;
-}
+LIB_XCORE_END_NAMESPACE
 
 #endif  //LIB_XCORE_CONTAINER_DEQUE_HPP

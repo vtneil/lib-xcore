@@ -57,10 +57,6 @@ namespace container {
   };
 }  // namespace container
 
-LIB_XCORE_END_NAMESPACE
-
-LIB_XCORE_BEGIN_NAMESPACE
-
 using namespace container;
 
 LIB_XCORE_END_NAMESPACE

@@ -97,7 +97,7 @@ constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
     */
 template<typename InputIt, typename OutputIt>
 constexpr OutputIt move(InputIt first, InputIt last, OutputIt d_first) {
-  for (; first != last; static_cast<void>(++first), static_cast<void>(++d_first)) *d_first = xcore::move(*first);
+  for (; first != last; static_cast<void>(++first), static_cast<void>(++d_first)) *d_first = move(*first);
   return d_first;
 }
 

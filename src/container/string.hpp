@@ -335,10 +335,6 @@ namespace container {
   using dynamic_string_t = impl::basic_string_t<char, 0, dynamic_array_t>;
 }  // namespace container
 
-LIB_XCORE_END_NAMESPACE
-
-LIB_XCORE_BEGIN_NAMESPACE
-
 using namespace container;
 
 LIB_XCORE_END_NAMESPACE

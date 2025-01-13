@@ -91,13 +91,13 @@ public:
 
   // Move constructor
   variant(variant &&other) noexcept : type_index_(other.type_index_) {
-    move_construct(xcore::move(other));
+    move_construct(move(other));
   }
 
   // Converting constructor
   template<typename T, typename = enable_if_t<detail::contains_type<T, Types...>::value>>
   explicit variant(T &&value) : type_index_(detail::type_index<T, Types...>::value) {
-    new (&data_) T(xcore::forward<T>(value));
+    new (&data_) T(forward<T>(value));
   }
 
   // Destructor
@@ -120,7 +120,7 @@ public:
     if (this != &other) {
       destroy();
       type_index_ = other.type_index_;
-      move_construct(xcore::move(other));
+      move_construct(move(other));
     }
     return *this;
   }
@@ -130,7 +130,7 @@ public:
   variant &operator=(T &&value) {
     destroy();
     type_index_ = detail::type_index<T, Types...>::value;
-    new (&data_) T(xcore::forward<T>(value));
+    new (&data_) T(forward<T>(value));
     return *this;
   }
 
@@ -140,7 +140,7 @@ public:
     static_assert(detail::contains_type<T, Types...>::value, "Type not in variant");
     destroy();
     type_index_ = detail::type_index<T, Types...>::value;
-    new (&data_) T(xcore::forward<Args>(args)...);
+    new (&data_) T(forward<Args>(args)...);
     return *reinterpret_cast<T *>(&data_);
   }
 

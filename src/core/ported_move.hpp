@@ -26,6 +26,7 @@ constexpr T &&forward(remove_reference_t<T> &&t) noexcept {
   static_assert(!is_lvalue_reference<T>::value, "cannot forward an rvalue as an lvalue");
   return static_cast<T &&>(t);
 }
-}  // namespace ported
+
+LIB_XCORE_END_NAMESPACE
 
 #endif  //LIB_XCORE_CORE_PORTED_MOVE_HPP

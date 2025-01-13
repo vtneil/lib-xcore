@@ -7,7 +7,9 @@
 #include <cstdlib>
 #include <cstdint>
 
-namespace xcore::container {
+LIB_XCORE_BEGIN_NAMESPACE
+
+namespace container {
   template<size_t Capacity, template<typename, size_t> class Container = array_t>
   struct byte_buffer_t : protected deque_t<unsigned char, Capacity, Container> {
   protected:
@@ -105,9 +107,8 @@ namespace xcore::container {
   };
 }  // namespace container
 
-LIB_XCORE_BEGIN_NAMESPACE
+using namespace container;
 
-  using namespace container;
-}
+LIB_XCORE_END_NAMESPACE
 
 #endif  //LIB_XCORE_CONTAINER_BYTE_BUFFER_HPP

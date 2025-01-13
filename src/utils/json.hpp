@@ -28,7 +28,7 @@ struct json {
 
     template<typename VT>
     StringAppend &operator=(VT &&value) {
-      parent.str += BaseString(xcore::forward<VT>(value));
+      parent.str += BaseString(forward<VT>(value));
       if (++parent.counter > 0)
         parent.str += ",";
       return *this;
