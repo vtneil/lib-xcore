@@ -100,35 +100,35 @@ using conditional_t = typename conditional<Bv, T, F>::type;
 template<typename...>
 struct disjunction : false_type {};
 
-template<typename B1>
-struct disjunction<B1> : B1 {};
+template<typename _B1>
+struct disjunction<_B1> : _B1 {};
 
-template<typename B1, typename... Bn>
-struct disjunction<B1, Bn...>
-    : conditional_t<static_cast<bool>(B1::value), B1, disjunction<Bn...>> {};
+template<typename _B1, typename... _Bn>
+struct disjunction<_B1, _Bn...>
+    : conditional_t<static_cast<bool>(_B1::value), _B1, disjunction<_Bn...>> {};
 
 template<typename...>
 struct conjunction : true_type {};
 
-template<typename B1>
-struct conjunction<B1> : B1 {};
+template<typename _B1>
+struct conjunction<_B1> : _B1 {};
 
-template<typename B1, typename... Bn>
-struct conjunction<B1, Bn...>
-    : conditional_t<static_cast<bool>(B1::value), conjunction<Bn...>, B1> {};
+template<typename _B1, typename... _Bn>
+struct conjunction<_B1, _Bn...>
+    : conditional_t<static_cast<bool>(_B1::value), conjunction<_Bn...>, _B1> {};
 
 namespace detail {
-  template<typename... Bs>
-  struct or_impl : disjunction<Bs...> {};
+  template<typename... _Bs>
+  struct or_impl : disjunction<_Bs...> {};
 
-  template<typename... Bs>
-  struct and_impl : conjunction<Bs...> {};
+  template<typename... _Bs>
+  struct and_impl : conjunction<_Bs...> {};
 
-  template<typename... Bs>
-  inline constexpr bool or_impl_v = or_impl<Bs...>::value;
+  template<typename... _Bs>
+  inline constexpr bool or_impl_v = or_impl<_Bs...>::value;
 
-  template<typename... Bs>
-  inline constexpr bool and_impl_v = and_impl<Bs...>::value;
+  template<typename... _Bs>
+  inline constexpr bool and_impl_v = and_impl<_Bs...>::value;
 }  // namespace detail
 
 // IS_SAME
