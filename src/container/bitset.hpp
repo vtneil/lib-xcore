@@ -118,12 +118,55 @@ namespace container {
       return (data_[idx_word] >> idx_bit) & 1;
     }
 
+    [[nodiscard]] uint64_t get(const size_t from, const size_t to) const {
+      uint64_t result = 0;
+      size_t   shift  = 0;
+
+      for (size_t i = from; i < to; ++i, ++shift) {
+        result |= (static_cast<uint64_t>(get(i)) << shift);
+      }
+      return result;
+    }
+
     constexpr void set(const size_t index, bool value) {
       size_t idx_word = index / (8 * Alignment);
       size_t idx_bit  = index % (8 * Alignment);
 
       data_[idx_word] &= ~(static_cast<WordT>(1) << idx_bit);
       data_[idx_word] |= static_cast<WordT>(value) << idx_bit;
+    }
+
+    template<typename T>
+    void set(const size_t from, const size_t to, T value) {
+      size_t start_word = from / (8 * Alignment);
+      size_t end_word   = to / (8 * Alignment);
+      size_t start_bit  = from % (8 * Alignment);
+      size_t end_bit    = to % (8 * Alignment);
+
+      if (start_word == end_word) {
+        WordT mask        = ((static_cast<WordT>(1) << (end_bit - start_bit)) - 1) << start_bit;
+        data_[start_word] = (data_[start_word] & ~mask) | ((value << start_bit) & mask);
+      } else {
+        // First partial word
+        if (start_bit != 0) {
+          WordT mask        = (~static_cast<WordT>(0)) << start_bit;
+          data_[start_word] = (data_[start_word] & ~mask) | ((value << start_bit) & mask);
+          value >>= (8 * Alignment - start_bit);
+          ++start_word;
+        }
+
+        // Full words
+        for (size_t i = start_word; i < end_word; ++i) {
+          data_[i] = static_cast<WordT>(value);
+          value >>= (8 * Alignment);
+        }
+
+        // Last partial word
+        if (end_bit != 0) {
+          WordT mask      = (static_cast<WordT>(1) << end_bit) - 1;
+          data_[end_word] = (data_[end_word] & ~mask) | (value & mask);
+        }
+      }
     }
 
     bit_reference operator[](const size_t index) {
