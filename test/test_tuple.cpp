@@ -1,6 +1,32 @@
 #include "lib_xcore"
 #include <iostream>
 #include <cassert>
+#include <chrono>
+
+void time_memcpy() {
+  const int N        = 100000000;  // 100 million iterations
+  uint8_t   bytes[4] = {0x78, 0x56, 0x34, 0x12};
+  uint32_t  value    = 0;
+
+  // Test reinterpret_cast
+  auto start1 = std::chrono::high_resolution_clock::now();
+  for (int i = 0; i < N; ++i) {
+    value = *reinterpret_cast<uint32_t *>(bytes);
+  }
+  auto end1 = std::chrono::high_resolution_clock::now();
+
+  // Test memcpy
+  auto start2 = std::chrono::high_resolution_clock::now();
+  for (int i = 0; i < N; ++i) {
+    memcpy(&value, bytes, sizeof(value));
+  }
+  auto end2 = std::chrono::high_resolution_clock::now();
+
+  std::cout << "reinterpret_cast time: "
+            << std::chrono::duration<double>(end1 - start1).count() << " seconds\n";
+  std::cout << "memcpy time: "
+            << std::chrono::duration<double>(end2 - start2).count() << " seconds\n";
+}
 
 void test_bitset() {
   using bitset32 = xcore::container::bitset_t<32, uint32_t>;
@@ -52,6 +78,8 @@ int main(int argc, char *argv[]) {
   std::cout << p1 << " " << p2 << std::endl;
 
   test_bitset();
+
+  time_memcpy();
 
   return 0;
 }

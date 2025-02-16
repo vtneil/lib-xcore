@@ -29,7 +29,7 @@ namespace detail {
 }  // namespace detail
 
 namespace detail {
-  template<typename TimeType, bool Adaptive>
+  template<typename TimeType, bool Adaptive, bool AutoReset = true>
   class nonblocking_delay_impl {
   public:
     using time_func_t = TimeType();
@@ -87,7 +87,7 @@ namespace detail {
 
     template<typename Proc, typename = enable_if_t<is_procedure_v<Proc>>>
     proc_else operator()(Proc &&proc) {
-      const bool v = this->operator bool();
+      const bool v = _op_bool_impl();
       if (v) {
         proc();
       }
@@ -95,40 +95,15 @@ namespace detail {
     }
 
     bool triggered() {
-      return this->operator bool();
+      return _op_bool_impl();
     }
 
     bool passed() {
-      return this->operator bool();
+      return _op_bool_impl();
     }
 
     explicit operator bool() {
-      if (func_ == nullptr) {
-        return false;
-      }
-
-      if (target_interval_ == 0) {
-        return true;
-      }
-
-      TimeType curr_time = func_();
-
-      if (curr_time - prev_time_ >= gate_interval_) {
-        if constexpr (Adaptive) {
-          // Adaptive interval adjustment
-          // Adjust gate interval to match target interval
-          TimeType delta_e = target_interval_ > gate_interval_
-                               ? target_interval_ - gate_interval_
-                               : gate_interval_ - target_interval_;
-          gate_interval_   = delta_e < gate_interval_
-                               ? gate_interval_ - delta_e
-                               : gate_interval_ + delta_e;
-        }
-        prev_time_ = curr_time;
-        return true;
-      }
-
-      return false;
+      return _op_bool_impl();
     }
 
     void reset() {
@@ -146,15 +121,87 @@ namespace detail {
       gate_interval_   = new_interval;
       this->reset();
     }
+
+  protected:
+    bool _op_bool_impl() {
+      if (this->func_ == nullptr) {
+        return false;
+      }
+
+      if (this->target_interval_ == 0) {
+        return true;
+      }
+
+      TimeType curr_time = this->func_();
+
+      if (curr_time - this->prev_time_ >= this->gate_interval_) {
+        if constexpr (Adaptive) {
+          // Adaptive interval adjustment
+          // Adjust gate interval to match target interval
+          TimeType delta_e     = this->target_interval_ > this->gate_interval_
+                                   ? this->target_interval_ - this->gate_interval_
+                                   : this->gate_interval_ - this->target_interval_;
+          this->gate_interval_ = delta_e < this->gate_interval_
+                                   ? this->gate_interval_ - delta_e
+                                   : this->gate_interval_ + delta_e;
+        }
+        this->prev_time_ = curr_time;
+        return true;
+      }
+
+      return false;
+    }
+  };
+
+  template<typename TimeType, bool Adaptive>
+  class nonblocking_delay_impl<TimeType, Adaptive, false> : nonblocking_delay_impl<TimeType, Adaptive> {
+    using BaseType = nonblocking_delay_impl<TimeType, Adaptive>;
+
+  public:
+    // Inherit constructor
+    using BaseType::BaseType;
+
+  protected:
+    // Override by hiding
+    bool _op_bool_impl() {
+      if (this->func_ == nullptr) {
+        return false;
+      }
+
+      if (this->target_interval_ == 0) {
+        return true;
+      }
+
+      TimeType curr_time = this->func_();
+
+      if (curr_time - this->prev_time_ >= this->gate_interval_) {
+        if constexpr (Adaptive) {
+          // Adaptive interval adjustment
+          // Adjust gate interval to match target interval
+          TimeType delta_e     = this->target_interval_ > this->gate_interval_
+                                   ? this->target_interval_ - this->gate_interval_
+                                   : this->gate_interval_ - this->target_interval_;
+          this->gate_interval_ = delta_e < this->gate_interval_
+                                   ? this->gate_interval_ - delta_e
+                                   : this->gate_interval_ + delta_e;
+        }
+        return true;
+      }
+
+      return false;
+    }
   };
 }  // namespace detail
 
 template<typename TimeT, bool Adaptive = true>
 using nonblocking_delay = LIB_XCORE_NAMESPACE::detail::nonblocking_delay_impl<TimeT, Adaptive>;
 
+template<typename TimeT>
+using timeout_timer = LIB_XCORE_NAMESPACE::detail::nonblocking_delay_impl<TimeT, false, false>;
+
 /**
-   * Default non-blocking delay type for most frameworks
-   */
+ * Default non-blocking delay type for most frameworks
+ */
 using NbDelay = nonblocking_delay<unsigned long>;
 
 LIB_XCORE_END_NAMESPACE
