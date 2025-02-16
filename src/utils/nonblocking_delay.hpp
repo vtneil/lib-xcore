@@ -31,6 +31,7 @@ namespace detail {
 namespace detail {
   template<typename TimeType, bool Adaptive, bool AutoReset = true>
   class nonblocking_delay_impl {
+  static_assert(!(Adaptive == 1 && AutoReset == 0));
   public:
     using time_func_t = TimeType();
 
@@ -145,45 +146,8 @@ namespace detail {
                                    ? this->gate_interval_ - delta_e
                                    : this->gate_interval_ + delta_e;
         }
-        this->prev_time_ = curr_time;
-        return true;
-      }
-
-      return false;
-    }
-  };
-
-  template<typename TimeType, bool Adaptive>
-  class nonblocking_delay_impl<TimeType, Adaptive, false> : nonblocking_delay_impl<TimeType, Adaptive> {
-    using BaseType = nonblocking_delay_impl<TimeType, Adaptive>;
-
-  public:
-    // Inherit constructor
-    using BaseType::BaseType;
-
-  protected:
-    // Override by hiding
-    bool _op_bool_impl() {
-      if (this->func_ == nullptr) {
-        return false;
-      }
-
-      if (this->target_interval_ == 0) {
-        return true;
-      }
-
-      TimeType curr_time = this->func_();
-
-      if (curr_time - this->prev_time_ >= this->gate_interval_) {
-        if constexpr (Adaptive) {
-          // Adaptive interval adjustment
-          // Adjust gate interval to match target interval
-          TimeType delta_e     = this->target_interval_ > this->gate_interval_
-                                   ? this->target_interval_ - this->gate_interval_
-                                   : this->gate_interval_ - this->target_interval_;
-          this->gate_interval_ = delta_e < this->gate_interval_
-                                   ? this->gate_interval_ - delta_e
-                                   : this->gate_interval_ + delta_e;
+        if constexpr (AutoReset) {
+          this->prev_time_ = curr_time;
         }
         return true;
       }
