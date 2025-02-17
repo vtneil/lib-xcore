@@ -16,11 +16,15 @@ namespace network {
 
   public:
     void update_nav(const TimeT duration) {
-      if (!is_medium_free())
-        return;
-
-      prev_time_ = MicrosTimeFunc();
-      duration_  = duration;
+      const TimeT curr_time = MicrosTimeFunc();
+      if (curr_time - prev_time_ > duration_) {
+        // Reset NAV if expired
+        prev_time_ = MicrosTimeFunc();
+        duration_  = duration;
+      } else {
+        // Otherwise, extend the NAV
+        duration_ += duration - (curr_time - prev_time_);
+      }
     }
 
     [[nodiscard]] bool is_medium_free() const {
