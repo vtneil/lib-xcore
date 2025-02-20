@@ -53,6 +53,18 @@ public:
 
   template<size_t I, typename U, typename... Us>
   friend constexpr auto get(tuple<U, Us...> &t) -> enable_if_t<I != 0, typename detail::tuple_element<I, tuple<U, Us...>>::type &>;
+
+  template<size_t I, typename U, typename... Us>
+  friend constexpr auto get(const tuple<U, Us...> &t) -> enable_if_t<I == 0, const U &>;
+
+  template<size_t I, typename U, typename... Us>
+  friend constexpr auto get(const tuple<U, Us...> &t) -> enable_if_t<I != 0, const typename detail::tuple_element<I, tuple<U, Us...>>::type &>;
+
+  template<size_t I, typename U, typename... Us>
+  friend constexpr auto get(tuple<U, Us...> &&t) -> enable_if_t<I == 0, U &&>;
+
+  template<size_t I, typename U, typename... Us>
+  friend constexpr auto get(tuple<U, Us...> &&t) -> enable_if_t<I != 0, typename detail::tuple_element<I, tuple<U, Us...>>::type &&>;
 };
 
 template<size_t I, typename T, typename... Ts>
