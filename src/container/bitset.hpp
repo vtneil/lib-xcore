@@ -136,8 +136,14 @@ namespace container {
       data_[idx_word] |= static_cast<WordT>(value) << idx_bit;
     }
 
-    template<typename T>
-    void set(const size_t from, const size_t to, T value) {
+    template<typename Tv>
+    void set(const size_t from, const size_t to, Tv value) {
+      if (from > to)
+        return;
+
+      if (from >= Nb || to >= Nb)
+        return;
+
       size_t start_word = from / (8 * Alignment);
       size_t end_word   = to / (8 * Alignment);
       size_t start_bit  = from % (8 * Alignment);
@@ -158,7 +164,13 @@ namespace container {
         // Full words
         for (size_t i = start_word; i < end_word; ++i) {
           data_[i] = static_cast<WordT>(value);
-          value >>= (8 * Alignment);
+
+          // **Prevent shifting past value's width**
+          if constexpr (8 * Alignment < sizeof(Tv) * 8) {
+            value >>= (8 * Alignment - start_bit);
+          } else {
+            value = 0;
+          }
         }
 
         // Last partial word

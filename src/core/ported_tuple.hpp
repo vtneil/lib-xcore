@@ -49,30 +49,40 @@ public:
   }
 
   template<size_t I, typename U, typename... Us>
-  friend auto get(tuple<U, Us...> &t) -> enable_if_t<I == 0, U &>;
+  friend constexpr auto get(tuple<U, Us...> &t) -> enable_if_t<I == 0, U &>;
 
   template<size_t I, typename U, typename... Us>
-  friend auto get(tuple<U, Us...> &t) -> enable_if_t<I != 0, typename detail::tuple_element<I, tuple<U, Us...>>::type &>;
+  friend constexpr auto get(tuple<U, Us...> &t) -> enable_if_t<I != 0, typename detail::tuple_element<I, tuple<U, Us...>>::type &>;
 };
 
 template<size_t I, typename T, typename... Ts>
-auto get(tuple<T, Ts...> &t) -> enable_if_t<I == 0, T &> {
+constexpr auto get(tuple<T, Ts...> &t) -> enable_if_t<I == 0, T &> {
   return t.value;
 }
 
 template<size_t I, typename T, typename... Ts>
-auto get(tuple<T, Ts...> &t) -> enable_if_t<I != 0, typename detail::tuple_element<I, tuple<T, Ts...>>::type &> {
+constexpr auto get(tuple<T, Ts...> &t) -> enable_if_t<I != 0, typename detail::tuple_element<I, tuple<T, Ts...>>::type &> {
   return get<I - 1>(static_cast<tuple<Ts...> &>(t));
 }
 
 template<size_t I, typename T, typename... Ts>
-auto get(const tuple<T, Ts...> &t) -> enable_if_t<I == 0, const T &> {
+constexpr auto get(const tuple<T, Ts...> &t) -> enable_if_t<I == 0, const T &> {
   return t.value;
 }
 
 template<size_t I, typename T, typename... Ts>
-auto get(const tuple<T, Ts...> &t) -> enable_if_t<I != 0, const typename detail::tuple_element<I, tuple<T, Ts...>>::type &> {
+constexpr auto get(const tuple<T, Ts...> &t) -> enable_if_t<I != 0, const typename detail::tuple_element<I, tuple<T, Ts...>>::type &> {
   return get<I - 1>(static_cast<const tuple<Ts...> &>(t));
+}
+
+template<size_t I, typename T, typename... Ts>
+constexpr auto get(tuple<T, Ts...> &&t) -> enable_if_t<I == 0, T &&> {
+  return move(t.value);
+}
+
+template<size_t I, typename T, typename... Ts>
+constexpr auto get(tuple<T, Ts...> &&t) -> enable_if_t<I != 0, typename detail::tuple_element<I, tuple<T, Ts...>>::type &&> {
+  return get<I - 1>(move(static_cast<tuple<Ts...> &&>(t)));
 }
 
 template<typename... Ts>
@@ -85,16 +95,25 @@ constexpr tuple<Ts &...> tie(Ts &...ts) noexcept {
   return tuple<Ts &...>(ts...);
 }
 
-template<size_t I, typename T, typename... Ts>
-auto get(tuple<T, Ts...> &&t) -> enable_if_t<I == 0, T &&> {
-  return move(t.value);
-}
-
-template<size_t I, typename T, typename... Ts>
-auto get(tuple<T, Ts...> &&t) -> enable_if_t<I != 0, typename detail::tuple_element<I, tuple<T, Ts...>>::type &&> {
-  return get<I - 1>(move(static_cast<tuple<Ts...> &&>(t)));
-}
-
 LIB_XCORE_END_NAMESPACE
+
+namespace std {
+  template<typename T>
+  class tuple_size;
+
+  template<size_t I, typename T>
+  class tuple_element;
+
+  template<typename... Ts>
+  struct tuple_size<LIB_XCORE_NAMESPACE::tuple<Ts...>>
+      : xcore::integral_constant<size_t, sizeof...(Ts)> {};
+
+  template<size_t I, typename... Ts>
+  struct tuple_element<I, LIB_XCORE_NAMESPACE::tuple<Ts...>> {
+    using type = typename LIB_XCORE_NAMESPACE::detail::tuple_element<I, LIB_XCORE_NAMESPACE::tuple<Ts...>>::type;
+  };
+
+}  // namespace std
+
 
 #endif  //LIB_XCORE_CORE_PORTED_TUPLE_HPP
