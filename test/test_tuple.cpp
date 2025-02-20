@@ -68,6 +68,12 @@ int main(int argc, char *argv[]) {
   std::cout << xcore::get<1>(tup) << std::endl;
   std::cout << xcore::get<2>(tup) << std::endl;
 
+  auto &[a, b, c] = tup;
+
+  std::cout << a << std::endl;
+  std::cout << b << std::endl;
+  std::cout << c << std::endl;
+
   const int x[0] = {};
 
   std::cout << x[0] << std::endl;
