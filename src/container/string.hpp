@@ -150,10 +150,10 @@ namespace container {
       }
 
       bool concat(const char *c_str, const size_t n) {
-        const size_t new_size = size() + n;
-
         if (!c_str) return false;
         if (n == 0) return true;
+
+        const size_t new_size = size() + n;
         if (!this->reserve(new_size)) {
           this->_invalidate();
           return false;

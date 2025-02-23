@@ -58,7 +58,49 @@ void test_bitset() {
   assert(bs.get(0, 32) == 0xFFFFFFFF);
   std::cout << "Test 5 Passed: Set All\n";
 
-  std::cout << "All tests passed successfully.\n";
+  // Test find_first_true, find_first_false, all, none, and any
+  bs.clear_all();  // Start with all bits cleared
+  assert(bs.none());
+  assert(!bs.any());
+  assert(!bs.all());
+  assert(bs.find_first_true() == bs.size());
+  assert(bs.find_first_false() == 0);
+  std::cout << "Test 6 Passed: none, any, all, find_first_true, find_first_false on empty bitset\n";
+
+  bs.set(1, true);  // Set only the second bit
+  assert(!bs.none());
+  assert(bs.any());
+  assert(!bs.all());
+  assert(bs.find_first_true() == 1);
+  assert(bs.find_first_false() == 0);
+  std::cout << "Test 7 Passed: none, any, all, find_first_true, find_first_false with one bit set\n";
+
+  bs.set_all();  // Set all bits
+  assert(!bs.none());
+  assert(bs.any());
+  assert(bs.all());
+  assert(bs.find_first_true() == 0);
+  assert(bs.find_first_false() == bs.size());
+  std::cout << "Test 8 Passed: none, any, all, find_first_true, find_first_false on full bitset\n";
+
+  bs.clear_all();   // Clear all bits
+  bs.set(3, true);  // Set a specific bit
+  assert(bs.find_first_true() == 3);
+  assert(bs.find_first_false() == 0);
+  bs.set(0, true);  // Also set the first bit
+  assert(bs.find_first_true() == 0);
+  assert(bs.find_first_false() == 1);
+  std::cout << "Test 9 Passed: find_first_true, find_first_false with specific bits\n";
+
+  bs.clear_all();
+  for (size_t i = 0; i < bs.size(); ++i) {
+    bs.set(i, (i % 2 == 0));  // Even indices set to 1
+  }
+  assert(bs.find_first_true() == 0);
+  assert(bs.find_first_false() == 1);
+  std::cout << "Test 10 Passed: Alternating bits test\n";
+
+  std::cout << "All bitset tests completed successfully.\n";
 }
 
 int main(int argc, char *argv[]) {

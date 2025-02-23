@@ -80,15 +80,41 @@ namespace container {
   public:
     // Constructor
 
-    constexpr bitset_t()                      = default;
+    /**
+     * @brief Default constructor for the bitset_t class.
+     */
+    constexpr bitset_t() = default;
 
+    /**
+     * @brief Default copy constructor for the `bitset_t` class.
+     *
+     * @param other The `bitset_t` instance to copy from.
+     */
     constexpr bitset_t(const bitset_t &other) = default;
 
-    constexpr bitset_t(bitset_t &&other)      = default;
+    /**
+     * @brief Default move constructor for the bitset_t class.
+     *
+     * @param other The rvalue reference to the bitset_t object
+     * being moved from.
+     */
+    constexpr bitset_t(bitset_t &&other) = default;
 
     // Methods
 
-    size_t find_first_true() {
+    [[nodiscard]] bool all() const {
+      return find_first_false() == size();
+    }
+
+    [[nodiscard]] bool any() const {
+      return find_first_true() != size();
+    }
+
+    [[nodiscard]] bool none() const {
+      return find_first_true() == size();
+    }
+
+    [[nodiscard]] size_t find_first_true() const {
       for (size_t i = 0; i < NumElements; ++i) {
         if (!data_[i])
           continue;
@@ -100,7 +126,7 @@ namespace container {
       return size();
     }
 
-    size_t find_first_false() {
+    [[nodiscard]] size_t find_first_false() const {
       for (size_t i = 0; i < NumElements; ++i) {
         if (!~data_[i])
           continue;

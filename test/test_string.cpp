@@ -10,6 +10,11 @@ void print_string(const char *str) {
 
 int main(int argc, char *argv[]) {
   {
+    xcore::container::string_t<512>      s1 = "Hello \n";
+    s1 += "World!";
+    print_string(s1);
+  }
+  {
     print_string(xcore::container::string_t<128>(888ul));
   }
 
