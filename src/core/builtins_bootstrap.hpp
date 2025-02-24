@@ -15,8 +15,8 @@ namespace builtin {
 }  // namespace builtin
 
 template<typename R, typename T>
-constexpr R &cast_as(T &ptr) {
-  return *reinterpret_cast<R *>(&ptr);
+constexpr R &cast_as(T &ref) {
+  return *reinterpret_cast<R *>(&ref);
 }
 
 template<typename R, typename T>
