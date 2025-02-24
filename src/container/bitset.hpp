@@ -144,12 +144,13 @@ namespace container {
       return (data_[idx_word] >> idx_bit) & 1;
     }
 
-    [[nodiscard]] uint64_t get(const size_t from, const size_t to) const {
-      uint64_t result = 0;
-      size_t   shift  = 0;
+    template<typename OutputT = uint64_t>
+    [[nodiscard]] OutputT get(const size_t from, const size_t to) const {
+      OutputT result = 0;
+      size_t  shift  = 0;
 
       for (size_t i = from; i < to; ++i, ++shift) {
-        result |= (static_cast<uint64_t>(get(i)) << shift);
+        result |= (static_cast<OutputT>(get(i)) << shift);
       }
       return result;
     }
