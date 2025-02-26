@@ -35,6 +35,8 @@
 #include "utils/pipeline.hpp"
 #include "utils/json.hpp"
 
+#include "memory/bitmap_allocator.hpp"
+
 #include "network/nav.hpp"
 
 #endif  //LIB_XCORE_INCLUDE_BASIC_H

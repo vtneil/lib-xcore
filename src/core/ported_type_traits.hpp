@@ -643,6 +643,13 @@ struct decay {
 template<typename T>
 using decay_t = typename decay<T>::type;
 
+template<size_t Size, size_t Align>
+struct aligned_storage {
+  struct type {
+    alignas(Align) uint8_t data[Size];
+  };
+};
+
 LIB_XCORE_END_NAMESPACE
 
 #endif  //LIB_XCORE_CORE_PORTED_TYPE_TRAITS_HPP
