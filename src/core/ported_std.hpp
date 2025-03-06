@@ -110,6 +110,10 @@ struct make_index_sequence : make_index_sequence<N - 1, N - 1, Is...> {};
 template<size_t... Is>
 struct make_index_sequence<0, Is...> : index_sequence<Is...> {};
 
+template<class... T>
+using index_sequence_for = make_index_sequence<sizeof...(T)>;
+
+
 namespace detail {
   template<typename T, size_t N>
   struct integral_coefficient_helper {
