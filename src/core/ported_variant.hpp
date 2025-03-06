@@ -80,7 +80,7 @@ private:
 public:
   // Default constructor
   variant() : type_index_(0) {
-    using FirstType = typename detail::tuple_element<0, tuple<Types...>>::type;
+    using FirstType = typename tuple_element<0, tuple<Types...>>::type;
     new (&data_) FirstType();
   }
 
@@ -198,14 +198,14 @@ constexpr const T &get(const variant<Types...> &var) {
 // Non-member `get<I>` function
 template<size_t I, typename... Types>
 constexpr auto &get(variant<Types...> &var) {
-  using T = typename detail::tuple_element<I, tuple<Types...>>::type;
+  using T = typename tuple_element<I, tuple<Types...>>::type;
   static_assert(I < sizeof...(Types), "Index out of bounds in variant");
   return *reinterpret_cast<T *>(&var.data_);
 }
 
 template<size_t I, typename... Types>
 constexpr const auto &get(const variant<Types...> &var) {
-  using T = typename detail::tuple_element<I, tuple<Types...>>::type;
+  using T = typename tuple_element<I, tuple<Types...>>::type;
   static_assert(I < sizeof...(Types), "Index out of bounds in variant");
   return *reinterpret_cast<const T *>(&var.data_);
 }

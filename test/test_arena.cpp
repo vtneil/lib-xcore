@@ -2,7 +2,7 @@
 #include <cassert>
 #include "lib_xcore"
 
-xcore::bitmap_allocator<int, 4> alloc;
+xcore::bitmap_allocator<int, 4> alloc;z
 
 // Main
 int main(int argc, char *argv[]) {

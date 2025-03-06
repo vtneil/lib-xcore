@@ -103,7 +103,57 @@ void test_bitset() {
   std::cout << "All bitset tests completed successfully.\n";
 }
 
+void test_tuple_cat() {
+  using namespace xcore;
+
+  constexpr tuple<int, double> t1(1, 2.5);
+  constexpr tuple<char, float> t2('a', 3.14f);
+
+  constexpr auto               combined = tuple_cat(t1, t2);
+
+  static_assert(is_same_v<decltype(combined), const tuple<int, double, char, float>>);
+
+  // Access elements
+  constexpr int v1 = get<0>(combined);  // 1
+  static_assert(v1 == 1);
+  constexpr double v2 = get<1>(combined);  // 2.5
+  static_assert(v2 == 2.5);
+  constexpr char v3 = get<2>(combined);  // 'a'
+  static_assert(v3 == 'a');
+  constexpr float v4 = get<3>(combined);  // 3.14f
+  static_assert(v4 == 3.14f);
+
+  {
+    int                         a = 3;
+    float                       b = 1.f;
+    tuple<int &, int>           ta(a, 3);
+    tuple<float &, const int &> tb(b, a);
+
+    auto                        tc = tuple_cat(ta, tb);
+
+    static_assert(is_same_v<decltype(tc), tuple<int &, int, float &, const int &>>);
+
+    std::cout << a << std::endl;
+    get<0>(tc) = 999;
+    std::cout << a << std::endl;
+  }
+}
+
+void test_repeated_tuple() {
+  using namespace xcore;
+  using namespace xcore::detail;
+
+  int x    = 1;
+
+  using TT = const int &;
+  repeated_tuple<TT, 3> rp(x, x, x);
+  static_assert(is_same_v<decltype(rp), tuple<TT, TT, TT>>);
+}
+
 int main(int argc, char *argv[]) {
+  test_tuple_cat();
+  test_repeated_tuple();
+
   auto tup = xcore::make_tuple(1, 2, 3);
 
   std::cout << xcore::get<0>(tup) << std::endl;
