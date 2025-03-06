@@ -121,6 +121,17 @@ constexpr tuple<Ts &...> tie(Ts &...ts) noexcept {
 }
 
 namespace detail {
+  template<typename... Ts>
+  struct type_tuple_cat;
+
+  template<typename... Ls, typename... Rs>
+  struct type_tuple_cat<tuple<Ls...>, tuple<Rs...>> {
+    using type = tuple<Ls..., Rs...>;
+  };
+
+  template<typename Tuple1, typename Tuple2>
+  using tuple_cat_t = typename type_tuple_cat<Tuple1, Tuple2>::type;
+
   template<typename Tuple1, typename Tuple2, size_t... I1, size_t... I2>
   constexpr auto tuple_cat_impl(Tuple1 &&t1, Tuple2 &&t2,
                                 index_sequence<I1...>, index_sequence<I2...>) {
@@ -202,8 +213,7 @@ namespace detail {
   template<size_t I, typename T>
   struct _repeated_tuple {
     static_assert(I != 0);
-
-    using type = decltype(tuple_cat(declval<tuple<T>>(), declval<typename _repeated_tuple<I - 1, T>::type>()));
+    using type = tuple_cat_t<tuple<T>, typename _repeated_tuple<I - 1, T>::type>;
   };
 
   template<typename T>

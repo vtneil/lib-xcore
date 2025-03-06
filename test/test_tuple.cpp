@@ -143,11 +143,15 @@ void test_repeated_tuple() {
   using namespace xcore;
   using namespace xcore::detail;
 
-  int x    = 1;
+  int a    = 1;
 
-  using TT = const int &;
-  repeated_tuple<TT, 3> rp(x, x, x);
-  static_assert(is_same_v<decltype(rp), tuple<TT, TT, TT>>);
+  using TT = int &;
+  repeated_tuple<TT, 2> rp(a, a);
+  static_assert(is_same_v<decltype(rp), tuple<TT, TT>>);
+
+  std::cout << a << std::endl;
+  get<0>(rp) = 999;
+  std::cout << a << std::endl;
 }
 
 int main(int argc, char *argv[]) {
