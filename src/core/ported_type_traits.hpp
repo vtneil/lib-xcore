@@ -500,6 +500,16 @@ inline constexpr bool is_trivially_constructible_v = is_trivially_constructible<
 template<typename T, typename... Args>
 inline constexpr bool is_nothrow_constructible_v = is_nothrow_constructible<T, Args...>::value;
 
+template<typename T, typename = void>
+struct is_default_constructible : false_type {};
+
+template<typename T>
+struct is_default_constructible<T, void_t<decltype(T())>> : true_type {};
+
+// Helper variable template
+template<typename T>
+inline constexpr bool is_default_constructible_v = is_default_constructible<T>::value;
+
 // IS_FUNCTION
 
 template<typename>

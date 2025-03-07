@@ -1,5 +1,6 @@
 #include "lib_xcore"
 #include <iostream>
+#include <string>
 #include <cassert>
 #include <chrono>
 
@@ -154,7 +155,52 @@ void test_repeated_tuple() {
   std::cout << a << std::endl;
 }
 
+void test_pair() {
+  using namespace xcore;
+
+  // Test default constructor
+  pair<int, double> p1;
+  assert(p1.first == 0 && p1.second == 0.0);  // Default initialization
+
+  // Test copy constructor
+  pair<int, double> p2(10, 20.5);
+  pair<int, double> p3 = p2;
+  assert(p3.first == 10 && p3.second == 20.5);
+
+  // Test move constructor
+  pair<int, double> p4 = std::move(p2);
+  assert(p4.first == 10 && p4.second == 20.5);  // Values remain the same
+
+  // Test copy assignment
+  pair<int, double> p5;
+  p5 = p3;
+  assert(p5.first == 10 && p5.second == 20.5);
+
+  // Test move assignment
+  pair<int, double> p6;
+  p6 = std::move(p4);
+  assert(p6.first == 10 && p6.second == 20.5);
+
+  // Test make_pair
+  auto p7 = make_pair(42, 3.14);
+  assert(p7.first == 42 && p7.second == 3.14);
+
+  // Test comparison operators
+  pair<int, int> a(1, 2), b(1, 3), c(2, 1), d(1, 2);
+  assert(a == d);
+  assert(a != b);
+  assert(a < b);
+  assert(b < c);
+  assert(c > a);
+  assert(a <= d);
+  assert(a <= b);
+  assert(c >= b);
+
+  std::cout << "Pair tests passed successfully!\n";
+}
+
 int main(int argc, char *argv[]) {
+  test_pair();
   test_tuple_cat();
   test_repeated_tuple();
 

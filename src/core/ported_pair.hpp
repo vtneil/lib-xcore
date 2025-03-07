@@ -2,6 +2,7 @@
 #define LIB_XCORE_CORE_PORTED_PAIR_HPP
 
 #include "internal/macros.hpp"
+#include "./ported_type_traits.hpp"
 
 LIB_XCORE_BEGIN_NAMESPACE
 
@@ -11,25 +12,40 @@ struct pair {
   T2 second;
 
   // Default constructor
-  pair() = default;
+  template<typename = enable_if_t<conjunction<is_default_constructible<T1>, is_default_constructible<T2>>::value>>
+  constexpr pair() : first(T1{}), second(T2{}) {}
 
   // Copy constructor
-  pair(const pair &other) = default;
+  constexpr pair(const pair &other) = default;
 
   // Move constructor
-  pair(pair &&other) noexcept = default;
+  constexpr pair(pair &&other) noexcept = default;
 
   // Copy objects constructor
-  pair(const T1 &first, const T2 &second) : first(first), second(second) {}
+  constexpr pair(const T1 &first, const T2 &second) : first(first), second(second) {}
 
   // Move objects constructor
-  pair(T1 &&first, T2 &&second) noexcept : first(move(first)), second(move(second)) {}
+  constexpr pair(T1 &&first, T2 &&second) noexcept : first(forward<T1>(first)), second(forward<T2>(second)) {}
 
   // Copy assignment
   pair &operator=(const pair &other) = default;
 
   // Move assignment
   pair &operator=(pair &&other) noexcept = default;
+
+  // Equality and ordering operators
+  constexpr bool operator==(const pair &other) const {
+    return first == other.first && second == other.second;
+  }
+
+  constexpr bool operator!=(const pair &other) const { return !(*this == other); }
+  constexpr bool operator<(const pair &other) const {
+    return first < other.first || (!(other.first < first) && second < other.second);
+  }
+
+  constexpr bool operator>(const pair &other) const { return other < *this; }
+  constexpr bool operator<=(const pair &other) const { return !(other < *this); }
+  constexpr bool operator>=(const pair &other) const { return !(*this < other); }
 };
 
 template<typename T1, typename T2>
