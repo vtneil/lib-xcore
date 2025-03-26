@@ -10,7 +10,7 @@ void print_string(const char *str) {
 
 int main(int argc, char *argv[]) {
   {
-    xcore::container::string_t<512>      s1 = "Hello \n";
+    xcore::container::string_t<512> s1 = "Hello \n";
     s1 += "World!";
     print_string(s1);
   }
@@ -92,6 +92,11 @@ int main(int argc, char *argv[]) {
     std::cout << str.printf("0123") << std::endl;
     print_string(str);
     std::cout << str.length() << " " << str.capacity() << std::endl;
+  }
+
+  {
+    xcore::container::string_t<512> sstr("5678");
+    std::cout << ("0123" + sstr) << std::endl;
   }
 
   return 0;

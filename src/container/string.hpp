@@ -28,7 +28,7 @@ namespace container {
     public:
       // Constructors
 
-      basic_string_t(const char *c_str = "")  // Implicit
+      basic_string_t(const char *c_str = "")  // Implicit and default
           : basic_string_t(c_str, strlen(c_str)) {}
 
       basic_string_t(const char *c_str, const size_t n) {
@@ -333,6 +333,14 @@ namespace container {
   using heap_string_t    = impl::basic_string_t<char, Capacity, heap_array_t>;
 
   using dynamic_string_t = impl::basic_string_t<char, 0, dynamic_array_t>;
+
+  template<typename T, size_t Capacity, template<typename, size_t> class Container>
+  auto operator+(const T &lhs, const impl::basic_string_t<char, Capacity, Container> &rhs) {
+    impl::basic_string_t<char, Capacity, Container> result;
+    result += lhs;
+    result += rhs;
+    return result;
+  }
 }  // namespace container
 
 using namespace container;
