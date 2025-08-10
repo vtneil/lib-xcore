@@ -1,6 +1,6 @@
 #include <iostream>
 #include <lib_xcore>
-#include <math_module>
+#include <xcore/math_module>
 #include <cassert>
 
 using namespace xcore;

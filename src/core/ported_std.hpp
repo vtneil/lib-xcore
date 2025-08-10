@@ -129,24 +129,6 @@ struct make_index_sequence<0, Is...> : index_sequence<Is...> {};
 template<class... T>
 using index_sequence_for = make_index_sequence<sizeof...(T)>;
 
-
-namespace detail {
-  template<typename T, size_t N>
-  struct integral_coefficient_helper {
-    static constexpr real_t value = (1.0 / static_cast<real_t>(N + 1)) * integral_coefficient_helper<T, N - 1>::value;
-  };
-
-  template<typename T>
-  struct integral_coefficient_helper<T, 1> {
-    static constexpr real_t value = 0.5;
-  };
-}  // namespace detail
-
-template<size_t N>
-constexpr real_t integral_coefficient() {
-  return detail::integral_coefficient_helper<real_t, N>::value;
-}
-
 LIB_XCORE_END_NAMESPACE
 
 #endif  //LIB_XCORE_CORE_MOVE_HPP

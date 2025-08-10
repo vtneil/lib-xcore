@@ -6,7 +6,7 @@
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
-#include "memory.hpp"
+#include "../xcore/memory"
 
 #include "core/ported_type_traits.hpp"
 #include "container/bitset.hpp"

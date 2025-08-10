@@ -2,7 +2,7 @@
 #define LIB_XCORE_CORE_PORTED_OPTIONAL_HPP
 
 #include "internal/macros.hpp"
-#include "memory.hpp"
+#include "../xcore/memory"
 #include "core/ported_std.hpp"
 
 LIB_XCORE_BEGIN_NAMESPACE

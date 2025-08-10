@@ -2,7 +2,7 @@
 #define LIB_XCORE_CONTAINER_BITSET_HPP
 
 #include "internal/macros.hpp"
-#include "memory.hpp"
+#include "../xcore/memory"
 #include <cstdint>
 
 LIB_XCORE_BEGIN_NAMESPACE

@@ -1,5 +1,5 @@
 #include "lib_xcore"
-#include "dispatcher"
+#include "../src/xcore/dispatcher"
 #include <iostream>
 
 xcore::container::queue_t<int, 10, xcore::container::array_t> queue;

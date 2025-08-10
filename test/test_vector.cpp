@@ -1,5 +1,5 @@
 #include "lib_xcore"
-#include "math_module"
+#include "../src/xcore/math_module"
 #include <iostream>
 
 int main(int argc, char *argv[]) {

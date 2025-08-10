@@ -1,5 +1,5 @@
 #include "lib_xcore"
-#include "math_module"
+#include "../src/xcore/math_module"
 #include <iostream>
 
 void print_string(const char *str) {

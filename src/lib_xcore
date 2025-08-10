@@ -1,7 +1,7 @@
 #ifndef LIB_XCORE_INCLUDE_BASIC_H
 #define LIB_XCORE_INCLUDE_BASIC_H
 
-#include "require_cpp17.hpp"
+#include "core/require_cpp17.hpp"
 
 /*
  * You can config the library to use `real_t` other than double via creating "xcore_config.h"
@@ -30,7 +30,7 @@
 #include "core/ported_tuple.hpp"
 #include "core/ported_random.hpp"
 
-#include "memory.hpp"
+#include "xcore/memory"
 
 #include "container/array.hpp"
 #include "container/deque.hpp"

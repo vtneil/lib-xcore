@@ -3,7 +3,7 @@
 
 #include "internal/macros.hpp"
 #include "core/ported_std.hpp"
-#include "memory.hpp"
+#include "../xcore/memory"
 #include <cstdlib>
 
 LIB_XCORE_BEGIN_NAMESPACE
