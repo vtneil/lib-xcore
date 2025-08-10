@@ -1,9 +1,9 @@
 BasedOnStyle: LLVM
 AccessModifierOffset: -2
 AlignAfterOpenBracket: Align
-AlignConsecutiveDeclarations: AcrossEmptyLines
-AlignConsecutiveAssignments: AcrossEmptyLines
-AlignConsecutiveMacros: AcrossEmptyLines
+AlignConsecutiveDeclarations: Consecutive
+AlignConsecutiveAssignments: Consecutive
+AlignConsecutiveMacros: Consecutive
 AlignOperands: Align
 AlignArrayOfStructures: Right
 AlignConsecutiveBitFields: AcrossEmptyLines

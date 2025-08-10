@@ -42,12 +42,12 @@ FORCE_INLINE constexpr const T &max(const T &a, const T &b, const Ts &...args) {
 }
 
 /**
-    * Mimic std::swap
-    *
-    * @tparam T
-    * @param a
-    * @param b
-    */
+  * Mimic std::swap
+  *
+  * @tparam T
+  * @param a
+  * @param b
+  */
 template<typename T>
 void swap(T &a, T &b) noexcept {
   T tmp = move(a);
@@ -56,29 +56,29 @@ void swap(T &a, T &b) noexcept {
 }
 
 /**
-    * Mimic std::fill
-    *
-    * @tparam ForwardIt
-    * @tparam T
-    * @param first
-    * @param last
-    * @param value
-    */
+  * Mimic std::fill
+  *
+  * @tparam ForwardIt
+  * @tparam T
+  * @param first
+  * @param last
+  * @param value
+  */
 template<typename ForwardIt, typename T>
 constexpr void fill(ForwardIt first, ForwardIt last, const T &value) {
   for (; first != last; static_cast<void>(++first)) *first = value;
 }
 
 /**
-    * Mimic std::copy
-    *
-    * @tparam InputIt
-    * @tparam OutputIt
-    * @param first
-    * @param last
-    * @param d_first
-    * @return
-    */
+  * Mimic std::copy
+  *
+  * @tparam InputIt
+  * @tparam OutputIt
+  * @param first
+  * @param last
+  * @param d_first
+  * @return
+  */
 template<typename InputIt, typename OutputIt>
 constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
   for (; first != last; static_cast<void>(++first), static_cast<void>(++d_first)) *d_first = *first;
@@ -86,15 +86,15 @@ constexpr OutputIt copy(InputIt first, InputIt last, OutputIt d_first) {
 }
 
 /**
-    * Mimic std::move
-    *
-    * @tparam InputIt
-    * @tparam OutputIt
-    * @param first
-    * @param last
-    * @param d_first
-    * @return
-    */
+  * Mimic std::move
+  *
+  * @tparam InputIt
+  * @tparam OutputIt
+  * @param first
+  * @param last
+  * @param d_first
+  * @return
+  */
 template<typename InputIt, typename OutputIt>
 constexpr OutputIt move(InputIt first, InputIt last, OutputIt d_first) {
   for (; first != last; static_cast<void>(++first), static_cast<void>(++d_first)) *d_first = move(*first);

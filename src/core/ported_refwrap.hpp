@@ -15,11 +15,11 @@ struct reference_wrapper {
 
   explicit reference_wrapper(T &ref) noexcept : _ref(&ref) {}
 
-  reference_wrapper(const reference_wrapper &other) noexcept            = default;
+  reference_wrapper(const reference_wrapper &other) noexcept = default;
 
   reference_wrapper &operator=(const reference_wrapper &other) noexcept = default;
 
-  T                 &get() const noexcept {
+  T &get() const noexcept {
     return *_ref;
   }
 

@@ -578,7 +578,7 @@ public:
     return u * s * stddev_ + mean_;
   }
 
-  void        reset() { has_spare_ = false; }
+  void reset() { has_spare_ = false; }
 
   result_type mean() const { return mean_; }
   result_type stddev() const { return stddev_; }

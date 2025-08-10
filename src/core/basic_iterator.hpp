@@ -15,13 +15,13 @@ public:
 
   constexpr iterator(const iterator &other) : ptr_(other.ptr_) {}
 
-  T                 &operator*() { return *ptr_; }
+  T &operator*() { return *ptr_; }
 
-  T                 *operator->() { return ptr_; }
+  T *operator->() { return ptr_; }
 
   constexpr iterator operator+(size_t n) const { return iterator(ptr_ + n); }
 
-  iterator          &operator++() {
+  iterator &operator++() {
     ++ptr_;
     return *this;
   }
@@ -34,9 +34,9 @@ public:
 
   constexpr iterator operator-(size_t n) const { return iterator(ptr_ - n); }
 
-  constexpr size_t   operator-(iterator other) const { return ptr_ - other.ptr_; }
+  constexpr size_t operator-(iterator other) const { return ptr_ - other.ptr_; }
 
-  iterator          &operator--() {
+  iterator &operator--() {
     --ptr_;
     return *this;
   }

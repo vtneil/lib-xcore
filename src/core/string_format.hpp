@@ -34,7 +34,7 @@ enable_if_t<is_integral_v<Tp>, char *> xtostr(Tp value, char *buf, unsigned int 
     *p++ = '-';
   }
 
-  *p          = '\0';
+  *p = '\0';
 
   char *start = buf;
   char *end   = p - 1;

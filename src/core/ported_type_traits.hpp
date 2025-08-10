@@ -72,15 +72,15 @@ struct integral_constant {
   typedef T                 value_type;
   typedef integral_constant type;
 
-  explicit constexpr        operator value_type() const noexcept { return value; }
+  explicit constexpr operator value_type() const noexcept { return value; }
 };
 
 template<bool v>
 using bool_constant = integral_constant<bool, v>;
 
-using true_type     = bool_constant<true>;
+using true_type = bool_constant<true>;
 
-using false_type    = bool_constant<false>;
+using false_type = bool_constant<false>;
 
 // CONDITIONALS
 
