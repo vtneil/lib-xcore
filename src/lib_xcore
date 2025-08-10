@@ -3,6 +3,17 @@
 
 #include "require_cpp17.hpp"
 
+/*
+ * You can config the library to use `real_t` other than double via creating "xcore_config.h"
+ * or "xcore_config.hpp" file in the user space and includes it.
+ */
+
+#if __has_include("xcore_config.h")
+#  include "xcore_config.h"
+#elif __has_include("xcore_config.hpp")
+#  include "xcore_config.hpp"
+#endif
+
 #include "internal/macros.hpp"
 
 #include "core/macros_bootstrap.hpp"

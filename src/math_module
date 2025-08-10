@@ -1,6 +1,8 @@
 #ifndef LIB_XCORE_INCLUDE_MATH_MODULE_H
 #define LIB_XCORE_INCLUDE_MATH_MODULE_H
 
+#include "core/ported_std.hpp"
 #include "linalg/numeric_vector.hpp"
+#include "linalg/numeric_matrix.hpp"
 
 #endif  //LIB_XCORE_INCLUDE_MATH_MODULE_H

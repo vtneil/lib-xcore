@@ -17,7 +17,23 @@
 
 LIB_XCORE_BEGIN_NAMESPACE
 
-using real_t = double;
+#if defined(XCORE_USE_FLOAT)
+#  define XCORE_REAL_T float
+#elif defined(XCORE_USE_DOUBLE)
+#  define XCORE_REAL_T double
+#elif defined(XCORE_USE_LONG_DOUBLE)
+#  define XCORE_REAL_T = long double;
+#else
+#  define XCORE_REAL_T double
+#  define XCORE_USE_DOUBLE
+#endif
+
+using real_t = XCORE_REAL_T;
+
+#if !defined(XCORE_FLOAT_THRESHOLD)
+#  define XCORE_FLOAT_THRESHOLD 1.e-10
+#endif
+
 
 template<typename T>
 FORCE_INLINE constexpr const T &min(const T &v) { return v; }
