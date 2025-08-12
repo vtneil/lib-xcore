@@ -613,7 +613,7 @@ namespace impl {
     numeric_matrix_static_t inv() const {
       static_assert(static_is_a_square_matrix(), "Can only find inverse of a square matrix.");
       if (numeric_matrix_static_lu_t<T, Order> lu = move(LU());
-          abs(det_from_lu(lu)) > XCORE_FLOAT_THRESHOLD)
+          std::abs(det_from_lu(lu)) > XCORE_FLOAT_THRESHOLD)
         return inv_ut(lu.u()) * inv_lt(lu.l());
       return numeric_matrix_static_t();
     }
@@ -688,6 +688,124 @@ namespace impl {
       }
       m.fix_zero();
       return m;
+    }
+
+    [[nodiscard]] bool cholesky_lower_try(const real_t eps_diag) const {
+      static_assert(static_is_a_square_matrix(), "Can only find Lower Cholesky decomposition of a square matrix.");
+
+      constexpr size_t               N = Row;
+      const numeric_matrix_static_t &A = *this;
+      numeric_matrix_static_t        L;  // zero-init
+
+      // Simple (unpivotted) Cholesky; returns false if any pivot <= eps_diag
+      for (size_t i = 0; i < N; ++i) {
+        for (size_t j = 0; j <= i; ++j) {
+          real_t sum = A[i][j];
+          for (size_t k = 0; k < j; ++k)
+            sum -= L[i][k] * L[j][k];
+
+          if (i == j) {
+            if (sum <= eps_diag || !std::isfinite(sum))
+              return false;
+            L[i][j] = sqrt(sum);
+          } else {
+            if (std::abs(L[j][j]) <= eps_diag)
+              return false;
+            L[i][j] = sum / L[j][j];
+          }
+        }
+      }
+      return true;
+    }
+
+    /**
+     * Check if Symmetric Positive Definite
+     *
+     * @param eps_diag
+     * @param sym_tol
+     * @return
+     */
+    [[nodiscard]] bool is_spd(const real_t eps_diag = 1.e-12,
+                              const real_t sym_tol  = 1.e-9) const {
+      static_assert(static_is_a_square_matrix(), "Can only check SPD (Symmetric Positive Definite) of a square matrix.");
+
+      constexpr size_t               N = Row;
+      const numeric_matrix_static_t &A = *this;
+
+      // 1) symmetry check with relative tolerance
+      real_t max_abs = 0;
+      for (size_t i = 0; i < N; ++i)
+        for (size_t j = 0; j < N; ++j)
+          max_abs = max(max_abs, std::abs(A[i][j]));
+
+      for (size_t i = 0; i < N; ++i) {
+        for (size_t j = i + 1; j < N; ++j) {
+          if (const real_t diff = std::abs(A[i][j] - A[j][i]);
+              diff > sym_tol * max(1., max_abs))
+            return false;
+        }
+      }
+
+      // 2) try Cholesky
+      return cholesky_lower_try(eps_diag);
+    }
+
+    /**
+     * Projection onto Positive semidefinite
+     *
+     * @param eps_diag
+     * @param max_tries
+     * @param sym_boost
+     */
+    void inplace_project_to_psd(const real_t eps_diag  = 1.e-12,
+                                const size_t max_tries = 8,
+                                const real_t sym_boost = 1.) {
+      static_assert(static_is_a_square_matrix(), "Can only check SPD (Symmetric Positive Definite) of a square matrix.");
+
+      constexpr size_t         N = Row;
+      numeric_matrix_static_t &A = *this;
+
+      // 0) Symmetrize: A <- 0.5 (A + A^T)
+      for (size_t i = 0; i < N; ++i) {
+        for (size_t j = i + 1; j < N; ++j) {
+          const real_t s = 0.5 * (A[i][j] + A[j][i]);
+          A[i][j]        = s;
+          A[j][i]        = s;
+        }
+      }
+
+      // 1) If already SPD (strict), we're done
+      if (A.cholesky_lower_try(eps_diag))
+        return;
+
+      // 2) Diagonal loading (Gill–Murray–Wright style)
+      //    Add lambda * I, growing lambda until Cholesky succeeds.
+      real_t lambda = 0;
+
+      // Heuristic: start from a small offset above the most negative diagonal, if any
+      real_t min_diag = A[0][0];
+      for (size_t i = 0; i < N; ++i)
+        min_diag = min(min_diag, A[i][i]);
+      if (min_diag < eps_diag)
+        lambda = (eps_diag - min_diag) * sym_boost;
+
+      for (size_t it = 0; it < max_tries; ++it) {
+        numeric_matrix_static_t A_try(A);
+        for (size_t i = 0; i < N; ++i)
+          A_try[i][i] += lambda;
+        if (A_try.cholesky_lower_try(eps_diag)) {
+          A = A_try;  // accept the SPD projection
+          return;
+        }
+        // escalate lambda (geometric growth)
+        lambda = lambda <= 0
+                   ? eps_diag
+                   : lambda * 2;
+      }
+
+      // Fallback: force strong diagonal dominance
+      for (size_t i = 0; i < N; ++i)
+        A[i][i] += (lambda > 0 ? lambda : 1.) + eps_diag;
     }
 
     /**

@@ -303,9 +303,6 @@ public:
       : r_iae_kalman_filter_t(F_matrix, B_matrix, H_matrix, Q_matrix, R_matrix, x0, Q_matrix,
                               alpha, beta, tau, eps) {}
 
-  /**
-   * Robust update
-   */
   r_iae_kalman_filter_t &update(const numeric_vector<M_> &z) override {
     const numeric_vector<M_>     y    = z - this->H_ * this->x_;
     const numeric_matrix<N_, M_> PHT  = this->P_.matmul_T(this->H_);
@@ -313,14 +310,25 @@ public:
     const numeric_matrix<M_, M_> invS = S.inverse();
     const numeric_matrix<N_, M_> K    = PHT * invS;
 
+    if (!S.is_spd(eps_)) {
+      // If S is bad, skip adaptation this step, use normal KF update
+      this->x_ += K * y;
+      const numeric_matrix<N_, N_> I_KH = numeric_matrix<N_, N_>::identity() - K * this->H_;
+      this->P_                          = I_KH * this->P_ * I_KH.transpose() + K * this->R_ * K.transpose();
+      this->P_                          = 0.5 * (this->P_ + this->P_.transpose());
+      return *this;
+    }
+
     // Mahalanobis distance d = sqrt(y^T S^-1 y)
     const numeric_matrix<M_, 1> y_col = y.as_matrix_col();
     const numeric_matrix<1, 1>  d2m   = y_col.transpose() * invS * y_col;
 
     const real_t d = sqrt(d2m[0][0] + eps_);
-    const real_t w = d <= tau_
+    real_t       w = d <= tau_
                        ? 1.
                        : tau_ / d;  // Huber weight in [0,1]
+    if (w < eps_)
+      w = eps_;
 
     // Weighted innovation and gain
     numeric_vector<M_>     y_w   = w * y;
@@ -337,24 +345,20 @@ public:
     // Symmetrize -> Makes P SPD
     this->P_ = 0.5 * (this->P_ + this->P_.transpose());
 
-    // IAE adaptation using robust (down-weighted) innovation
-    const auto y_w_col = y_w.as_matrix_col();
-    const auto ywywT   = y_w_col.matmul_T(y_w_col);  // (w y)(w y)^T = w^2 y y^T
-    const auto HPHT    = this->H_ * PHT;
+    // IAE adaptation using robust innovation
+    const numeric_matrix<M_, 1>  y_w_col = y_w.as_matrix_col();
+    const auto                   ywywT   = y_w_col.matmul_T(y_w_col);  // (w y)(w y)^T = w^2 y y^T
+    const numeric_matrix<M_, M_> HPHT    = this->H_ * PHT;
 
     // Adapt R
     numeric_matrix<M_, M_> R_new = ywywT - HPHT;
-    for (size_t i = 0; i < M_; ++i)
-      if (R_new[i][i] < eps_)
-        R_new[i][i] = eps_;
-    this->R_ = (1 - alpha_) * this->R_ + alpha_ * R_new;
+    R_new.inplace_project_to_psd(eps_);
+    this->R_ = (1. - alpha_) * this->R_ + alpha_ * R_new;
 
     // Adapt Q
     numeric_matrix<N_, N_> Q_new = K * ywywT * K.transpose();
-    for (size_t i = 0; i < N_; ++i)
-      if (Q_new[i][i] < eps_)
-        Q_new[i][i] = eps_;
-    this->Q_ = (1 - beta_) * this->Q_ + beta_ * Q_new;
+    Q_new.inplace_project_to_psd(eps_);
+    this->Q_ = (1. - beta_) * this->Q_ + beta_ * Q_new;
 
     return *this;
   }
