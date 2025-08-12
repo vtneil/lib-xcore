@@ -177,5 +177,15 @@ int main(int, char *[]) {
 
   assert((C * E.transpose() == C.matmul_T(E)));
 
+  const auto vec4 = euler_to_quaternion(make_numeric_vector({M_PI / 2., 0., 0.}));
+  for (size_t i = 0; i < 4; ++i)
+    std::cout << vec4[i] << " ";
+
+  std::cout << std::endl;
+
+  const auto vec3 = quaternion_to_euler(make_numeric_vector({0.7071, 0.7071, 0., 0.}));
+  for (size_t i = 0; i < 3; ++i)
+    std::cout << vec3[i] << " ";
+
   return 0;
 }

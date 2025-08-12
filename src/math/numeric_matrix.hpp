@@ -1,10 +1,84 @@
-#ifndef LIB_XCORE_LINALG_NUMERIC_MATRIX_H
-#define LIB_XCORE_LINALG_NUMERIC_MATRIX_H
+#ifndef LIB_XCORE_LINALG_NUMERIC_MATRIX_HPP
+#define LIB_XCORE_LINALG_NUMERIC_MATRIX_HPP
 
 #include "./numeric_vector.hpp"
 #include "core/ported_pair.hpp"
+#include "core/ported_std.hpp"
 
 LIB_XCORE_BEGIN_NAMESPACE
+
+namespace detail {
+  using namespace LIB_XCORE_NAMESPACE::impl;
+
+  template<typename T, size_t Size>
+  constexpr numeric_vector_static_t<T, Size> make_numeric_vector_static_t() {
+    return numeric_vector_static_t<T, Size>();
+  }
+
+  template<typename T, size_t Size>
+  constexpr numeric_vector_static_t<T, Size> make_numeric_vector_static_t(const T (&array)[Size]) {
+    return numeric_vector_static_t<T, Size>(array);
+  }
+
+  template<typename T, size_t S1, size_t S2>
+  constexpr numeric_vector_static_t<T, S1 + S2>
+  make_numeric_vector_static_t(const T (&a1)[S1], const T (&a2)[S2]) {
+    return numeric_vector_static_t<T, S1 + S2>(a1, a2);
+  }
+
+  template<typename T, size_t S1, size_t S2, size_t... Ss>
+  constexpr numeric_vector_static_t<T, size_sum<
+                                         numeric_vector_static_t<
+                                           T, S1>,
+                                         numeric_vector_static_t<T, S2>, numeric_vector_static_t<T, Ss>...>::value>
+
+  make_numeric_vector_static_t(const T (&a1)[S1], const T (&a2)[S1], const T (&...as)[Ss]) {
+    return make_numeric_vector_static_t(make_numeric_vector_static_t(a1, a2), as...);
+  }
+
+  template<typename T>
+  constexpr numeric_vector_static_t<T, 1> make_numeric_vector_static_t(const T &val) {
+    return numeric_vector_static_t<T, 1>(val);
+  }
+
+  template<typename T, typename... Ts>
+  constexpr numeric_vector_static_t<T, 1 + sizeof...(Ts)>
+  make_numeric_vector_static_t(const T &val, const Ts &...vals) {
+    return make_numeric_vector_static_t({val, vals...});
+  }
+
+  template<typename T, size_t Row, size_t Col, size_t... I>
+  constexpr numeric_vector_static_t<numeric_vector_static_t<T, Col>, Row>
+  make_nested(const T (&array)[Row][Col], index_sequence<I...>) {
+    return make_numeric_vector_static_t(make_numeric_vector_static_t(array[I])...);
+  }
+
+  template<typename T, size_t Row, size_t Col>
+  constexpr numeric_vector_static_t<numeric_vector_static_t<T, Col>, Row>
+  make_nested(const T (&array)[Row][Col]) {
+    return make_nested(array, make_index_sequence<Row>());
+  }
+
+  template<typename T, size_t Order, size_t I, size_t... J>
+  constexpr numeric_vector_static_t<T, Order>
+  make_diagonal_minor(const T &value, index_sequence<J...>) {
+    return make_numeric_vector_static_t((J == I ? value : T{})...);
+  }
+
+  template<typename T, size_t Order, size_t... I>
+  constexpr numeric_vector_static_t<numeric_vector_static_t<T, Order>, Order>
+  make_diagonal(const T (&array)[Order], index_sequence<I...>) {
+    return make_numeric_vector_static_t(
+      make_diagonal_minor<T, Order, I>(array[I], make_index_sequence<Order>())...);
+  }
+
+  template<typename T, size_t Order, size_t... I>
+  constexpr numeric_vector_static_t<numeric_vector_static_t<T, Order>, Order>
+  make_diagonal(const T (&array)[Order]) {
+    return make_diagonal(array, make_index_sequence<Order>());
+  }
+}  // namespace detail
+
 namespace impl {
   template<typename T, size_t OSize>
   class numeric_matrix_static_lu_t;
@@ -30,7 +104,7 @@ namespace impl {
     friend class numeric_vector_static_t;
 
   private:
-    static constexpr size_t                                       Order   = (Row < Col) ? Row : Col;
+    static constexpr size_t                                       Order   = Row < Col ? Row : Col;
     numeric_vector_static_t<numeric_vector_static_t<T, Col>, Row> vector_ = {};
 
   public:
@@ -1285,4 +1359,4 @@ make_diagonal_matrix(real_t value) {
 
 LIB_XCORE_END_NAMESPACE
 
-#endif  //LIB_XCORE_LINALG_NUMERIC_MATRIX_H
+#endif  //LIB_XCORE_LINALG_NUMERIC_MATRIX_HPP

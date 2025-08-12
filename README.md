@@ -4,8 +4,9 @@ A comprehensive library targeted for, but not limited to, embedded system (minim
 This includes many ported functionality from standard library (`std` -> `xcore`),
 hence somewhat independent of standard library.
 
-This library is being merged and refactored with my old `vt-linalg` linear algebra library, so
-you get everything in one place!
+This library is now merged my old `vt-linalg` linear algebra library, so
+you get everything in one place! (Except for dynamic vector/matrix,
+only static vector/matrix was ported).
 
 # Safety
 

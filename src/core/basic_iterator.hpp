@@ -2,6 +2,7 @@
 #define LIB_XCORE_CORE_BASIC_ITERATOR_HPP
 
 #include "internal/macros.hpp"
+#include "core/ported_std.hpp"
 
 LIB_XCORE_BEGIN_NAMESPACE
 
