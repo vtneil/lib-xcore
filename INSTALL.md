@@ -15,6 +15,8 @@ or related forums on setting up C++17 support in your PlatformIO project.
 
 ## Arduino IDE
 
+Coming soon!
+
 # Usage
 
 ## Including the header

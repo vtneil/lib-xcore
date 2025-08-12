@@ -34,6 +34,14 @@ For installation, please read [How to install](INSTALL.md) for more information.
 
 ## String
 
+# Math Module
+
+## Vectors and Matrices
+
+## Kalman Filter
+
+## IMU Utilities
+
 # Utilities
 
 ## Nonblocking delay (Smart delay)
