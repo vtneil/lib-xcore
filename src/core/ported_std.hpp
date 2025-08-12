@@ -14,6 +14,7 @@
 #include <cstdlib>
 #include <cstdint>
 #include <cstring>
+#include <cmath>
 
 LIB_XCORE_BEGIN_NAMESPACE
 

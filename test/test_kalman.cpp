@@ -22,7 +22,7 @@ auto           Q  = numeric_matrix<3, 3>::diagonals(base_noise_value);
 auto           R  = numeric_matrix<1, 1>::diagonals(base_noise_value);
 constexpr auto x0 = make_numeric_vector<3>({0, 0, 0});  // {x, v, a}
 
-adaptive_kalman_filter_t<3, 1, 1> kf(F, B, H, Q, R, x0, 0.001, 0.001);
+iae_kalman_filter_t<3, 1, 1> kf(F, B, H, Q, R, x0, 0.05, 0.01);
 
 int main() {
   std::vector py = {

@@ -470,7 +470,7 @@ namespace impl {
      * @return Sliced vector
      */
     template<size_t from, size_t to>
-    numeric_vector_static_t<T, to - from> slice() {
+    numeric_vector_static_t<T, to - from> slice() const {
       static_assert(from < to, "from must be less than to.");
       static_assert(to <= Size, "Slice range is out of range.");
       numeric_vector_static_t<T, to - from> result;
@@ -485,7 +485,7 @@ namespace impl {
      * @return
      */
     template<size_t N>
-    numeric_vector_static_t<T, N> head() {
+    numeric_vector_static_t<T, N> head() const {
       static_assert(N <= Size, "N must be in range of dimension.");
       return slice<0, N>();
     }
@@ -497,7 +497,7 @@ namespace impl {
      * @return
      */
     template<size_t N>
-    numeric_vector_static_t<T, N> tail() {
+    numeric_vector_static_t<T, N> tail() const {
       static_assert(N <= Size, "N must be in range of dimension.");
       return slice<Size - N, Size>();
     }
@@ -507,7 +507,7 @@ namespace impl {
      *
      * @return Column vector as matrix
      */
-    numeric_matrix_static_t<T, Size, 1> as_matrix_col() {
+    numeric_matrix_static_t<T, Size, 1> as_matrix_col() const {
       numeric_matrix_static_t<T, Size, 1> result;
       for (size_t i = 0; i < Size; ++i) result[i][0] = arr_[i];
       return result;
@@ -518,7 +518,7 @@ namespace impl {
      *
      * @return Row vector as a matrix
      */
-    numeric_matrix_static_t<T, 1, Size> as_matrix_row() {
+    numeric_matrix_static_t<T, 1, Size> as_matrix_row() const {
       numeric_matrix_static_t<T, 1, Size> result;
       for (size_t i = 0; i < Size; ++i) result[0][i] = arr_[i];
       return result;
