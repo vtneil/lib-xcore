@@ -36,9 +36,22 @@ For installation, please read [How to install](INSTALL.md) for more information.
 
 # Math Module
 
+```c++
+#include "xcore/math_module"
+```
+
 ## Vectors and Matrices
 
 ## Kalman Filter
+
+- Simple KF
+- Innovation-based Adaptive Estimation Adaptive Kalman Filter (IAE-AKF)
+- Robust IAE-AKF
+- EKF & UKF (still experimental)
+
+<img src="screenshots/kf_full.png" width="640"/>
+
+<img src="screenshots/kf_200.png" width="640"/>
 
 ## IMU Utilities
 
@@ -49,3 +62,7 @@ For installation, please read [How to install](INSTALL.md) for more information.
 ## On-off timer
 
 ## Tasks and static dispatcher
+
+```c++
+#include "xcore/dispatcher"
+```

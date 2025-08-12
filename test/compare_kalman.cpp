@@ -14,7 +14,7 @@ constexpr real_t dt   = 0.1;
 constexpr real_t hdts = 0.5 * dt * dt;
 
 constexpr real_t base_noise_value = 0.1;  // used to init Q, R
-constexpr int    N_STEPS          = 500;  // 50 seconds
+constexpr int    N_STEPS          = 1000;  // 50 seconds
 constexpr real_t T_TOTAL          = N_STEPS * dt;
 
 // Model matrices (given)
@@ -42,7 +42,7 @@ static inline real_t accel_profile(real_t t) {
   else if (t < 35.0)
     return -0.7;
   else
-    return 0.2 * std::sin(0.5 * t);
+    return -0.6 * std::sin(0.5 * t);
 }
 
 int main() {
