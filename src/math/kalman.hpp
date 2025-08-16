@@ -202,7 +202,7 @@ public:
    * @param H_matrix measurement model
    * @param Q_matrix covariance of the process noise
    * @param R_matrix covariance of the measurement noise
-   * @param x_0 initial state vector
+   * @param x0 initial state vector
    */
   constexpr kalman_filter_t(
     numeric_matrix<N_, N_>       &F_matrix,
@@ -210,8 +210,8 @@ public:
     const numeric_matrix<M_, N_> &H_matrix,
     const numeric_matrix<N_, N_> &Q_matrix,
     const numeric_matrix<M_, M_> &R_matrix,
-    const numeric_vector<N_>     &x_0)
-      : kalman_filter_t(F_matrix, B_matrix, H_matrix, Q_matrix, R_matrix, x_0, Q_matrix) {}
+    const numeric_vector<N_>     &x0)
+      : kalman_filter_t(F_matrix, B_matrix, H_matrix, Q_matrix, R_matrix, x0, Q_matrix) {}
 
   constexpr kalman_filter_t(const kalman_filter_t &) = default;
 
@@ -427,7 +427,7 @@ public:
    * @param H_matrix measurement model
    * @param Q_matrix covariance of the process noise
    * @param R_matrix covariance of the measurement noise
-   * @param x_0 initial state vector
+   * @param x0 initial state vector
    * @param alpha EMA Smoothing factor for R
    * @param beta EMA Smoothing factor for Q
    */
@@ -437,10 +437,10 @@ public:
     const numeric_matrix<M_, N_> &H_matrix,
     numeric_matrix<N_, N_>       &Q_matrix,
     numeric_matrix<M_, M_>       &R_matrix,
-    const numeric_vector<N_>     &x_0,
+    const numeric_vector<N_>     &x0,
     const real_t                 &alpha = 0.1,
     const real_t                 &beta  = 0.1)
-      : iae_kalman_filter_t(F_matrix, B_matrix, H_matrix, Q_matrix, R_matrix, x_0, Q_matrix, alpha, beta) {}
+      : iae_kalman_filter_t(F_matrix, B_matrix, H_matrix, Q_matrix, R_matrix, x0, Q_matrix, alpha, beta) {}
 
   constexpr iae_kalman_filter_t(const iae_kalman_filter_t &) = default;
 
@@ -912,66 +912,12 @@ namespace future {
   };
 }  // namespace future
 
-// Aliases
-template<size_t StateVectorDimension, size_t MeasurementVectorDimension, size_t ControlVectorDimension>
-using KF =
-  kalman_filter_t<StateVectorDimension, MeasurementVectorDimension, ControlVectorDimension>;
-
-template<size_t StateVectorDimension, size_t MeasurementVectorDimension, size_t ControlVectorDimension>
-using EKF =
-  extended_kalman_filter_t<StateVectorDimension, MeasurementVectorDimension, ControlVectorDimension>;
-
-namespace basic {
-  class KalmanFilter_1D {
-  private:
-    real_t m_x;  // Estimated state
-    real_t m_P;  // Estimated error covariance
-    real_t m_Q;  // Process noise covariance
-    real_t m_R;  // Measurement noise covariance
-    real_t m_K;  // Kalman gain
-
-  public:
-    constexpr KalmanFilter_1D() : KalmanFilter_1D(initial_x, initial_P, initial_noise, initial_noise) {}
-
-    constexpr KalmanFilter_1D(const real_t &initial_x, const real_t &initial_P,
-                              const real_t &Q, const real_t &R)
-        : m_x(initial_x), m_P(initial_P), m_Q(Q), m_R(R), m_K(0.0) {
-    }
-
-    KalmanFilter_1D &predict(const real_t & = 0.0) {
-      m_P = m_P + m_Q;
-      return *this;
-    }
-
-    KalmanFilter_1D &update(const real_t &z) {
-      m_K = m_P / (m_P + m_R);
-      m_x = m_x + m_K * (z - m_x);
-      m_P = (1 - m_K) * m_P;
-      return *this;
-    }
-
-    KalmanFilter_1D &operator<<(const real_t &z) {
-      return predict().update(z);
-    }
-
-    [[nodiscard]] constexpr real_t x() const {
-      return m_x;
-    }
-
-    [[nodiscard]] constexpr real_t P() const {
-      return m_P;
-    }
-
-    void operator>>(real_t &targ) const {
-      targ = x();
-    }
-
-    static constexpr real_t initial_x     = 0.0;
-    static constexpr real_t initial_P     = 1.0;
-    static constexpr real_t initial_noise = 0.1;
-  };
-}  // namespace basic
-
 LIB_XCORE_END_NAMESPACE
+
+// template<size_t StateVectorDimension, size_t MeasurementVectorDimension, size_t ControlVectorDimension>
+// class KF_Simple : LIB_XCORE_NAMESPACE::kalman_filter_t<StateVectorDimension, MeasurementVectorDimension, ControlVectorDimension> {
+// public:
+//   KF_Simple()
+// };
 
 #endif  //LIB_XCORE_LINALG_KALMAN_HPP
