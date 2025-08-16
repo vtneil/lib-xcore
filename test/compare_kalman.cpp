@@ -13,7 +13,7 @@ using namespace xcore;
 constexpr real_t dt   = 0.1;
 constexpr real_t hdts = 0.5 * dt * dt;
 
-constexpr real_t base_noise_value = 0.1;  // used to init Q, R
+constexpr real_t base_noise_value = 0.1;   // used to init Q, R
 constexpr int    N_STEPS          = 1000;  // 50 seconds
 constexpr real_t T_TOTAL          = N_STEPS * dt;
 
@@ -137,14 +137,14 @@ int main() {
     ofs << t << ','
         << x << ','
         << z << ','
-        << kf_simple.state << ','
-        << kf_ia_005_0005.state << ','
-        << kf_ia_005_0050.state << ','
-        << kf_ia_020_0005.state << ','
-        << kf_ia_020_0050.state << ','
-        << kf_ria_1.state << ','
-        << kf_ria_2.state << ','
-        << kf_ria_3.state << '\n';
+        << kf_simple.state() << ','
+        << kf_ia_005_0005.state() << ','
+        << kf_ia_005_0050.state() << ','
+        << kf_ia_020_0005.state() << ','
+        << kf_ia_020_0050.state() << ','
+        << kf_ria_1.state() << ','
+        << kf_ria_2.state() << ','
+        << kf_ria_3.state() << '\n';
   }
 
   ofs.close();

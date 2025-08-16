@@ -272,10 +272,10 @@ public:
   template<typename... Ts>
   kalman_filter_t &update(Ts... vs) { return update(make_numeric_vector<M_>({vs...})); }
 
-  const numeric_vector<N_>     &state_vector = x_;
-  const real_t                 &state        = x_[0];
-  const numeric_matrix<M_, M_> &R            = R_;
-  const numeric_matrix<N_, N_> &Q            = Q_;
+  const numeric_vector<N_>     &state_vector() { return x_; }
+  const real_t                 &state() { return x_[0]; }
+  const numeric_matrix<M_, M_> &R() { return R_; }
+  const numeric_matrix<N_, N_> &Q() { return Q_; }
 };
 
 /**
