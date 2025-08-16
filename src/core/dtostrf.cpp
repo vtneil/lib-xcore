@@ -1,6 +1,8 @@
 #include "dtostrf.hpp"
 #include <cstdio>
 
+LIB_XCORE_BEGIN_NAMESPACE
+
 char *dtostrf(double val, signed char width, unsigned char prec, char *sout) {
   //Commented code is the original version
   /*char fmt[20];
@@ -79,3 +81,5 @@ char *dtostrf(double val, signed char width, unsigned char prec, char *sout) {
 
   return sout;
 }
+
+LIB_XCORE_END_NAMESPACE
