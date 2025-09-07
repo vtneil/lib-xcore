@@ -1,5 +1,7 @@
 #include "lib_xcore"
 #include "../src/xcore/dispatcher"
+
+#include <cassert>
 #include <iostream>
 
 xcore::container::queue_t<int, 10, xcore::container::array_t> queue;
@@ -7,6 +9,55 @@ xcore::container::array_t<int, 1024>                          arr1;
 xcore::container::heap_array_t<int, 1024>                     arr2;
 
 //
+void test_sampler() {
+  xcore::sampler_t<4, int> s;  // small buffer for easy testing
+
+  // Initial state
+  assert(s.count_under() == 0);
+  assert(s.count_over() == 0);
+
+  // Set threshold and add samples below/above
+  s.set_threshold(10);
+
+  s.add_sample(5);   // under
+  s.add_sample(15);  // over
+  s.add_sample(9);   // under
+  s.add_sample(11);  // over
+  std::cout << "Counts after 4 samples: under=" << s.count_under()
+            << " over=" << s.count_over() << "\n";
+  assert(s.count_under() == 2);
+  assert(s.count_over() == 2);
+
+  // Add one more (overwrites oldest: 5 under → evicted)
+  s.add_sample(20);  // over
+  std::cout << "Counts after overwrite: under=" << s.count_under()
+            << " over=" << s.count_over() << "\n";
+  assert(s.count_under() == 1);  // 15,9,11,20 = 9 under only
+  assert(s.count_over() == 3);
+
+  // Change threshold to 12, recount happens
+  s.set_threshold(12);
+  std::cout << "Counts after threshold=12: under=" << s.count_under()
+            << " over=" << s.count_over() << "\n";
+  // buffer contents are [15, 9, 11, 20] (circular, order doesn’t matter)
+  // under = 9,11 → 2 ; over = 15,20 → 2
+  assert(s.count_under() == 2);
+  assert(s.count_over() == 2);
+
+  // Ratios (check div-by-zero handling too)
+  std::cout << "over/under=" << s.over_by_under()
+            << " under/over=" << s.under_by_over() << "\n";
+
+  // Reset
+  s.reset();
+  std::cout << "After reset: under=" << s.count_under()
+            << " over=" << s.count_over() << "\n";
+  assert(s.count_under() == 0);
+  assert(s.count_over() == 0);
+
+  std::cout << "All tests passed!\n";
+}
+
 uint32_t fake_time = 0;
 uint32_t get_time() { return fake_time; }
 
@@ -83,6 +134,7 @@ void test_nb() {
 }
 
 int main(int argc, char **argv) {
+  test_sampler();
   test_timer();
   test_nb();
   test_bitset();
