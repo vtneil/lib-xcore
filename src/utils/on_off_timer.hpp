@@ -24,13 +24,13 @@ namespace detail {
     };
 
   private:
-    NbDelay sd_on;
     NbDelay sd_off;
+    NbDelay sd_on;
     bool    is_on = false;
 
   public:
-    on_off_timer_impl(TimeType interval_on, TimeType interval_off, time_func_t *time_func)
-        : sd_on{NbDelay(interval_on, time_func)}, sd_off{NbDelay(interval_off, time_func)} {}
+    on_off_timer_impl(TimeType interval_off, TimeType interval_on, time_func_t *time_func)
+        : sd_off{NbDelay(interval_off, time_func)}, sd_on{NbDelay(interval_on, time_func)} {}
 
     template<typename Proc, typename = enable_if_t<is_procedure_v<Proc>>>
     on_off_timer_impl &on_rising(Proc &&proc) {
@@ -45,6 +45,10 @@ namespace detail {
       return *this;
     }
 
+    on_off_timer_impl &on_rising() {
+      return on_rising([]() -> void {});
+    }
+
     template<typename Proc, typename = enable_if_t<is_procedure_v<Proc>>>
     on_off_timer_impl &on_falling(Proc &&proc) {
       if (is_on) {  // if 1
@@ -56,6 +60,10 @@ namespace detail {
       }
 
       return *this;
+    }
+
+    on_off_timer_impl &on_falling() {
+      return on_falling([]() -> void {});
     }
 
     TimeType interval_on() {

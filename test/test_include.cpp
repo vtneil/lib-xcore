@@ -7,6 +7,23 @@ xcore::container::array_t<int, 1024>                          arr1;
 xcore::container::heap_array_t<int, 1024>                     arr2;
 
 //
+uint32_t fake_time = 0;
+uint32_t get_time() { return fake_time; }
+
+void test_timer() {
+  using namespace xcore;
+  on_off_timer<uint32_t> t(1000, 2000, &get_time);
+
+  for (int i = 0; i < 20; i++) {
+    fake_time += 500;  // advance 0.5 second per loop
+    std::cout << "[" << fake_time << " ms] ";
+
+    t.on_rising([] {
+       std::cout << "RISING edge → turned ON\n";
+     })
+      .on_falling();
+  }
+}
 
 void print() {
   std::cout << "Hello!" << std::endl;
@@ -66,6 +83,7 @@ void test_nb() {
 }
 
 int main(int argc, char **argv) {
+  test_timer();
   test_nb();
   test_bitset();
 
