@@ -31,15 +31,17 @@ public:
     idx_ = (idx_ + 1) % cap_;
   }
 
-  void set_threshold(const Tp &threshold) {
+  void set_threshold(const Tp &threshold, const bool recount = true) {
     threshold_ = threshold;
-    recount();
+    if (recount)
+      _recount();
   }
 
-  void set_capacity(const size_t cap) {
+  void set_capacity(const size_t cap, const bool recount = true) {
     cap_  = cap_ > MaxCapacity ? MaxCapacity : cap;
     size_ = size_ > cap_ ? cap_ : size_;
-    recount();
+    if (recount)
+      _recount();
   }
 
   void reset() {
@@ -81,7 +83,7 @@ public:
   }
 
 private:
-  void recount() {
+  void _recount() {
     count_under_ = 0;
     count_over_  = 0;
     for (size_t i = 0; i < size_; ++i)
