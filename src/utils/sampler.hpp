@@ -78,6 +78,18 @@ public:
     return static_cast<FloatingPoint>(count_under_) / static_cast<FloatingPoint>(count_over_);
   }
 
+  [[nodiscard]] size_t size() const {
+    return size_;
+  }
+
+  [[nodiscard]] size_t capacity() const {
+    return cap_;
+  }
+
+  [[nodiscard]] bool is_sampled() const {
+    return size() == capacity();
+  }
+
   constexpr static bool compare_ge(const Tp &a, const Tp &b) {
     return a >= b;
   }
