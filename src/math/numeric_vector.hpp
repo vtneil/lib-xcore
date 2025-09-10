@@ -75,6 +75,11 @@ namespace impl {
 
     constexpr numeric_vector_static_t(numeric_vector_static_t &&) noexcept = default;
 
+    template<typename... U,
+             typename = enable_if_t<sizeof...(U) <= Size && (is_convertible_v<U, T> && ...)>>
+    constexpr /*implicit*/ numeric_vector_static_t(U &&...elems)  // NOLINT
+        : arr_{static_cast<T>(forward<U>(elems))...} {}
+
   private:
     template<size_t... I>
     constexpr numeric_vector_static_t(const T (&array)[Size], index_sequence<I...>)

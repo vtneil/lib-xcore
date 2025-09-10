@@ -1034,7 +1034,7 @@ int main() {
     kf.predict().update(y);
     std::cout << static_cast<real_t>(i) * dt << ",";
     std::cout << y;
-    for (auto &state: kf.state_vector) {
+    for (auto &state: kf.state_vector()) {
       printf(",%.4f", state);
     }
     std::cout << '\n';

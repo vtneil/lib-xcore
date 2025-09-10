@@ -265,13 +265,6 @@ public:
     return *this;
   }
 
-  virtual kalman_filter_t &operator<<(const numeric_vector<M_> &z) {
-    return this->predict().update(z);
-  }
-
-  template<typename... Ts>
-  kalman_filter_t &update(Ts... vs) { return update(make_numeric_vector<M_>({vs...})); }
-
   const numeric_vector<N_>     &state_vector() { return x_; }
   const real_t                 &state() { return x_[0]; }
   const numeric_matrix<M_, M_> &R() { return R_; }

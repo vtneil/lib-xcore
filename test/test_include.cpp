@@ -1,5 +1,6 @@
 #include "lib_xcore"
 #include "../src/xcore/dispatcher"
+#include "math/numeric_vector.hpp"
 
 #include <cassert>
 #include <iostream>
@@ -8,8 +9,15 @@ xcore::container::queue_t<int, 10, xcore::container::array_t> queue;
 xcore::container::array_t<int, 1024>                          arr1;
 xcore::container::heap_array_t<int, 1024>                     arr2;
 
+void vec_func(const xcore::numeric_vector<5> &v) {
+  for (const auto &x: v) {
+    std::cout << x << "\n";
+  }
+}
+
 //
 void test_sampler() {
+  vec_func({1, 2});
   xcore::sampler_t<4, int> s;  // small buffer for easy testing
 
   // Initial state
