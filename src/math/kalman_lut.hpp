@@ -12,10 +12,10 @@ template<size_t M, size_t N, size_t P>
 using vkf = kalman_filter_t<M, N, P>;
 
 /**
-     * Variable dt wrapper for Kalman filter
-     *
-     * @tparam Degree Max degree to calculate d^N/dt^N
-     */
+ * Variable dt wrapper for Kalman filter
+ *
+ * @tparam Degree Max degree to calculate d^N/dt^N
+ */
 template<size_t Degree>
 class vdt {
 protected:
