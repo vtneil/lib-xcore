@@ -580,29 +580,10 @@ private:
   using Base = kalman_filter_t<StateVectorDimension, MeasurementVectorDimension, ControlVectorDimension>;
 
 protected:
-  // IAE/robust params
   const real_t alpha_;  // EMA smoothing for R
-  const real_t beta_;   // EMA smoothing for Q (base rate)
-  const real_t tau_;    // Huber threshold (≈ k-sigma in Mahalanobis space)
-  const real_t eps_;    // small jitter to avoid div-by-zero / non-SPD
-
-  // Nominals and floors to prevent overconfidence (sleepy filter)
-  numeric_matrix<N_, N_> Q0_;
-  numeric_matrix<M_, M_> R0_;
-  numeric_matrix<N_, N_> Q_floor_{numeric_matrix<N_, N_>::zeros()};
-  numeric_matrix<M_, M_> R_floor_{numeric_matrix<M_, M_>::zeros()};
-  real_t                 gamma_{0.0};  // tiny leak-back to nominal (e.g., 1e-3); 0 disables
-
-  // Helpers to floor diagonals (keep PSD with later project step)
-  static inline void diag_floor_Q(numeric_matrix<N_, N_> &A, const numeric_matrix<N_, N_> &F) {
-    for (size_t i = 0; i < N_; ++i)
-      if (A[i][i] < F[i][i]) A[i][i] = F[i][i];
-  }
-  static inline void diag_floor_R(numeric_matrix<M_, M_> &A, const numeric_matrix<M_, M_> &F) {
-    for (size_t i = 0; i < M_; ++i)
-      if (A[i][i] < F[i][i]) A[i][i] = F[i][i];
-  }
-
+  const real_t beta_;   // EMA smoothing for Q
+  const real_t tau_;    // Huber threshold (≈ “k-sigma” in Mahalanobis space)
+  const real_t eps_;    // small jitter to avoid div-by-zero
 
 public:
   /**
@@ -619,9 +600,6 @@ public:
    * @param beta     EMA smoothing factor for Q (0..1)
    * @param tau      Huber threshold in Mahalanobis units (e.g., 3.0)
    * @param eps      small positive number to stabilize divisions (e.g., 1e-12)
-   * @param Qfloor
-   * @param Rfloor
-   * @param gamma
    */
   constexpr r_iae_kalman_filter_t(
     numeric_matrix<N_, N_>       &F_matrix,
@@ -631,15 +609,12 @@ public:
     numeric_matrix<M_, M_>       &R_matrix,
     const numeric_vector<N_>     &x0,
     const numeric_matrix<N_, N_> &P0,
-    const real_t                 &alpha  = 0.1,
-    const real_t                 &beta   = 0.1,
-    const real_t                 &tau    = 3.0,
-    const real_t                 &eps    = 1.e-12,
-    const numeric_matrix<N_, N_> &Qfloor = numeric_matrix<N_, N_>::zeros(),
-    const numeric_matrix<M_, M_> &Rfloor = numeric_matrix<M_, M_>::zeros(),
-    const real_t                 &gamma  = 0.0)
+    const real_t                 &alpha = 0.1,
+    const real_t                 &beta  = 0.1,
+    const real_t                 &tau   = 3.0,
+    const real_t                 &eps   = 1.e-12)
       : Base(F_matrix, B_matrix, H_matrix, Q_matrix, R_matrix, x0, P0),
-        alpha_{alpha}, beta_{beta}, tau_{tau}, eps_{eps}, Q0_{Q_matrix}, R0_{R_matrix} {}
+        alpha_{alpha}, beta_{beta}, tau_{tau}, eps_{eps} {}
 
   /**
    * Convenience ctor (P0 defaults to Q)
@@ -651,82 +626,69 @@ public:
     numeric_matrix<N_, N_>       &Q_matrix,
     numeric_matrix<M_, M_>       &R_matrix,
     const numeric_vector<N_>     &x0,
-    const real_t                 &alpha  = 0.1,
-    const real_t                 &beta   = 0.1,
-    const real_t                 &tau    = 3.0,
-    const real_t                 &eps    = 1.e-12,
-    const numeric_matrix<N_, N_> &Qfloor = numeric_matrix<N_, N_>::zeros(),
-    const numeric_matrix<M_, M_> &Rfloor = numeric_matrix<M_, M_>::zeros(),
-    const real_t                 &gamma  = 0.0)
+    const real_t                 &alpha = 0.1,
+    const real_t                 &beta  = 0.1,
+    const real_t                 &tau   = 3.0,
+    const real_t                 &eps   = 1.e-12)
       : r_iae_kalman_filter_t(F_matrix, B_matrix, H_matrix, Q_matrix, R_matrix, x0, Q_matrix,
-                              alpha, beta, tau, eps, Qfloor, Rfloor, gamma) {}
+                              alpha, beta, tau, eps) {}
 
   r_iae_kalman_filter_t &update(const numeric_vector<M_> &z) override {
-    // Innovation
-    const numeric_vector<M_> y    = z - this->H_ * this->x_;
-    const auto               PHT  = this->P_.matmul_T(this->H_);
-    const auto               HPHT = this->H_ * PHT;
+    const numeric_vector<M_>     y    = z - this->H_ * this->x_;
+    const numeric_matrix<N_, M_> PHT  = this->P_.matmul_T(this->H_);
+    const numeric_matrix<M_, M_> S    = this->H_ * PHT + this->R_;
+    const numeric_matrix<M_, M_> invS = S.inverse();
+    const numeric_matrix<N_, M_> K    = PHT * invS;
 
-    // Baseline S and SPD check BEFORE inverse
-    const auto             I_M   = numeric_matrix<M_, M_>::identity();
-    numeric_matrix<M_, M_> S_nom = HPHT + this->R_;
-    if (!S_nom.is_spd(eps_)) S_nom += I_M * eps_;
+    if (!S.is_spd(eps_)) {
+      // If S is bad, skip adaptation this step, use normal KF update
+      this->x_ += K * y;
+      const numeric_matrix<N_, N_> I_KH = numeric_matrix<N_, N_>::identity() - K * this->H_;
+      this->P_                          = I_KH * this->P_ * I_KH.transpose() + K * this->R_ * K.transpose();
+      this->P_                          = 0.5 * (this->P_ + this->P_.transpose());
+      return *this;
+    }
 
-    const auto invS_nom = S_nom.inverse();
+    // Mahalanobis distance d = sqrt(y^T S^-1 y)
+    const numeric_matrix<M_, 1> y_col = y.as_matrix_col();
+    const numeric_matrix<1, 1>  d2m   = y_col.transpose() * invS * y_col;
 
-    // Mahalanobis distance
-    const auto   y_col = y.as_matrix_col();
-    const real_t d2    = (y_col.transpose() * invS_nom * y_col)[0][0];
-    const real_t d     = std::sqrt(d2 + eps_);
+    const real_t d = sqrt(d2m[0][0] + eps_);
+    real_t       w = d <= tau_
+                       ? 1.
+                       : tau_ / d;  // Huber weight in [0,1]
+    if (w < eps_)
+      w = eps_;
 
-    // Huber weight
-    real_t w = d <= tau_ ? 1.0 : tau_ / d;
-    if (w < eps_) w = eps_;
+    // Weighted innovation and gain
+    numeric_vector<M_>     y_w   = w * y;
+    numeric_matrix<N_, M_> K_eff = w * K;
 
-    // Robust weighting via R inflation: R_eff = R / w^2
-    numeric_matrix<M_, M_> R_eff = this->R_ * (1.0 / (w * w));
+    // State update
+    this->x_ += K_eff * y;
 
-    // Recompute S and K with R_eff; SPD-safe
-    numeric_matrix<M_, M_> S = HPHT + R_eff;
-    if (!S.is_spd(eps_)) S += I_M * eps_;
-    const auto invS = S.inverse();
-    const auto K    = PHT * invS;
+    // Joseph form with consistent gain
+    const numeric_matrix<N_, N_> I    = numeric_matrix<N_, N_>::identity();
+    const numeric_matrix<N_, N_> I_KH = I - K_eff * this->H_;
+    this->P_                          = I_KH * this->P_ * I_KH.transpose() + K_eff * this->R_ * K_eff.transpose();
 
-    // State & covariance (Joseph form) with R_eff
-    this->x_ += K * y;
-    const auto I_N  = numeric_matrix<N_, N_>::identity();
-    const auto I_KH = I_N - K * this->H_;
-    this->P_        = I_KH * this->P_ * I_KH.transpose() + K * R_eff * K.transpose();
-    this->P_        = (this->P_ + this->P_.transpose()) * 0.5;
+    // Symmetrize -> Makes P SPD
+    this->P_ = 0.5 * (this->P_ + this->P_.transpose());
 
-    // Robust innovation energy (weighted)
-    const auto             y_w_col = (w * y).as_matrix_col();
-    numeric_matrix<M_, M_> ywywT   = y_w_col.matmul_T(y_w_col);  // (w y)(w y)^T = w^2 y y^T
+    // IAE adaptation using robust innovation
+    const numeric_matrix<M_, 1>  y_w_col = y_w.as_matrix_col();
+    const auto                   ywywT   = y_w_col.matmul_T(y_w_col);  // (w y)(w y)^T = w^2 y y^T
+    const numeric_matrix<M_, M_> HPHT    = this->H_ * PHT;
 
-    // === IAE Adaptation ===
-    // R_new = E[yyᵀ] - HPHT  (use robust y_w)
+    // Adapt R
     numeric_matrix<M_, M_> R_new = ywywT - HPHT;
     R_new.inplace_project_to_psd(eps_);
-    diag_floor_R(R_new, R_floor_);  // prevent overconfidence on measurement
-    this->R_ = (1.0 - alpha_) * this->R_ + alpha_ * R_new;
+    this->R_ = (1. - alpha_) * this->R_ + alpha_ * R_new;
 
-    // Asymmetric Q adaptation: react fast to spikes, relax slowly at rest
-    const bool   spike    = (d > tau_);    // you can pick a higher gate if desired
-    const real_t beta_up  = beta_ * 2.00;  // faster when residuals are large
-    const real_t beta_dn  = beta_ * 0.25;  // slower when quiet
-    const real_t beta_eff = spike ? beta_up : beta_dn;
-
-    // Q_new = K * (w² yyᵀ) * Kᵀ
+    // Adapt Q
     numeric_matrix<N_, N_> Q_new = K * ywywT * K.transpose();
     Q_new.inplace_project_to_psd(eps_);
-    diag_floor_Q(Q_new, Q_floor_);  // keep responsiveness floor (esp. on velocity/accel)
-    this->Q_ = (1.0 - beta_eff) * this->Q_ + beta_eff * Q_new;
-
-    // Optional: tiny leak back to nominal (prevents long-term drift/lock)
-    if (gamma_ > 0.0) {
-      this->Q_ = (1.0 - gamma_) * this->Q_ + gamma_ * Q0_;
-      this->R_ = (1.0 - gamma_) * this->R_ + gamma_ * R0_;
-    }
+    this->Q_ = (1. - beta_) * this->Q_ + beta_ * Q_new;
 
     return *this;
   }
