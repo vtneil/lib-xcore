@@ -634,59 +634,65 @@ public:
                               alpha, beta, tau, eps) {}
 
   r_iae_kalman_filter_t &update(const numeric_vector<M_> &z) override {
-    const numeric_vector<M_>     y    = z - this->H_ * this->x_;
-    const numeric_matrix<N_, M_> PHT  = this->P_.matmul_T(this->H_);
-    const numeric_matrix<M_, M_> S    = this->H_ * PHT + this->R_;
-    const numeric_matrix<M_, M_> invS = S.inverse();
-    const numeric_matrix<N_, M_> K    = PHT * invS;
+    // Innovation and S using PRIOR P (P_)
+    const numeric_vector<M_>     y   = z - this->H_ * this->x_;
+    const numeric_matrix<N_, M_> PHT = this->P_.matmul_T(this->H_);
+    const numeric_matrix<M_, M_> S   = this->H_ * PHT + this->R_;
 
+    // 1) Check SPD before inverting
     if (!S.is_spd(eps_)) {
-      // If S is bad, skip adaptation this step, use normal KF update
-      this->x_ += K * y;
-      const numeric_matrix<N_, N_> I_KH = numeric_matrix<N_, N_>::identity() - K * this->H_;
-      this->P_                          = I_KH * this->P_ * I_KH.transpose() + K * this->R_ * K.transpose();
-      this->P_                          = 0.5 * (this->P_ + this->P_.transpose());
+      // Fallback: plain KF update without adaptation
+      const numeric_matrix<M_, M_> S_reg      = S + numeric_matrix<M_, M_>::identity() * eps_;
+      const numeric_matrix<N_, M_> K_fallback = PHT * S_reg.inverse();
+      this->x_ += K_fallback * y;
+      const auto I    = numeric_matrix<N_, N_>::identity();
+      const auto I_KH = I - K_fallback * this->H_;
+      this->P_        = I_KH * this->P_ * I_KH.transpose() + K_fallback * this->R_ * K_fallback.transpose();
+      this->P_        = 0.5 * (this->P_ + this->P_.transpose());
       return *this;
     }
 
-    // Mahalanobis distance d = sqrt(y^T S^-1 y)
+    const numeric_matrix<M_, M_> invS = S.inverse();
+    const numeric_matrix<N_, M_> K    = PHT * invS;
+
+    // Mahalanobis distance
     const numeric_matrix<M_, 1> y_col = y.as_matrix_col();
     const numeric_matrix<1, 1>  d2m   = y_col.transpose() * invS * y_col;
+    const real_t                d     = std::sqrt(d2m[0][0] + eps_);
 
-    const real_t d = sqrt(d2m[0][0] + eps_);
-    real_t       w = d <= tau_
-                       ? 1.
-                       : tau_ / d;  // Huber weight in [0,1]
-    if (w < eps_)
-      w = eps_;
+    // Huber weight in (0,1]
+    real_t w = d <= tau_ ? 1. : tau_ / (d + eps_);
+    if (w < eps_) w = eps_;
 
-    // Weighted innovation and gain
-    numeric_vector<M_>     y_w   = w * y;
-    numeric_matrix<N_, M_> K_eff = w * K;
+    // Weighted innovation and effective gain
+    const numeric_vector<M_>     y_w   = w * y;
+    const numeric_matrix<N_, M_> K_eff = w * K;
 
     // State update
     this->x_ += K_eff * y;
 
-    // Joseph form with consistent gain
-    const numeric_matrix<N_, N_> I    = numeric_matrix<N_, N_>::identity();
-    const numeric_matrix<N_, N_> I_KH = I - K_eff * this->H_;
-    this->P_                          = I_KH * this->P_ * I_KH.transpose() + K_eff * this->R_ * K_eff.transpose();
-
-    // Symmetrize -> Makes P SPD
-    this->P_ = 0.5 * (this->P_ + this->P_.transpose());
+    // Joseph form with K_eff (consistency with robust weighting)
+    const auto I    = numeric_matrix<N_, N_>::identity();
+    const auto I_KH = I - K_eff * this->H_;
+    this->P_        = I_KH * this->P_ * I_KH.transpose() + K_eff * this->R_ * K_eff.transpose();
+    this->P_        = 0.5 * (this->P_ + this->P_.transpose());
 
     // IAE adaptation using robust innovation
     const numeric_matrix<M_, 1>  y_w_col = y_w.as_matrix_col();
-    const auto                   ywywT   = y_w_col.matmul_T(y_w_col);  // (w y)(w y)^T = w^2 y y^T
-    const numeric_matrix<M_, M_> HPHT    = this->H_ * PHT;
+    const auto                   ywywT   = y_w_col.matmul_T(y_w_col);  // (w y)(w y)^T
+    const numeric_matrix<M_, M_> HPHT    = this->H_ * PHT;             // uses PRIOR P
 
-    // Adapt R
+    // 2) Adapt R (PSD-projected)
     numeric_matrix<M_, M_> R_new = ywywT - HPHT;
     R_new.inplace_project_to_psd(eps_);
     this->R_ = (1. - alpha_) * this->R_ + alpha_ * R_new;
 
-    // Adapt Q
-    numeric_matrix<N_, N_> Q_new = K * ywywT * K.transpose();
+    // 3) Adapt Q using K_eff for consistency
+    numeric_matrix<N_, N_> Q_new = K_eff * ywywT * K_eff.transpose();
+
+    // Optional bias correction
+    Q_new -= K_eff * this->R_ * K_eff.transpose();
+
     Q_new.inplace_project_to_psd(eps_);
     this->Q_ = (1. - beta_) * this->Q_ + beta_ * Q_new;
 
