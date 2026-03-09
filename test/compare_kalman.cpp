@@ -42,7 +42,7 @@ static inline real_t accel_profile(real_t t) {
   else if (t < 35.0)
     return -0.7;
   else
-    return -0.6 * std::sin(0.5 * t);
+    return -0.6 * ::std::sin(0.5 * t);
 }
 
 int main() {

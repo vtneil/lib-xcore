@@ -658,7 +658,7 @@ public:
     // Mahalanobis distance
     const numeric_matrix<M_, 1> y_col = y.as_matrix_col();
     const numeric_matrix<1, 1>  d2m   = y_col.transpose() * invS * y_col;
-    const real_t                d     = std::sqrt(d2m[0][0] + eps_);
+    const real_t                d     = ::std::sqrt(d2m[0][0] + eps_);
 
     // Huber weight in (0,1]
     real_t w = d <= tau_ ? 1. : tau_ / (d + eps_);

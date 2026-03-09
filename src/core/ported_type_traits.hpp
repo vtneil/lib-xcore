@@ -617,7 +617,7 @@ namespace detail {
     using type = T;
   };
 
-  template<typename T, std::size_t N>
+  template<typename T, ::std::size_t N>
   struct decay_array<T[N]> {
     using type = T *;
   };

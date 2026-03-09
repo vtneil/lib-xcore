@@ -9,5 +9,6 @@
 #include "math/imu_tools.hpp"
 #include "math/kalman.hpp"
 #include "math/kalman_lut.hpp"
+#include "math/control.hpp"
 
 #endif  //LIB_XCORE_INCLUDE_MATH_MODULE_H

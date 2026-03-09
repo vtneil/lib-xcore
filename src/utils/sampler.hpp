@@ -3,6 +3,7 @@
 
 #include "internal/macros.hpp"
 #include "core/ported_std.hpp"
+#include <limits>
 
 LIB_XCORE_BEGIN_NAMESPACE
 
@@ -63,8 +64,8 @@ public:
   template<typename FloatingPoint = double>
   [[nodiscard]] FloatingPoint over_by_under() const {
     if (count_under_ == 0) {
-      if (count_over_ == 0) return std::numeric_limits<FloatingPoint>::quiet_NaN();
-      return std::numeric_limits<FloatingPoint>::infinity();
+      if (count_over_ == 0) return ::std::numeric_limits<FloatingPoint>::quiet_NaN();
+      return ::std::numeric_limits<FloatingPoint>::infinity();
     }
     return static_cast<FloatingPoint>(count_over_) / static_cast<FloatingPoint>(count_under_);
   }
@@ -72,8 +73,8 @@ public:
   template<typename FloatingPoint = double>
   [[nodiscard]] FloatingPoint under_by_over() const {
     if (count_over_ == 0) {
-      if (count_under_ == 0) return std::numeric_limits<FloatingPoint>::quiet_NaN();
-      return std::numeric_limits<FloatingPoint>::infinity();
+      if (count_under_ == 0) return ::std::numeric_limits<FloatingPoint>::quiet_NaN();
+      return ::std::numeric_limits<FloatingPoint>::infinity();
     }
     return static_cast<FloatingPoint>(count_under_) / static_cast<FloatingPoint>(count_over_);
   }

@@ -613,7 +613,7 @@ namespace impl {
     numeric_matrix_static_t inv() const {
       static_assert(static_is_a_square_matrix(), "Can only find inverse of a square matrix.");
       if (numeric_matrix_static_lu_t<T, Order> lu = move(LU());
-          std::abs(det_from_lu(lu)) > XCORE_FLOAT_THRESHOLD)
+          ::std::abs(det_from_lu(lu)) > XCORE_FLOAT_THRESHOLD)
         return inv_ut(lu.u()) * inv_lt(lu.l());
       return numeric_matrix_static_t();
     }
@@ -705,11 +705,11 @@ namespace impl {
             sum -= L[i][k] * L[j][k];
 
           if (i == j) {
-            if (sum <= eps_diag || !std::isfinite(sum))
+            if (sum <= eps_diag || !::std::isfinite(sum))
               return false;
             L[i][j] = sqrt(sum);
           } else {
-            if (std::abs(L[j][j]) <= eps_diag)
+            if (::std::abs(L[j][j]) <= eps_diag)
               return false;
             L[i][j] = sum / L[j][j];
           }
@@ -736,11 +736,11 @@ namespace impl {
       real_t max_abs = 0;
       for (size_t i = 0; i < N; ++i)
         for (size_t j = 0; j < N; ++j)
-          max_abs = max(max_abs, std::abs(A[i][j]));
+          max_abs = max(max_abs, ::std::abs(A[i][j]));
 
       for (size_t i = 0; i < N; ++i) {
         for (size_t j = i + 1; j < N; ++j) {
-          if (const real_t diff = std::abs(A[i][j] - A[j][i]);
+          if (const real_t diff = ::std::abs(A[i][j] - A[j][i]);
               diff > sym_tol * max(1., max_abs))
             return false;
         }
