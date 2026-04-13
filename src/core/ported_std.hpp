@@ -23,7 +23,7 @@ LIB_XCORE_BEGIN_NAMESPACE
 #elif defined(XCORE_USE_DOUBLE)
 #  define XCORE_REAL_T double
 #elif defined(XCORE_USE_LONG_DOUBLE)
-#  define XCORE_REAL_T = long double;
+#  define XCORE_REAL_T long double
 #else
 #  define XCORE_REAL_T double
 #  define XCORE_USE_DOUBLE

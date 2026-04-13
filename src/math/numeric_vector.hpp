@@ -318,7 +318,7 @@ namespace impl {
      *
      * @return A norm of this vector
      */
-    constexpr T norm() const { return pow(dot(*this), 0.5); }
+    constexpr T norm() const { return sqrt(dot(*this)); }
 
     /**
      * Returns a normalized vector of this vector.
@@ -336,11 +336,13 @@ namespace impl {
      */
     template<size_t OSize>
     bool operator==(const numeric_vector_static_t<T, OSize> &other) const {
-      if (this == &other) return true;
-      if (Size != OSize) return false;
-      for (size_t i = 0; i < Size; ++i)
-        if (arr_[i] != other.arr_[i]) return false;
-      return true;
+      if constexpr (Size != OSize) return false;
+      else {
+        if (this == &other) return true;
+        for (size_t i = 0; i < Size; ++i)
+          if (arr_[i] != other.arr_[i]) return false;
+        return true;
+      }
     }
 
     /**
@@ -411,11 +413,13 @@ namespace impl {
      */
     template<size_t OSize>
     bool float_equals(const numeric_vector_static_t<T, OSize> &other, real_t threshold = XCORE_FLOAT_THRESHOLD) const {
-      if (this == &other) return true;
-      if (Size != OSize) return false;
-      for (size_t i = 0; i < Size; ++i)
-        if (abs(arr_[i] - other.arr_[i]) > threshold) return false;
-      return true;
+      if constexpr (Size != OSize) return false;
+      else {
+        if (this == &other) return true;
+        for (size_t i = 0; i < Size; ++i)
+          if (abs(arr_[i] - other.arr_[i]) > threshold) return false;
+        return true;
+      }
     }
 
     /**
@@ -671,8 +675,8 @@ namespace impl {
 
   template<typename T, size_t Size>
   numeric_vector_static_t<T, Size> operator-(const T (&lhs)[Size], const numeric_vector_static_t<T, Size> &rhs) {
-    numeric_vector_static_t<T, Size> tmp(rhs);
-    tmp.operator-=(lhs);
+    numeric_vector_static_t<T, Size> tmp(lhs);
+    tmp.operator-=(rhs);
     return tmp;
   }
 }  // namespace impl

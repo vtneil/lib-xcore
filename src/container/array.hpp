@@ -51,9 +51,11 @@ namespace container {
       }
 
       [[nodiscard]] constexpr Tp max() const noexcept {
+        const size_t n = derived()->size();
+        if (n == 0) return Tp{};
         Tp max_val = get_derived_data()[0];
 
-        for (size_t i = 1; i < Size; ++i) {
+        for (size_t i = 1; i < n; ++i) {
           max_val = get_derived_data()[i] > max_val ? get_derived_data()[i] : max_val;
         }
 
@@ -61,9 +63,11 @@ namespace container {
       }
 
       [[nodiscard]] constexpr Tp min() const noexcept {
+        const size_t n = derived()->size();
+        if (n == 0) return Tp{};
         Tp min_val = get_derived_data()[0];
 
-        for (size_t i = 1; i < Size; ++i) {
+        for (size_t i = 1; i < n; ++i) {
           min_val = get_derived_data()[i] < min_val ? get_derived_data()[i] : min_val;
         }
 
@@ -93,7 +97,7 @@ namespace container {
       // Modify
       FORCE_INLINE void clear() noexcept {
         for (size_t i = 0; i < Size; ++i) {
-          get_derived_data()[i] = 0;
+          get_derived_data()[i] = Tp{};
         }
       }
 
@@ -105,7 +109,7 @@ namespace container {
 
       constexpr void fill(Tp value, Tp *begin, Tp *end) noexcept {
         for (; begin < end; ++begin) {
-          get_derived_data()[begin] = value;
+          *begin = value;
         }
       }
 

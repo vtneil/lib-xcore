@@ -20,7 +20,7 @@ namespace container {
     struct entry_t {
       size_t index;
       TimeT  timestamp;
-      KT    &key;
+      KT     key;
     };
 
   protected:
@@ -117,9 +117,12 @@ namespace container {
 
     void clear() {
       this->occupied_.clear_all();
+      this->size_    = 0;
+      this->rr_index = 0;
+      this->rr_ttl   = 0;
     }
 
-    bool contains(const KT &key) {
+    bool contains(const KT &key) const {
       return this->_find(key);
     }
 
@@ -248,8 +251,8 @@ namespace container {
     struct entry_t {
       size_t index;
       TimeT  timestamp;
-      KT    &key;
-      VT    &value;
+      KT     key;
+      VT     value;
     };
 
   protected:

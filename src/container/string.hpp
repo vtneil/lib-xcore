@@ -29,7 +29,7 @@ namespace container {
       // Constructors
 
       basic_string_t(const char *c_str = "")  // Implicit and default
-          : basic_string_t(c_str, strlen(c_str)) {}
+          : basic_string_t(c_str, c_str ? strlen(c_str) : 0) {}
 
       basic_string_t(const char *c_str, const size_t n) {
         if (c_str)

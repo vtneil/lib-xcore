@@ -16,8 +16,8 @@ constexpr nullopt_t nullopt{};
 template<typename T>
 struct optional {
 private:
-  bool          is_initialized;
-  unsigned char storage[nearest_alignment<T, void *>()];
+  bool                             is_initialized;
+  alignas(alignof(T)) unsigned char storage[nearest_alignment<T, void *>()];
 
 public:
   optional() : is_initialized(false) {}

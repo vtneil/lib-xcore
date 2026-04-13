@@ -316,6 +316,15 @@ namespace detail {
 
   template<>
   struct is_signed_impl<long long> : true_type {};
+
+  template<>
+  struct is_signed_impl<float> : true_type {};
+
+  template<>
+  struct is_signed_impl<double> : true_type {};
+
+  template<>
+  struct is_signed_impl<long double> : true_type {};
 }  // namespace detail
 
 template<typename T>

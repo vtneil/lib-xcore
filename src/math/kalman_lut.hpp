@@ -55,10 +55,10 @@ public:
 protected:
   template<size_t Index>
   void update_dt_helper(const real_t &new_dt) {
-    if constexpr (Index == 0) {
+    if constexpr (Index == 0 && Index < Degree) {
       m_dt[0] = new_dt;
       update_dt_helper<1>(new_dt);
-    } else if constexpr (Index == 1) {
+    } else if constexpr (Index == 1 && Index < Degree) {
       m_dt[1] = 0.5 * m_dt[0] * m_dt[0];
       update_dt_helper<2>(new_dt);
     } else if constexpr (Index < Degree) {

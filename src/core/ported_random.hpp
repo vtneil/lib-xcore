@@ -194,9 +194,9 @@ public:
   }
 
   result_type operator()() {
-    long ps = pos_ - s;
+    long ps = static_cast<long>(pos_) - static_cast<long>(s);
     if (ps < 0)
-      ps += r;
+      ps += static_cast<long>(r);
 
     result_type xi;
     if (state_[ps] >= state_[pos_] + carry_) {

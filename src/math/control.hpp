@@ -34,11 +34,11 @@ protected:
 
 public:
   pid_controller_t(const real_t     &kp,
-                 const real_t     &ki,
-                 const real_t     &kd,
-                 const time_func_t time_func = nullptr,
-                 const real_t     &out_min   = ::std::numeric_limits<real_t>::lowest(),
-                 const real_t     &out_max   = ::std::numeric_limits<real_t>::max())
+                   const real_t     &ki,
+                   const real_t     &kd,
+                   const time_func_t time_func = nullptr,
+                   const real_t     &out_min   = ::std::numeric_limits<real_t>::lowest(),
+                   const real_t     &out_max   = ::std::numeric_limits<real_t>::max())
       : kp_(kp), ki_(ki), kd_(kd),
         time_func_(time_func),
         out_min_(out_min), out_max_(out_max) {}

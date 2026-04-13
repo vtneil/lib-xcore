@@ -143,6 +143,6 @@ constexpr R invoke_r(F &&f, Args &&...args) noexcept(is_nothrow_invocable_r_v<R,
   else
     return invoke(forward<F>(f), forward<Args>(args)...);
 }
-}  // namespace ported
+LIB_XCORE_END_NAMESPACE
 
 #endif  //LIB_XCORE_CORE_PORTED_INVOKE_HPP

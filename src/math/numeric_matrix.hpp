@@ -300,6 +300,7 @@ namespace impl {
 
     numeric_matrix_static_t<T, Order, Order> &
     operator*=(const numeric_matrix_static_t<T, Order, Order> &other) {
+      static_assert(static_is_a_square_matrix(), "Non-square matrix can't use *= operator.");
       steal(move(operator*(other)));
       return *this;
     }
@@ -331,9 +332,8 @@ namespace impl {
 
     template<size_t ORow, size_t OCol>
     numeric_matrix_static_t<T, Col, ORow> T_matmul_T(const numeric_matrix_static_t<T, ORow, OCol> &other) const {
-      // todo: Implement
-      numeric_matrix_static_t<T, Col, ORow> C;
-      return C;
+      static_assert(!ORow, "T_matmul_T is not yet implemented");
+      return numeric_matrix_static_t<T, Col, ORow>{};
     }
 
     template<size_t ORow, size_t OCol>
@@ -647,7 +647,9 @@ namespace impl {
           else {
             T sum_ = 0;
             for (size_t j = 0; j < i; ++j) sum_ += lower[k][j] * upper[j][i];
-            lower[k][i] = (vector_[k][i] - sum_) / upper[i][i];
+            lower[k][i] = abs(upper[i][i]) > XCORE_FLOAT_THRESHOLD
+                            ? (vector_[k][i] - sum_) / upper[i][i]
+                            : T{};
           }
         }
       }
@@ -818,11 +820,13 @@ namespace impl {
      */
     template<size_t ORow, size_t OCol>
     bool operator==(const numeric_matrix_static_t<T, ORow, OCol> &other) const {
-      if (this == &other) return true;
-      if (Row != ORow || Col != OCol) return false;
-      for (size_t i = 0; i < Row; ++i)
-        if (vector_[i] != other.vector_[i]) return false;
-      return true;
+      if constexpr (Row != ORow || Col != OCol) return false;
+      else {
+        if (this == &other) return true;
+        for (size_t i = 0; i < Row; ++i)
+          if (vector_[i] != other.vector_[i]) return false;
+        return true;
+      }
     }
 
     /**
@@ -900,11 +904,13 @@ namespace impl {
      */
     template<size_t ORow, size_t OCol>
     bool float_equals(const numeric_matrix_static_t<T, ORow, OCol> &other, real_t threshold = XCORE_FLOAT_THRESHOLD) const {
-      if (this == &other) return true;
-      if (Row != ORow || Col != OCol) return false;
-      for (size_t i = 0; i < Row; ++i)
-        if (!vector_[i].float_equals(other.vector_[i], threshold)) return false;
-      return true;
+      if constexpr (Row != ORow || Col != OCol) return false;
+      else {
+        if (this == &other) return true;
+        for (size_t i = 0; i < Row; ++i)
+          if (!vector_[i].float_equals(other.vector_[i], threshold)) return false;
+        return true;
+      }
     }
 
     /**
@@ -1007,8 +1013,8 @@ namespace impl {
     void fix_zero() {
       for (size_t i = 0; i < Row; ++i)
         for (size_t j = 0; j < Col; ++j)
-          if (vector_[i][j] == 0.0)
-            vector_[i][j] = 0.0;
+          if (abs(vector_[i][j]) < XCORE_FLOAT_THRESHOLD)
+            vector_[i][j] = T{};
     }
 
     void allocate_zero() {

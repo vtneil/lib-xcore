@@ -20,18 +20,22 @@ enable_if_t<is_integral_v<Tp>, char *> xtostr(Tp value, char *buf, unsigned int 
     return buf;
   }
 
-  constexpr char digits[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  char          *p        = buf;
-  const bool     negative = value < 0 && is_signed_v<Tp> && radix == 10;
+  constexpr char  digits[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  char           *p        = buf;
+  const bool      negative = value < 0 && is_signed_v<Tp> && radix == 10;
+  make_unsigned_t<Tp> uvalue;
 
   if (negative) {
-    value = -value;
+    // Cast to unsigned before negation to avoid UB on MIN value
+    uvalue = static_cast<make_unsigned_t<Tp>>(-(value + 1)) + 1u;
+  } else {
+    uvalue = static_cast<make_unsigned_t<Tp>>(value);
   }
 
   do {
-    *p++ = digits[value % radix];
-    value /= radix;
-  } while (value > 0);
+    *p++ = digits[uvalue % radix];
+    uvalue /= radix;
+  } while (uvalue > 0);
 
   if (negative) {
     *p++ = '-';

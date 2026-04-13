@@ -46,11 +46,11 @@
 #  endif
 
 #  ifndef LIKELY
-#    define LIKELY(x)
+#    define LIKELY(x) (x)
 #  endif
 
 #  ifndef UNLIKELY
-#    define UNLIKELY(x)
+#    define UNLIKELY(x) (x)
 #  endif
 
 #endif

@@ -57,7 +57,7 @@ public:
 
   constexpr tuple &operator=(tuple &&other) noexcept {
     value                              = move(other.value);
-    static_cast<tuple<Ts...> &>(*this) = move(static_cast<const tuple<Ts...> &>(other));
+    static_cast<tuple<Ts...> &>(*this) = move(static_cast<tuple<Ts...> &>(other));
     return *this;
   }
 

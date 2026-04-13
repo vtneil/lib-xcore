@@ -65,8 +65,10 @@ template<typename... Types>
 struct variant;
 
 template<typename T, typename... Types>
-constexpr bool holds_alternative(const variant<Types...> &) noexcept {
-  return detail::contains_type<T, Types...>::value;
+constexpr bool holds_alternative(const variant<Types...> &v) noexcept {
+  if constexpr (!detail::contains_type<T, Types...>::value)
+    return false;
+  return v.index() == detail::type_index<T, Types...>::value;
 }
 
 template<typename... Types>

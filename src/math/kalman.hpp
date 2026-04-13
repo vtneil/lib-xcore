@@ -208,8 +208,8 @@ public:
     numeric_matrix<N_, N_>       &F_matrix,
     const numeric_matrix<N_, L_> &B_matrix,
     const numeric_matrix<M_, N_> &H_matrix,
-    const numeric_matrix<N_, N_> &Q_matrix,
-    const numeric_matrix<M_, M_> &R_matrix,
+    numeric_matrix<N_, N_>       &Q_matrix,
+    numeric_matrix<M_, M_>       &R_matrix,
     const numeric_vector<N_>     &x0)
       : kalman_filter_t(F_matrix, B_matrix, H_matrix, Q_matrix, R_matrix, x0, Q_matrix) {}
 
@@ -759,7 +759,7 @@ public:
     numeric_matrix<N_, M_> K_      = move(P_Hjx_t * S_.inverse());
 
     x_ += K_ * y_;
-    P_ = move((numeric_matrix<N_, N_>::identity() - K_ * Hj_(x_)) * P_);
+    P_ = move((numeric_matrix<N_, N_>::identity() - K_ * Hjx_) * P_);
 
     return *this;
   }
@@ -840,7 +840,7 @@ public:
     numeric_matrix<N_, M_> K_      = move(P_Hjx_t * S_.inverse());
 
     x_ += K_ * y_;
-    P_ = move((numeric_matrix<N_, N_>::identity() - K_ * Hj_(x_)) * P_);
+    P_ = move((numeric_matrix<N_, N_>::identity() - K_ * Hjx_) * P_);
 
     numeric_matrix<M_, 1>  y_mat = y_.as_matrix_col();
     numeric_matrix<M_, M_> y_yT  = y_mat.matmul_T(y_mat);

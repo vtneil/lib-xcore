@@ -35,7 +35,7 @@ public:
 
   constexpr iterator operator-(size_t n) const { return iterator(ptr_ - n); }
 
-  constexpr size_t operator-(iterator other) const { return ptr_ - other.ptr_; }
+  constexpr ptrdiff_t operator-(iterator other) const { return ptr_ - other.ptr_; }
 
   iterator &operator--() {
     --ptr_;
