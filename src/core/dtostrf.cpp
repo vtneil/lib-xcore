@@ -54,8 +54,8 @@ char *dtostrf(double val, signed char width, unsigned char prec, char *sout) {
   // Handle minimum field width of the output string
   // width is signed value, negative for left adjustment.
   // Range -128,127
-  char           fmt[129] = "";
-  p unsigned int w        = width;
+  char         fmt[129] = "";
+  unsigned int w        = width;
   if (width < 0) {
     negative = 1;
     w        = -width;
