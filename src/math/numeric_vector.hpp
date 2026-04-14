@@ -71,6 +71,17 @@ namespace impl {
     constexpr explicit numeric_vector_static_t(const T &fill)
         : numeric_vector_static_t(fill, make_index_sequence<Size>()) {}
 
+    /**
+     * Single-element implicit constructor, only enabled for Size == 1.
+     * Allows copy-list-initialization from a scalar (e.g. passing {x} to a function).
+     * The non-template fill constructor above is preferred in direct-initialization,
+     * so there is no ambiguity.
+     */
+    template<typename U, size_t S = Size,
+             typename = enable_if_t<(S == 1) && is_convertible_v<U, T>>>
+    constexpr /*implicit*/ numeric_vector_static_t(U &&elem)  // NOLINT
+        : arr_{static_cast<T>(forward<U>(elem))} {}
+
     constexpr numeric_vector_static_t(const numeric_vector_static_t &) = default;
 
     constexpr numeric_vector_static_t(numeric_vector_static_t &&) noexcept = default;

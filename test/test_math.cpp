@@ -144,6 +144,23 @@ int main(int, char *[]) {
   assert((v1.slice<0, 4>().equals({1, 2, 3, 4})));
   assert((v1.slice<1, 2>().equals({2})));
 
+  // numeric_vector<1>: fill constructor and braced-init-list usage
+  assert(numeric_vector<1>(7.).equals({7.}));  // explicit fill ctor
+  assert(numeric_vector<1>(0.).equals({0.}));
+  assert(numeric_vector<1>::ones().equals({1.}));
+  assert(numeric_vector<1>::zeros().equals({0.}));
+  assert((numeric_vector<1>{3.} + numeric_vector<1>{4.}).equals({7.}));  // direct braced-init
+
+  // braced-init-list as function argument (copy-list-initialization)
+  auto accept_vec1 = [](const numeric_vector<1> &v) { return v[0]; };
+  assert(accept_vec1({42.}) == 42.);
+  assert(accept_vec1({-1.}) == -1.);
+
+  // make helpers with size-1 arrays
+  real_t arr1[1] = {5.};
+  assert(make_numeric_vector(arr1).equals({5.}));
+  assert(make_generic_vector<real_t>(arr1).equals({5.}));
+
   assert(inv(make_numeric_matrix({
            {1, 1},
            {1, 1}
