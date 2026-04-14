@@ -91,6 +91,7 @@ namespace impl {
      *
      * @param array Array of entries
      */
+    template<size_t S = Size, enable_if_t<(S > 1), int> = 0>
     constexpr explicit numeric_vector_static_t(const T (&array)[Size])
         : numeric_vector_static_t(array, make_index_sequence<Size>()) {}
 
@@ -709,7 +710,8 @@ constexpr generic_vector<T, Size> make_generic_vector() {
 
 template<typename T, size_t Size>
 constexpr generic_vector<T, Size> make_generic_vector(const T (&array)[Size]) {
-  return generic_vector<T, Size>(array);
+  if constexpr (Size == 1) return generic_vector<T, Size>(array[0]);
+  else return generic_vector<T, Size>(array);
 }
 
 template<typename T, size_t Size>
@@ -761,7 +763,8 @@ constexpr numeric_vector<Size> make_numeric_vector() {
  */
 template<size_t Size>
 constexpr numeric_vector<Size> make_numeric_vector(const real_t (&array)[Size]) {
-  return numeric_vector<Size>(array);
+  if constexpr (Size == 1) return numeric_vector<Size>(array[0]);
+  else return numeric_vector<Size>(array);
 }
 
 /**
