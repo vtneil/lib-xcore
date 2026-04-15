@@ -29,9 +29,9 @@ int main() {
     parser.parse("move 10 20");
     check(parser.argc() == 3, "argc == 3");
     check(strcmp(parser.command(), "move") == 0, "command == \"move\"");
-    check(strcmp(parser.argv(1), "10") == 0, "argv(1) == \"10\"");
-    check(strcmp(parser.argv(2), "20") == 0, "argv(2) == \"20\"");
-    check(parser.argv(3) == nullptr, "argv(3) == nullptr (out of range)");
+    check(strcmp(parser.argv[1], "10") == 0, "argv[1] == \"10\"");
+    check(strcmp(parser.argv[2], "20") == 0, "argv[2] == \"20\"");
+    check(parser.argv[3] == nullptr, "argv[3] == nullptr (out of range)");
     check(parser.is("move"), "is(\"move\") == true");
     check(!parser.is("stop"), "is(\"stop\") == false");
   }
@@ -41,9 +41,9 @@ int main() {
   // -------------------------------------------------------------------------
   {
     parser.parse("go 5");
-    check(strcmp(parser[0], "go") == 0, "parser[0] == \"go\"");
-    check(strcmp(parser[1], "5") == 0, "parser[1] == \"5\"");
-    check(parser[2] == nullptr, "parser[2] == nullptr");
+    check(strcmp(parser.argv[0], "go") == 0, "argv[0] == \"go\"");
+    check(strcmp(parser.argv[1], "5") == 0, "argv[1] == \"5\"");
+    check(parser.argv[2] == nullptr, "argv[2] == nullptr");
   }
 
   // -------------------------------------------------------------------------
@@ -53,7 +53,7 @@ int main() {
     parser.parse("reset");
     check(parser.argc() == 1, "argc == 1");
     check(strcmp(parser.command(), "reset") == 0, "command == \"reset\"");
-    check(parser.argv(1) == nullptr, "argv(1) == nullptr");
+    check(parser.argv[1] == nullptr, "argv[1] == nullptr");
   }
 
   // -------------------------------------------------------------------------
@@ -63,8 +63,8 @@ int main() {
     parser.parse("  set  x  42  ");
     check(parser.argc() == 3, "argc == 3");
     check(strcmp(parser.command(), "set") == 0, "command == \"set\"");
-    check(strcmp(parser.argv(1), "x") == 0, "argv(1) == \"x\"");
-    check(strcmp(parser.argv(2), "42") == 0, "argv(2) == \"42\"");
+    check(strcmp(parser.argv[1], "x") == 0, "argv[1] == \"x\"");
+    check(strcmp(parser.argv[2], "42") == 0, "argv[2] == \"42\"");
   }
 
   // -------------------------------------------------------------------------
@@ -74,8 +74,8 @@ int main() {
     parser.parse("read\t0xFF\t4");
     check(parser.argc() == 3, "argc == 3");
     check(strcmp(parser.command(), "read") == 0, "command == \"read\"");
-    check(strcmp(parser.argv(1), "0xFF") == 0, "argv(1) == \"0xFF\"");
-    check(strcmp(parser.argv(2), "4") == 0, "argv(2) == \"4\"");
+    check(strcmp(parser.argv[1], "0xFF") == 0, "argv[1] == \"0xFF\"");
+    check(strcmp(parser.argv[2], "4") == 0, "argv[2] == \"4\"");
   }
 
   // -------------------------------------------------------------------------
@@ -105,8 +105,8 @@ int main() {
     xcore::command_parser_t<64, 3> small;
     small.parse("a b c d e");
     check(small.argc() == 3, "argc clamped to MaxArgs (3)");
-    check(strcmp(small.argv(2), "c") == 0, "argv(2) == \"c\"");
-    check(small.argv(3) == nullptr, "argv(3) == nullptr");
+    check(strcmp(small.argv[2], "c") == 0, "argv[2] == \"c\"");
+    check(small.argv[3] == nullptr, "argv[3] == nullptr");
   }
 
   // -------------------------------------------------------------------------
@@ -117,8 +117,8 @@ int main() {
     parser.parse("second 99");
     check(parser.argc() == 2, "argc == 2 after re-parse");
     check(strcmp(parser.command(), "second") == 0, "command == \"second\"");
-    check(strcmp(parser.argv(1), "99") == 0, "argv(1) == \"99\"");
-    check(parser.argv(2) == nullptr, "argv(2) == nullptr");
+    check(strcmp(parser.argv[1], "99") == 0, "argv[1] == \"99\"");
+    check(parser.argv[2] == nullptr, "argv[2] == nullptr");
   }
 
   // -------------------------------------------------------------------------

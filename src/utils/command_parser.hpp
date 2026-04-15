@@ -18,7 +18,7 @@ LIB_XCORE_BEGIN_NAMESPACE
    *   command_parser_t<> parser;
    *   if (parser.parse("move 10 20")) {
    *       parser.command();   // "move"
-   *       parser.argv(1);     // "10"
+   *       parser.argv[1];     // "10"
    *       parser.argc();      // 3
    *   }
    *
@@ -28,11 +28,21 @@ LIB_XCORE_BEGIN_NAMESPACE
 template<size_t BufferSize = 64, size_t MaxArgs = 8>
 class command_parser_t {
   char        buffer_[BufferSize];
-  const char *argv_[MaxArgs];
+  const char *argv_data_[MaxArgs];
   size_t      argc_;
 
 public:
-  command_parser_t() : buffer_{}, argv_{}, argc_(0) {}
+  /** Subscriptable view over the parsed tokens. Returns nullptr if out of range. */
+  struct {
+    const char **data_;
+    const size_t *argc_;
+
+    [[nodiscard]] const char *operator[](size_t i) const {
+      return (i < *argc_) ? data_[i] : nullptr;
+    }
+  } argv;
+
+  command_parser_t() : buffer_{}, argv_data_{}, argc_(0), argv{argv_data_, &argc_} {}
 
   /**
      * Parse a C-string command. Tokens are separated by whitespace (' ' or '\t').
@@ -55,7 +65,7 @@ public:
       while (*p == ' ' || *p == '\t') ++p;
       if (!*p) break;
 
-      argv_[argc_++] = p;
+      argv_data_[argc_++] = p;
 
       // Advance to end of token
       while (*p && *p != ' ' && *p != '\t') ++p;
@@ -68,16 +78,8 @@ public:
   /** Number of tokens (command + arguments). */
   [[nodiscard]] size_t argc() const { return argc_; }
 
-  /** Token by index. Returns nullptr if index is out of range. */
-  [[nodiscard]] const char *argv(size_t i) const {
-    return (i < argc_) ? argv_[i] : nullptr;
-  }
-
-  /** First token (the command name). Equivalent to argv(0). */
-  [[nodiscard]] const char *command() const { return argv(0); }
-
-  /** Convenience index operator. Returns nullptr if out of range. */
-  [[nodiscard]] const char *operator[](size_t i) const { return argv(i); }
+  /** First token (the command name). Equivalent to argv[0]. */
+  [[nodiscard]] const char *command() const { return argv[0]; }
 
   /** Returns true if the command matches the given string. */
   [[nodiscard]] bool is(const char *cmd) const {
