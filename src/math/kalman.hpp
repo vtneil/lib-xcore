@@ -33,7 +33,7 @@ LIB_XCORE_BEGIN_NAMESPACE
  * ## Storage & ownership
  * The filter **holds references** to `F`, `B`, `H`, `Q`, `R`:
  *   - `F_` and `Q_` are non-const references (you may adapt/tune them over time).
- *   - `B_` and `H_` and `R_` are const references.
+ *   - `B_` and `H_` are const references.
  * You (the caller) own the matrices/vectors and must keep them alive as long as the filter exists.
  * The internal state `x_` and covariance `P_` are owned by the filter.
  *
@@ -274,101 +274,117 @@ public:
 /**
  * # IAE (Innovation-Adaptive) Kalman Filter
  *
- * `iae_kalman_filter_t<N, M, L>` extends the linear discrete Kalman filter by
- * **online adaptation of R and Q** using the innovation sequence yₖ = zₖ − H x̂ₖ|ₖ₋₁.
+ * `iae_kalman_filter_t<N, M, L>` extends the linear discrete Kalman filter with
+ * **online estimation of R and Q** from the innovation sequence (Sage-Husa algorithm).
+ * No Jacobians or sigma points — same linear model as `kalman_filter_t`.
  *
- * Base model (same as Simple KF):
- *   xₖ   = F xₖ₋₁ + B uₖ + wₖ,   wₖ ~ 𝒩(0, Q)
- *   zₖ   = H xₖ     + vₖ,        vₖ ~ 𝒩(0, R)
+ * ## Model
+ *   xₖ = F xₖ₋₁ + B uₖ + wₖ,   wₖ ~ 𝒩(0, Q)
+ *   zₖ = H xₖ     + vₖ,        vₖ ~ 𝒩(0, R)
  *
- * This class updates R and Q after each measurement with EMA (exponential moving average):
- *   yₖyₖᵀ  = innovation outer product
- *   R ← (1−α) R + α ( yₖyₖᵀ − H Pₖ|ₖ₋₁ Hᵀ )         // target ≈ S − HPHᵀ = R (in expectation)
- *   Q ← (1−β) Q + β ( K yₖyₖᵀ Kᵀ )                  // Joseph-consistent process inflation
+ * ## Update equations (after the base Joseph-form P update)
+ *   yₖ    = zₖ − H x̂ₖ|ₖ₋₁              innovation (uses prior state)
+ *   HPHᵀ  = H Pₖ|ₖ₋₁ Hᵀ               prior output covariance
+ *
+ *   R_new = project_psd( yₖ yₖᵀ − HPHᵀ )
+ *   R     ← (1−α) R + α R_new           EMA blend, then symmetrize
+ *
+ *   Q_new = project_psd( K yₖ yₖᵀ Kᵀ )
+ *   Q     ← (1−β) Q + β Q_new           EMA blend, then symmetrize
+ *
+ *   In expectation: E[yₖ yₖᵀ] = HPHᵀ + R, so R_new → R as the filter converges.
+ *   Q_new approximates the covariance of the state correction K·yₖ.
+ *
+ * ## IAE vs R-IAE — choose based on your noise environment
+ *
+ *   | Noise character                               | Use          |
+ *   |-----------------------------------------------|--------------|
+ *   | Gaussian, stationary, well-known              | Simple KF    |
+ *   | Unknown / slowly drifting, no outliers        | IAE          |
+ *   | Unknown / drifting + occasional outliers      | R-IAE        |
+ *   | Heavy-tailed (GPS multipath, sonar, RF)       | R-IAE        |
+ *   | Hard CPU budget, no sqrt needed               | IAE          |
+ *
+ *   IAE and R-IAE share the same α/β semantics. R-IAE adds a Huber weight that
+ *   down-scales the gain and innovation when the Mahalanobis distance exceeds τ,
+ *   so a single spike cannot corrupt R or Q. IAE has no such protection — one
+ *   large outlier can push R_new negative, which `project_psd` clips to ε but
+ *   may still transiently distort the estimate.
  *
  * ## Template parameters
- * - `StateVectorDimension` (N): state length
- * - `MeasurementVectorDimension` (M): measurement length
- * - `ControlVectorDimension` (L): control length
+ * - `StateVectorDimension` (N):        length of the state vector x
+ * - `MeasurementVectorDimension` (M):  length of the measurement vector z
+ * - `ControlVectorDimension` (L):      length of the control vector u
  *
  * ## Storage & ownership
- * Inherits `kalman_filter_t` and thus **holds references** to `F`, `B`, `H`, `Q`, `R`.
- * - `F_`, `Q_`, `R_` are updated at runtime (Q/R by adaptation, F optionally by you).
- * - Caller owns matrices/vectors; keep them alive while the filter exists.
+ * Inherits `kalman_filter_t`. Holds **references** to F, B, H, Q, R (caller owns them).
+ * Q and R are modified at runtime by adaptation. F may be updated between steps (e.g., variable Δt).
  *
- * ## When to use IAE-KF
- * - Sensor noise statistics drift over time (R unknown/variable).
- * - Process uncertainty varies with regime (e.g., stop/go, rough/steady motion).
- * - You want a self-tuning filter without hand-retuning Q/R mid-mission.
+ * ## Parameters: α (alpha) and β (beta)
  *
- * ## Choosing α (alpha) and β (beta)
- * α, β ∈ [0, 1). They are EMA smoothing factors (higher = faster adaptation).
+ * Both are EMA smoothing factors in [0, 1).
+ * Effective memory window ≈ 1/α samples; half-life = ln(0.5) / ln(1−α).
  *
- * - **α (R adaptation)**
- *   - Typical: `0.02 … 0.2`
- *   - Larger α tracks rapidly changing sensor noise but can make R too jumpy.
- *   - Effective memory ~ `1/α` samples; half-life ≈ `ln(0.5)/ln(1−α)`.
- *   - Start with `α = 0.05` (slowly varying sensors) or `α = 0.1` (noisier/uncertain sensors).
+ *   α = 0.05  →  ~20-sample memory,  half-life ≈ 14 steps
+ *   α = 0.10  →  ~10-sample memory,  half-life ≈  7 steps
+ *   α = 0.20  →   ~5-sample memory,  half-life ≈  3 steps
  *
- * - **β (Q adaptation)**
- *   - Typical: `0.005 … 0.05` (often **smaller** than α).
- *   - Q inflation affects dynamics and stability more; adapt conservatively.
- *   - Start with `β = 0.01`. Increase if the filter **lags** true motion in regime changes.
+ * ### α — controls how fast R tracks changing measurement noise
  *
- * - **Disable adaptation**: set `α = 0` and/or `β = 0` to freeze R and/or Q.
+ *   α = 0          Freeze R (no adaptation). Equivalent to Simple KF for R.
+ *   0 < α ≤ 0.02   Extremely slow; R barely moves. Useful only for very long runs.
+ *   0.02 – 0.05    Slow drift. Good default for stable sensors (IMU bias, thermistor).
+ *   0.05 – 0.10    Moderate drift. Good default for most embedded sensors.       ← start here
+ *   0.10 – 0.20    Fast drift. Use when noise statistics change within seconds.
+ *   α > 0.20       R becomes too noisy sample-to-sample. Generally avoid.
  *
- * ## Initialization (same shapes as Simple KF)
- * - Provide good `F, B, H` from your kinematic/sensor model.
- * - Seed `R` from sensor specs; seed `Q` from model mismatch (e.g., CV: accel PSD mapping).
- * - `P0`: if unknown, the 6-arg ctor uses `P0 = Q` (reasonable neutral start).
+ *   Rule: if NIS (normalized innovation squared, yᵀS⁻¹y) stays consistently above M,
+ *   R is underestimated → increase α. If NIS stays below M, R is overestimated → decrease α.
+ *
+ * ### β — controls how fast Q tracks changing process noise
+ *
+ *   β = 0          Freeze Q. Enable only after R adaptation is stable.
+ *   0.005 – 0.01   Conservative. Recommended starting point. Resists over-inflation.  ← start here
+ *   0.01  – 0.03   Moderate. Adapt to regime changes (stop/go, terrain change).
+ *   0.03  – 0.05   Aggressive. Use only if the filter lags obviously in fast maneuvers.
+ *   β > 0.05       Q inflates quickly → P grows → gains stay high → estimates jitter.
+ *
+ *   Keep β ≤ α. Q affects P growth in the predict step, which couples back into gain
+ *   calculation and stability. Over-tuning β is harder to recover from than over-tuning α.
+ *
+ *   Rule: if the filter lags real motion despite correct R → increase β.
+ *         if estimates are jittery after noise events → decrease β.
  *
  * ## Tuning workflow
- * 1) Start with a working Simple KF (fixed Q, R) that is roughly stable.
- * 2) Enable **R adaptation first** (α>0, β=0). Check innovations:
- *    - If **Normalized Innovation Squared (NIS)** ≈ χ² mean for M dof over time, R tracking is sane.
- *    - If NIS ≫ target → R too small or α too small; if NIS ≪ target → R too large or α too large.
- * 3) Enable **Q adaptation** (β>0) to reduce lag during regime changes.
- *    - If the filter **chases noise**, reduce β (or increase α so R grows instead).
- *    - If it **lags real motion**, increase β slightly.
+ * 1) Start with a stable Simple KF (hand-tuned Q₀, R₀).
+ * 2) Switch to IAE. Set α = 0.05, β = 0. Run and monitor NIS = yᵀS⁻¹y:
+ *    - NIS ≈ M (dof) over time → R tracking is sane.
+ *    - NIS ≫ M → increase α (R too small or adapts too slowly).
+ *    - NIS ≪ M → decrease α (R overshoots).
+ * 3) Enable β = 0.01. Watch for lag vs jitter:
+ *    - Filter lags → increase β by 0.005 at a time.
+ *    - Estimates jitter → decrease β or check that α is not too small.
+ * 4) If outliers corrupt the estimates, switch to R-IAE instead.
  *
- * ## Numerical safety & PSD hygiene
- * The raw updates can yield non-PSD Q/R if data are sparse or inconsistent.
- * Recommended safeguards:
- * - **Symmetrize** after each update: `A ← 0.5 (A + Aᵀ)`.
- * - **Clamp diagonals**: `Aᵢᵢ = max(Aᵢᵢ, eps)` with small `eps` (e.g., 1e−12 in your units).
- * - Optionally **project to PSD** (eigen clip): replace negative eigenvalues with `eps`.
- * - Bound Q and R within reasonable min/max envelopes to avoid blow-ups/deflation:
- *   `A ← clip(A, A_min, A_max)` (elementwise or via spectral norms).
+ * ## Initialization
+ * - Seed Q₀, R₀ from your best prior (sensor spec, model-derived PSD).
+ * - A rough seed is fine; adaptation corrects it within 1/α steps.
+ * - The 6-arg ctor sets P₀ = Q₀ as a neutral start if you have no prior covariance.
  *
- * ## Behavior cues (what to tweak)
- * - **Track lags behind motion** → increase β (Q inflates faster) or reduce R via larger α.
- * - **Estimates jitter with noisy sensors** → decrease β or increase α (let R rise).
- * - **Covariance collapses unrealistically** (overconfident P) → increase β or floor Q/R.
- * - **Divergence after outliers** → larger α lets R absorb spikes; add R upper bounds.
- *
- * ## Dimensions & units
- * - Keep units consistent across F, B, H, Q, R, x, u, z.
- * - Innovation outer product `y yᵀ` has units of measurement²; the Q update scales via `K`.
- *
- * ## Complexity
- * Same order as Simple KF per step; extra cost is a few matrix multiplies for `y yᵀ`, `HPHᵀ`,
- * and `K y yᵀ Kᵀ`.
- *
- * ## Example starting points
- * - Start from your Simple KF’s F/B/H/Q/R.
- * - Choose `α = 0.05`, `β = 0.01`.
- * - Add symmetrization and diagonal floors after adaptation:
- *     R ← 0.5(R + Rᵀ);  Rᵢᵢ ← max(Rᵢᵢ, eps)
- *     Q ← 0.5(Q + Qᵀ);  Qᵢᵢ ← max(Qᵢᵢ, eps)
+ * ## Numerical hygiene (already applied internally)
+ * After each EMA blend, R and Q are PSD-projected (negative eigenvalues clipped to ε)
+ * and symmetrized. You may still want to add domain-specific diagonal floors/ceilings
+ * on your Q and R matrices to prevent physically impossible values (e.g., negative
+ * position variance, R dropping below sensor resolution²).
  *
  * ## Gotchas
- * - Very small α, β → no meaningful adaptation; very large values → noisy/unstable covariances.
- * - If measurements are biased (model error in H), R may inflate to cover bias; fix H first.
- * - If Δt varies, recompute F (and model-derived Q) accordingly; adaptation then trims residual mismatch.
- *
- * ## Notes
- * - This class is `final`: override points are in the base if you need custom predict/update.
- * - Setting `α=β=0` reduces behavior to the base KF (with your initial Q, R).
+ * - **Model bias** (wrong H or F): R inflates to absorb residuals — fix the model first.
+ * - **Variable Δt**: recompute F (and any kinematically derived Q₀) between steps.
+ *   Adaptation trims the residual mismatch but cannot compensate a wrong transition model.
+ * - **Cold start**: NIS is unreliable for the first ~1/α steps while R is converging.
+ *   Treat early estimates with lower confidence.
+ * - **α = β = 0**: reduces to a Simple KF with the initial Q₀, R₀ — useful for debugging.
+ * - This class is `final`; override points are in `kalman_filter_t` if you need custom behaviour.
  */
 
 template<size_t StateVectorDimension, size_t MeasurementVectorDimension, size_t ControlVectorDimension>
@@ -470,10 +486,16 @@ public:
 
     // Adapt R
     const numeric_matrix<M_, M_> HPHT = this->H_ * PHT;
-    this->R_                          = (1. - alpha_) * this->R_ + alpha_ * (y_yT - HPHT);
+    numeric_matrix<M_, M_>       R_new = y_yT - HPHT;
+    R_new.inplace_project_to_psd();
+    this->R_ = (1. - alpha_) * this->R_ + alpha_ * R_new;
+    this->R_ = 0.5 * (this->R_ + this->R_.transpose());
 
     // Adapt Q
-    this->Q_ = (1 - beta_) * this->Q_ + beta_ * (K * y_yT * K.transpose());
+    numeric_matrix<N_, N_> Q_new = K * y_yT * K.transpose();
+    Q_new.inplace_project_to_psd();
+    this->Q_ = (1 - beta_) * this->Q_ + beta_ * Q_new;
+    this->Q_ = 0.5 * (this->Q_ + this->Q_.transpose());
 
     return *this;
   }
@@ -482,92 +504,123 @@ public:
 /**
  * # Robust IAE Kalman Filter (R-IAE)
  *
- * `r_iae_kalman_filter_t<N, M, L>` augments the Simple KF with:
- *  1) **Robustified update** via Huber weighting on the **Mahalanobis** innovation.
- *  2) **Innovation-Adaptive Estimation (IAE)** of `R` and `Q` using an EMA.
+ * `r_iae_kalman_filter_t<N, M, L>` combines the IAE adaptive filter with
+ * **Huber M-estimation**: the gain and innovation are down-weighted whenever the
+ * Mahalanobis distance of the innovation exceeds a threshold τ. This prevents
+ * outliers from corrupting the state estimate, the covariance, and the adapted Q/R.
  *
- * Base model (discrete, linear):
- *   xₖ   = F xₖ₋₁ + B uₖ + wₖ,   wₖ ~ 𝒩(0, Q)
- *   zₖ   = H xₖ     + vₖ,        vₖ ~ 𝒩(0, R)
+ * ## Model
+ *   xₖ = F xₖ₋₁ + B uₖ + wₖ,   wₖ ~ 𝒩(0, Q)
+ *   zₖ = H xₖ     + vₖ,        vₖ ~ 𝒩(0, R)
  *
- * Robust step:
- *   yₖ  = zₖ − H x̂ₖ|ₖ₋₁
- *   S   = H Pₖ|ₖ₋₁ Hᵀ + R,  d² = yₖᵀ S⁻¹ yₖ
- *   Huber weight   w = 1                     if d ≤ τ
- *                         τ / d              if d > τ
- *   Use `K_eff = w K` and `y_w = w y` in the Joseph update.
+ * ## Update equations
+ *   yₖ   = zₖ − H x̂ₖ|ₖ₋₁              innovation
+ *   S    = H Pₖ|ₖ₋₁ Hᵀ + R             innovation covariance
+ *   d    = √( yₖᵀ S⁻¹ yₖ + ε )         Mahalanobis distance (ε for numerical safety)
  *
- * IAE step (with robust innovation):
- *   R ← (1−α) R + α ( (y_w y_wᵀ) − H Pₖ|ₖ₋₁ Hᵀ )   // targets the measurement noise part
- *   Q ← (1−β) Q + β ( K (y_w y_wᵀ) Kᵀ )            // process inflation consistent with gain
- * (Class applies PSD projection + symmetrization for numerical hygiene.)
+ *   Huber weight:
+ *     w = 1          if d ≤ τ            (nominal; full update)
+ *     w = τ / d      if d > τ            (outlier; scale down)
+ *
+ *   K_eff = w · K    where K = Pₖ|ₖ₋₁ Hᵀ S⁻¹
+ *   y_w   = w · y
+ *
+ *   x̂ₖ|ₖ = x̂ₖ|ₖ₋₁ + K_eff · yₖ        state update (gains scaled, raw y)
+ *   Pₖ|ₖ = (I−K_eff H) P (I−K_eff H)ᵀ + K_eff R K_effᵀ   Joseph form
+ *
+ *   R_new = project_psd( y_w y_wᵀ − HPHᵀ )
+ *   R_old = R                                              saved before EMA
+ *   R     ← (1−α) R + α R_new,  then symmetrize
+ *
+ *   Q_new = project_psd( K_eff y_w y_wᵀ K_effᵀ − K_eff R_old K_effᵀ )
+ *   Q     ← (1−β) Q + β Q_new
+ *
+ *   If S is not SPD (numerical failure), the step falls back to a plain KF
+ *   update without adaptation and returns immediately.
+ *
+ * ## IAE vs R-IAE — key differences
+ *
+ *   Both classes adapt R and Q every step using the same α/β EMA logic.
+ *   The only difference is the Huber weight w:
+ *
+ *     IAE:    w = 1 always          (no outlier protection)
+ *     R-IAE:  w ∈ (0, 1]           (outliers are down-weighted by τ/d)
+ *
+ *   Consequences:
+ *   - A spike with d = 10σ gets w = τ/10 ≈ 0.3 at τ=3, so its effect on x, P, R, Q
+ *     is reduced by ~70% compared to IAE.
+ *   - R-IAE costs one extra matrix inversion (S⁻¹ is reused) and a scalar sqrt per step.
+ *   - Use IAE when sensors are clean; use R-IAE whenever spikes are possible.
+ *
+ *   See `iae_kalman_filter_t` for the α/β decision table and tuning workflow —
+ *   everything there applies to R-IAE. The only additional parameter is τ.
  *
  * ## Template parameters
- * - `StateVectorDimension` (N): state length
- * - `MeasurementVectorDimension` (M): measurement length
- * - `ControlVectorDimension` (L): control length
+ * - `StateVectorDimension` (N):        length of the state vector x
+ * - `MeasurementVectorDimension` (M):  length of the measurement vector z
+ * - `ControlVectorDimension` (L):      length of the control vector u
  *
  * ## Storage & ownership
- * Inherits `kalman_filter_t`; holds **references** to `F`, `B`, `H`, `Q`, `R` (caller owns them).
- * `Q` and `R` are **modified at runtime** by adaptation; `F` may be changed by you between steps.
+ * Inherits `kalman_filter_t`. Holds **references** to F, B, H, Q, R (caller owns them).
+ * Q and R are modified at runtime by adaptation. F may be updated between steps.
  *
- * ## When to pick R-IAE (vs Simple/IAE)
- * - Measurements contain **outliers/heavy tails** (spikes, dropouts, multipath).
- * - Noise statistics **drift over time** (need adaptation) *and* you want outlier resilience.
- * - You need a drop-in robustifier without re-deriving sensor models.
+ * ## Parameter τ (tau) — Huber threshold
  *
- * ## Choosing parameters
- * - **α (alpha)** — EMA smoothing for `R` (0 ≤ α < 1)
- *   - Typical: `0.02 … 0.2`. Faster `R` tracking with larger α; too large → jittery `R`.
- *   - Start: `α = 0.05` (slow drift) or `0.1` (noisier/uncertain sensors).
+ * τ is in Mahalanobis units: d = √(yᵀ S⁻¹ y) ~ √(χ²_M) under nominal Gaussian noise.
  *
- * - **β (beta)** — EMA smoothing for `Q` (0 ≤ β < 1)
- *   - Typical: `0.005 … 0.05`. Often **smaller than α** (affects dynamics/stability).
- *   - Start: `β = 0.01`. Increase if filter **lags** genuine regime changes.
+ * Under a correct model the distribution of d depends on M (measurement dimension):
+ *   M=1:  d ~ half-normal; 99.7% of nominal samples have d < 3.0
+ *   M=2:  d ~ Rayleigh;    99.7% of nominal samples have d < 3.43
+ *   M=3:  99.7% have d < 3.74    (grows slowly with M)
  *
- * - **τ (tau)** — Huber threshold in **Mahalanobis σ-units**
- *   - Interpreted on √(χ²_M) scale; common: `τ = 2.5 … 3.5`. Default `3.0`.
- *   - Smaller τ → stronger outlier rejection (more conservative updates).
- *   - Larger τ → closer to standard KF (less robustification).
+ * A conservative τ passes more inliers unweighted; an aggressive τ rejects more.
  *
- * - **ε (eps)** — tiny positive floor (stability)
- *   - Used for SPD checks and divisions; pick relative to your scale.
- *   - Typical: `1e−12` for well-scaled SI units; up to `1e−9` if matrices are tiny/ill-conditioned.
+ *   τ = 2.5    Aggressive. Rejects ~1–2% of true inliers (M=1). Use with frequent spikes.
+ *   τ = 3.0    Balanced. Default. Rejects ~0.3% of inliers at M=1.                 ← start here
+ *   τ = 3.5    Conservative. Nearly no inlier rejection. Use when outliers are rare.
+ *   τ > 5.0    Barely different from IAE. Robustness effectively disabled.
  *
- * ### Quick presets
- * - **Mild outliers, slow drift:**  α=0.05, β=0.01, τ=3.0, ε=1e−12
- * - **Frequent spikes:**           α=0.1,  β=0.01, τ=2.7, ε=1e−12 (consider upper bounds on R)
- * - **Aggressive agility:**        α=0.15, β=0.03, τ=3.2, ε=1e−12 (watch for jitter)
- * - **Adapt R only:**              α>0,    β=0
+ *   For M > 1, consider scaling τ by √(χ²_M,0.997) / √(χ²_1,0.997) ≈ √(M/1) as a
+ *   rough correction to keep the false-rejection rate constant across dimensions.
  *
- * ## Behavior cues & what to tweak
- * - **Outliers still jerk the state:** lower τ (stronger down-weighting), increase α (let R rise).
- * - **Filter lags real maneuvers:**   increase β (inflate Q faster), or slightly increase τ.
- * - **Estimate jitters on noise:**    decrease β (less Q inflation), or increase τ/α.
- * - **P becomes overconfident:**      increase β or floor/clip Q; verify PSD projection is on.
+ * ## Parameter ε (eps) — numerical floor
  *
- * ## Numerical and safety notes
- * - Class **checks S SPD**; if not SPD, it falls back to a normal KF update without adaptation.
- * - After each step, `P` is symmetrized; `Q`/`R` updates are PSD-projected and symmetrized.
- * - Consider **diagonal floors/ceilings** for `Q` and `R` in your domain (e.g., min/max sensor variances).
- * - Keep units consistent; Mahalanobis distance already accounts for scaling via `S⁻¹`.
+ * Used in the Mahalanobis sqrt (avoids √0) and in the SPD check for S.
+ * Does not affect filter accuracy unless matrices are near-singular.
  *
- * ## Monitoring (recommended)
- * - Track **NIS**:  eₖ = yₖᵀ S⁻¹ yₖ  (should hover near χ²_M mean under nominal conditions).
- * - Watch `trace(R)` and `trace(Q)` over time; unexpected drifts often signal model mismatch (H, F, Δt).
+ *   ε = 1e−12   Default. Correct for double-precision, SI-scaled states (metres, rad/s).
+ *   ε = 1e−9    Use if your matrix entries are tiny (µm, nrad) to avoid false SPD failures.
+ *   ε = 1e−6    Use with single-precision (float) arithmetic.
  *
- * ## Complexity
- * Near Simple/IAE cost; extra S⁻¹ and Huber weighting are O(M³) dominated by the usual inversion.
+ * ## Quick-start presets
+ *
+ *   Noise character                  α      β      τ      ε
+ *   ───────────────────────────────  ─────  ─────  ─────  ──────
+ *   Slow drift, rare spikes          0.05   0.01   3.0    1e-12   ← safe default
+ *   Moderate drift, frequent spikes  0.10   0.01   2.7    1e-12
+ *   Fast regime changes + spikes     0.10   0.03   3.0    1e-12
+ *   Adapt R only (freeze Q)          0.05   0.00   3.0    1e-12
+ *
+ * ## Behavior cues
+ *   - **Outliers still corrupt the state:**  lower τ; or increase α so R rises to absorb them.
+ *   - **Valid maneuvers are rejected:**      raise τ slightly (was set too aggressively).
+ *   - **Filter lags real motion:**           increase β; or slightly raise τ (more of the maneuver passes).
+ *   - **Estimates jitter:**                  decrease β; or lower α if R is oscillating.
+ *   - **P collapses (overconfident):**       increase β or add a diagonal floor to Q.
+ *   - **R grows without bound:**             add a domain-specific ceiling on diagonal entries of R.
+ *
+ * ## Monitoring
+ *   - **NIS** = yᵀ S⁻¹ y should average ≈ M under a correctly specified model.
+ *   - **trace(R)**, **trace(Q)** over time: a persistent upward trend means the model
+ *     (H, F, Δt) is wrong or the noise source has changed fundamentally.
+ *   - **w histogram**: if most steps have w ≪ 1, τ is too small or the model is biased.
  *
  * ## Gotchas
- * - If your **model is biased** (e.g., wrong H), R may inflate persistently to hide bias—fix the model.
- * - Excessively small τ with large α can starve updates (w too small) and stall the filter.
- * - Variable Δt: update F (and any model-based Q) accordingly; R-IAE then trims residual mismatch.
- *
- * ## Minimal usage
- * - Start from a working Simple KF setup (F, B, H, Q, R, x0, P0).
- * - Swap to `r_iae_kalman_filter_t` with: `α = 0.05`, `β = 0.01`, `τ = 3.0`, `ε = 1e−12`.
- * - Iterate: lower τ if outliers still leak; adjust α/β using the behavior cues above.
+ * - **Model bias** (wrong H or F): R inflates to absorb residuals even without outliers. Fix the model.
+ * - **τ too small + α large**: most updates are heavily down-weighted, gains stay high,
+ *   R inflates persistently, and the filter may stall.
+ * - **Variable Δt**: recompute F (and any kinematically derived Q₀) between steps.
+ * - This class is `final`; override points are in `kalman_filter_t` if you need custom behaviour.
  */
 template<size_t StateVectorDimension, size_t MeasurementVectorDimension, size_t ControlVectorDimension>
 class r_iae_kalman_filter_t final
@@ -685,13 +738,15 @@ public:
     // 2) Adapt R (PSD-projected)
     numeric_matrix<M_, M_> R_new = ywywT - HPHT;
     R_new.inplace_project_to_psd(eps_);
-    this->R_ = (1. - alpha_) * this->R_ + alpha_ * R_new;
+    const numeric_matrix<M_, M_> R_prior = this->R_;
+    this->R_                             = (1. - alpha_) * this->R_ + alpha_ * R_new;
+    this->R_                             = 0.5 * (this->R_ + this->R_.transpose());
 
     // 3) Adapt Q using K_eff for consistency
     numeric_matrix<N_, N_> Q_new = K_eff * ywywT * K_eff.transpose();
 
-    // Optional bias correction
-    Q_new -= K_eff * this->R_ * K_eff.transpose();
+    // Bias correction uses prior R for self-consistency within this step
+    Q_new -= K_eff * R_prior * K_eff.transpose();
 
     Q_new.inplace_project_to_psd(eps_);
     this->Q_ = (1. - beta_) * this->Q_ + beta_ * Q_new;
@@ -745,9 +800,9 @@ public:
   extended_kalman_filter_t &operator=(extended_kalman_filter_t &&) noexcept = default;
 
   extended_kalman_filter_t &predict(const numeric_vector<L_> &u = {}) {
-    x_                        = move(f_(x_, u));
-    numeric_matrix<N_, N_> F_ = move(Fj_(x_, u));
-    P_                        = move(F_ * P_.matmul_T(F_) + Q_);
+    numeric_matrix<N_, N_> F_ = Fj_(x_, u);
+    x_                        = f_(x_, u);
+    P_                        = F_ * P_.matmul_T(F_) + Q_;
     return *this;
   }
 
@@ -759,7 +814,9 @@ public:
     numeric_matrix<N_, M_> K_      = move(P_Hjx_t * S_.inverse());
 
     x_ += K_ * y_;
-    P_ = move((numeric_matrix<N_, N_>::identity() - K_ * Hjx_) * P_);
+    const numeric_matrix<N_, N_> I_KH = numeric_matrix<N_, N_>::identity() - K_ * Hjx_;
+    P_                                = I_KH * P_ * I_KH.transpose() + K_ * R_ * K_.transpose();
+    P_                                = 0.5 * (P_ + P_.transpose());
 
     return *this;
   }
@@ -826,26 +883,29 @@ public:
   adaptive_extended_kalman_filter_t &operator=(adaptive_extended_kalman_filter_t &&) noexcept = default;
 
   adaptive_extended_kalman_filter_t &predict(const numeric_vector<L_> &u = {}) {
-    x_                        = move(f_(x_, u));
-    numeric_matrix<N_, N_> F_ = move(Fj_(x_, u));
-    P_                        = move(F_ * P_.matmul_T(F_) + Q_);
+    numeric_matrix<N_, N_> F_ = Fj_(x_, u);
+    x_                        = f_(x_, u);
+    P_                        = F_ * P_.matmul_T(F_) + Q_;
     return *this;
   }
 
   adaptive_extended_kalman_filter_t &update(const numeric_vector<M_> &z) {
-    numeric_vector<M_>     y_      = move(z - h_(x_));
-    numeric_matrix<M_, N_> Hjx_    = move(Hj_(x_));
-    numeric_matrix<N_, M_> P_Hjx_t = move(P_.matmul_T(Hjx_));
-    numeric_matrix<M_, M_> S_      = move(Hjx_ * P_Hjx_t + R_);
-    numeric_matrix<N_, M_> K_      = move(P_Hjx_t * S_.inverse());
+    numeric_vector<M_>           y_      = move(z - h_(x_));
+    numeric_matrix<M_, N_>       Hjx_    = move(Hj_(x_));
+    numeric_matrix<N_, M_>       P_Hjx_t = move(P_.matmul_T(Hjx_));
+    const numeric_matrix<M_, M_> HPHT    = Hjx_ * P_Hjx_t;
+    numeric_matrix<M_, M_>       S_      = move(HPHT + R_);
+    numeric_matrix<N_, M_>       K_      = move(P_Hjx_t * S_.inverse());
 
     x_ += K_ * y_;
-    P_ = move((numeric_matrix<N_, N_>::identity() - K_ * Hjx_) * P_);
+    const numeric_matrix<N_, N_> I_KH = numeric_matrix<N_, N_>::identity() - K_ * Hjx_;
+    P_                                = I_KH * P_ * I_KH.transpose() + K_ * R_ * K_.transpose();
+    P_                                = 0.5 * (P_ + P_.transpose());
 
     numeric_matrix<M_, 1>  y_mat = y_.as_matrix_col();
     numeric_matrix<M_, M_> y_yT  = y_mat.matmul_T(y_mat);
 
-    adapt_R(y_yT, S_);
+    adapt_R(y_yT, HPHT);
     adapt_Q(K_, y_yT);
 
     return *this;
@@ -864,8 +924,8 @@ public:
   const numeric_matrix<N_, N_> &Q            = Q_;
 
 private:
-  void adapt_R(const numeric_matrix<M_, M_> &y_yT, const numeric_matrix<M_, M_> &S) {
-    R_ = (1 - alpha_) * R_ + alpha_ * (y_yT + S);
+  void adapt_R(const numeric_matrix<M_, M_> &y_yT, const numeric_matrix<M_, M_> &HPHT) {
+    R_ = (1 - alpha_) * R_ + alpha_ * (y_yT - HPHT);
   }
 
   void adapt_Q(const numeric_matrix<N_, M_> &K, const numeric_matrix<M_, M_> &y_yT) {
