@@ -46,6 +46,7 @@
 #include "utils/pipeline.hpp"
 #include "utils/json.hpp"
 #include "utils/sampler.hpp"
+#include "utils/command_parser.hpp"
 
 #include "memory/bitmap_allocator.hpp"
 
