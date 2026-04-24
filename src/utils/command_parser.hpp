@@ -9,7 +9,7 @@
 LIB_XCORE_BEGIN_NAMESPACE
 
 /**
-   * Simple whitespace-delimited C-string command parser.
+   * Simple C-string command parser with configurable delimiter.
    *
    * Copies the input into an internal fixed-size buffer, then tokenizes it
    * in-place. No heap allocation. Safe for embedded targets.
@@ -24,8 +24,9 @@ LIB_XCORE_BEGIN_NAMESPACE
    *
    * @tparam BufferSize  Maximum input length (including null terminator).
    * @tparam MaxArgs     Maximum number of tokens (command + arguments).
+   * @tparam Delimiter   Character used to separate tokens (default: ' ').
    */
-template<size_t BufferSize = 64, size_t MaxArgs = 8>
+template<size_t BufferSize = 64, size_t MaxArgs = 8, char Delimiter = ' '>
 class command_parser_t {
   char        buffer_[BufferSize];
   const char *argv_data_[MaxArgs];
@@ -45,7 +46,7 @@ public:
   command_parser_t() : buffer_{}, argv_data_{}, argc_(0), argv{argv_data_, &argc_} {}
 
   /**
-     * Parse a C-string command. Tokens are separated by whitespace (' ' or '\t').
+     * Parse a C-string command. Tokens are separated by Delimiter.
      * Returns true if at least one token was found.
      * Returns false if input is null or exceeds BufferSize.
      */
@@ -61,14 +62,12 @@ public:
 
     char *p = buffer_;
     while (*p && argc_ < MaxArgs) {
-      // Skip leading whitespace
-      while (*p == ' ' || *p == '\t') ++p;
+      while (*p == Delimiter) ++p;
       if (!*p) break;
 
       argv_data_[argc_++] = p;
 
-      // Advance to end of token
-      while (*p && *p != ' ' && *p != '\t') ++p;
+      while (*p && *p != Delimiter) ++p;
       if (*p) *p++ = '\0';
     }
 
