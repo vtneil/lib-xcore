@@ -31,7 +31,7 @@ namespace container {
         return static_cast<const concrete_array_t *>(this);
       }
 
-      [[nodiscard]] constexpr Tp       *get_derived_data() noexcept { return static_cast<Tp *>(*derived()); }
+      [[nodiscard]] constexpr Tp *get_derived_data() noexcept { return static_cast<Tp *>(*derived()); }
 
       [[nodiscard]] constexpr const Tp *get_derived_data() const noexcept { return static_cast<const Tp *>(*derived()); }
 

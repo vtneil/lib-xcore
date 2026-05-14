@@ -20,6 +20,11 @@ namespace container {
     using Base::empty;
     using Base::full;
     using Base::size;
+    using Base::find;
+    using Base::begin;
+    using Base::end;
+    using Base::cbegin;
+    using Base::cend;
 
     bool push(const Tp &value) {
       return this->push_back(value);

@@ -138,18 +138,64 @@ namespace container {
       return arr_[utils::cyclic<Capacity>(pos_back_ - 1)];
     }
 
+    // Iterators
+
+    struct iterator {
+      Container<Tp, Capacity> *arr_;
+      size_t                   pos_front_;
+      size_t                   i_;
+
+      constexpr Tp       &operator*() { return (*arr_)[utils::cyclic<Capacity>(pos_front_ + i_)]; }
+      constexpr iterator &operator++() {
+        ++i_;
+        return *this;
+      }
+      constexpr bool operator!=(const iterator &o) const { return i_ != o.i_; }
+    };
+
+    struct const_iterator {
+      const Container<Tp, Capacity> *arr_;
+      size_t                         pos_front_;
+      size_t                         i_;
+
+      constexpr const Tp       &operator*() const { return (*arr_)[utils::cyclic<Capacity>(pos_front_ + i_)]; }
+      constexpr const_iterator &operator++() {
+        ++i_;
+        return *this;
+      }
+      constexpr bool operator!=(const const_iterator &o) const { return i_ != o.i_; }
+    };
+
+    constexpr iterator       begin() { return {&arr_, pos_front_, 0}; }
+    constexpr iterator       end() { return {&arr_, pos_front_, size_}; }
+    constexpr const_iterator begin() const { return {&arr_, pos_front_, 0}; }
+    constexpr const_iterator end() const { return {&arr_, pos_front_, size_}; }
+    constexpr const_iterator cbegin() const { return begin(); }
+    constexpr const_iterator cend() const { return end(); }
+
+    // Search
+
+    [[nodiscard]] constexpr ssize_t find(const Tp &val) const noexcept {
+      for (size_t i = 0; i < size_; ++i) {
+        if (arr_[utils::cyclic<Capacity>(pos_front_ + i)] == val)
+          return static_cast<ssize_t>(i);
+      }
+      return -1;
+    }
+
     // Capacity
+
     [[nodiscard]] FORCE_INLINE constexpr size_t size() const noexcept { return size_; }
 
     [[nodiscard]] FORCE_INLINE constexpr size_t capacity() const noexcept { return Capacity; }
 
-    [[nodiscard]] FORCE_INLINE constexpr bool   available_for(const size_t n) const { return (n <= Capacity) && (Capacity - size() >= n); }
+    [[nodiscard]] FORCE_INLINE constexpr bool available_for(const size_t n) const { return (n <= Capacity) && (Capacity - size() >= n); }
 
-    [[nodiscard]] FORCE_INLINE constexpr bool   empty() const { return size() == 0; }
+    [[nodiscard]] FORCE_INLINE constexpr bool empty() const { return size() == 0; }
 
-    [[nodiscard]] FORCE_INLINE constexpr bool   full() const { return !available_for(1); }
+    [[nodiscard]] FORCE_INLINE constexpr bool full() const { return !available_for(1); }
 
-    constexpr const Tp                         *data() const { return arr_; }
+    constexpr const Tp *data() const { return arr_; }
 
   protected:
     FORCE_INLINE void _internal_push_back(const Tp &t) {
